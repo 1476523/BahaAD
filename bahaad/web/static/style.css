@@ -1,0 +1,3819 @@
+/* 主題色票：淺色是預設 :root，深色透過 [data-theme="dark"] 覆蓋。
+   見 docs/requirements/web_redesign.md「整體殼層」——側欄圖示依主題切換白／黑兩色，
+   套色邏輯在樣板裡（icons/{name}-{black|white}.png），這裡只管版面色票本身。 */
+:root {
+  --bg: #f4f4f6;
+  --bg-elevated: #ffffff;
+  --text: #1f2430;
+  --text-muted: #666666;
+  --border: #e2e2e6;
+  --accent: #2e7d32;
+  --accent-text: #ffffff;
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e2e2e6;
+  --nav-hover-bg: #f0f0f3;
+  --nav-active-bg: #e6f4ea;
+  --nav-active-text: #2e7d32;
+  /* 全站圖示（img.theme-icon，來源檔都是純黑 glyph）統一染成 accent 綠——深色主題下
+     黑 glyph 幾乎看不見，使用者 2026-08-26 回饋「全部圖示都上色」。淺色主題目標
+     ~#2e7d32，作用中導覽項目稍深。 */
+  --icon-tint: brightness(0) saturate(100%) invert(31%) sepia(53%) saturate(560%)
+    hue-rotate(80deg) brightness(94%) contrast(90%);
+  --icon-tint-active: brightness(0) saturate(100%) invert(24%) sepia(63%) saturate(560%)
+    hue-rotate(85deg) brightness(90%) contrast(95%);
+  --warning-bg: #fff4e5;
+  --warning-border: #f0b429;
+  --overlay-bg: rgba(0, 0, 0, 0.4);
+  --toast-bg: #1f2430;
+  --toast-text: #ffffff;
+}
+
+[data-theme="dark"] {
+  --bg: #15171c;
+  --bg-elevated: #1f222a;
+  --text: #e8e9ec;
+  --text-muted: #9a9ea8;
+  --border: #2c2f38;
+  --accent: #4caf50;
+  --accent-text: #0d1a0e;
+  --sidebar-bg: #1a1c22;
+  --sidebar-border: #2c2f38;
+  --nav-hover-bg: #262932;
+  --nav-active-bg: #1f2e21;
+  --nav-active-text: #6fcf73;
+  /* 深色主題：純黑 glyph → 亮綠 ~#6fcf73，作用中導覽項目更亮 ~#8fe093 */
+  --icon-tint: brightness(0) saturate(100%) invert(72%) sepia(38%) saturate(430%)
+    hue-rotate(73deg) brightness(95%) contrast(88%);
+  --icon-tint-active: brightness(0) saturate(100%) invert(85%) sepia(30%) saturate(440%)
+    hue-rotate(72deg) brightness(100%) contrast(90%);
+  --warning-bg: #332a13;
+  --warning-border: #f0b429;
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+  --toast-bg: #2c2f38;
+  --toast-text: #e8e9ec;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* 使用者 2026-08-29：整站不顯示捲軸（桌面工具取向，捲動仍可用滾輪／觸控／拖曳）。
+   仍保留可捲動內容的水平捲軸（overflow-x 容器需要它才知道還有內容可捲）。 */
+* {
+  scrollbar-width: none; /* Firefox */
+}
+*::-webkit-scrollbar:vertical {
+  width: 0;
+}
+
+/* 使用者 2026-08-27：圖示／圖片不可拖曳、文字不可拖曳選取（輸入框內例外）。
+   這是桌面工具的取向——網頁只是介面，不是可任意複製的文件。
+   `a` 也要——卡片封面是 <a> 包 <img>，只擋 <img> 的話拖 <a> 仍會產生帶網址的
+   連結拖曳 ghost。 */
+a,
+img {
+  -webkit-user-drag: none;
+}
+
+img {
+  user-select: none;
+}
+
+body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea,
+select,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  user-select: text;
+}
+
+/* 讓原生表單控制項（date/time picker、下拉箭頭、捲軸）跟著主題走 */
+:root {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Microsoft JhengHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: var(--nav-active-text);
+}
+
+/* 所有文字類輸入框的基本主題色——不管有沒有包在 <form> 裡（手動下載頁的欄位就沒有），
+   都不要留瀏覽器原生的白底（使用者 2026-08-26 回饋）。<form> 內的欄位另外由
+   `form input` 補上 display:block/滿寬版面。 */
+input[type="text"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="email"],
+input[type="url"],
+input[type="date"],
+input[type="time"],
+input:not([type]),
+textarea,
+select {
+  font: inherit;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  padding: 0.4rem 0.5rem;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--nav-active-text);
+  outline-offset: -1px;
+}
+
+/* ---- 側欄殼層 ---- */
+
+#shell {
+  display: flex;
+  min-height: 100vh;
+  /* modal/toast 置中用（round 7 第 2 項）：內容區＝視窗扣掉左側欄、右側面板的範圍。
+     側欄收合／右側面板開啟時下面兩條 override 會改這兩個值。 */
+  --overlay-left: 15rem;
+  --overlay-right: 0px;
+}
+
+#shell.sidebar-collapsed {
+  --overlay-left: 4.5rem;
+}
+
+#shell.schedule-open,
+#shell.ya-panel-open {
+  --overlay-right: 23rem; /* 右側面板 width(20rem) + right(1.5rem) + 間距 */
+}
+
+#sidebar {
+  /* sticky＋自身高度固定成一個視窗高：長頁面（首頁 60 張卡、設定長表單）捲動時
+     側欄不跟著捲走，「設定」鈕永遠看得到（使用者 2026-08-26 回饋）。position:sticky
+     長頁面捲動時側欄不跟著捲走。position:sticky 也建立 .sidebar-actions 展開態
+     absolute 定位的參考。 */
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  overflow-y: auto;
+  width: 15rem;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0.75rem;
+  transition: width 0.15s ease;
+}
+
+#shell.sidebar-collapsed #sidebar {
+  width: 4.5rem;
+  padding: 1rem 0.5rem;
+}
+
+.sidebar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding: 0 0.75rem;  /* 跟 .nav-item 的左右 padding 對齊，logo 才不會比下面的 nav 圖示偏左 */
+}
+
+#shell.sidebar-collapsed .sidebar-top {
+  justify-content: center;
+  padding: 0;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--text);
+  overflow: hidden;
+}
+
+.brand-logo {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  object-fit: contain;
+  -webkit-user-drag: none;
+}
+
+.brand-name {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.nav-item:hover {
+  background: var(--nav-hover-bg);
+}
+
+.nav-item.active {
+  background: var(--nav-active-bg);
+  color: var(--nav-active-text);
+  font-weight: 600;
+}
+
+/* 全站圖示統一染 accent 綠——來源檔都是純黑 glyph（只靠 alpha 帶形狀），深色主題下
+   幾乎看不見（使用者 2026-08-26 回饋「全部圖示都上色」）。例外：已訂閱鈴鐺（金色，
+   見下方 .bell-btn.subscribed），以及下載卡片中央的重試鈕圖示（壓在封面上永遠用白，
+   那個 <img> 沒有 .theme-icon class，本來就不受這裡影響）。 */
+img.theme-icon {
+  filter: var(--icon-tint);
+}
+
+.nav-item img.theme-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.nav-item.active img.theme-icon {
+  filter: var(--icon-tint-active);
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+}
+
+/* 版本號 + BETA 標記，「設定」下方（使用者 2026-08-28）。 */
+.sidebar-version {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0.9rem 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* BETA 徽章：橘色染色、白字（放大縮小、換色都好調）。 */
+.beta-badge {
+  display: inline-block;
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.28rem;
+  background: #e8730c;
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+#shell.sidebar-collapsed .sidebar-version {
+  justify-content: center;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+#shell.sidebar-collapsed .sidebar-version .nav-label {
+  display: none;
+}
+
+/* 「隱私權政策」按鈕：版本號／BETA 徽章右側（使用者 2026-09-08，從設定頁移來）。
+   低調的底線文字鈕；靠 .nav-label 一起在側欄收合時消失。 */
+.sidebar-privacy-btn {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sidebar-privacy-btn:hover {
+  color: var(--text);
+}
+
+/* 主題切換 + 登出（round3 階段 9）。放「原本主題切換鈕」的位置——
+   展開態：浮在側欄右上角（品牌列旁），[主題][登出] 橫排、主題在左。
+   收合態：排進 flex 流、緊接在「設定」正上方，[主題]/[登出] 直排、主題在上。
+   登出只有圖示、不放「登出」二字（使用者 2026-08-27）。 */
+.sidebar-actions {
+  position: absolute;
+  top: 1rem;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+#shell.sidebar-collapsed .sidebar-actions {
+  position: static;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto 0.25rem;
+}
+
+/* 收合態：nav-item / 主題切換鈕 / 設定鈕的圖示全部置中對齊成一直行——展開態的
+   nav-item 是「圖示靠左＋文字」，收合後文字消失、圖示若還停在原本的靠左位置，就會
+   跟置中的 icon-btn（主題鈕）對不齊看起來歪一邊（使用者回饋 2026-08-26） */
+#shell.sidebar-collapsed .nav-item {
+  justify-content: center;
+  padding-left: 0.4rem;
+  padding-right: 0.4rem;
+}
+
+#shell.sidebar-collapsed .nav-label,
+#shell.sidebar-collapsed .brand-name {
+  display: none;
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background: var(--nav-hover-bg);
+}
+
+.icon-btn img {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+/* 「啟用中／按下」的視覺反應：給一個明顯的底色（跟側欄 nav-item active 同一套色）。
+   刻意不做「圖示反色」——淺色主題下把黑圖示反成白會在白底頁面上幾乎看不見。
+   階段 4「重新檢查排程更新」按鈕檢查中會套用這個 class。見 web_redesign_round2.md */
+.icon-btn.is-active {
+  background: var(--nav-active-bg);
+}
+
+/* 常駐 accent 底色的圖示鈕——透明圖示鈕（只有一個黑／白圖示）在暗色跟淺色主題下
+   都不夠明顯，看不出來是可按的控制項（使用者 2026-08-26 回饋：「暗色或白色主題
+   有時會讓一些按鈕看不清楚」）。側欄收合／週期表切換／週期表收合這幾顆 chrome
+   控制鈕都套；之後「重新檢查排程更新」等功能鈕也加這個 class。見 web_redesign_round2.md */
+.icon-btn--accent {
+  background: var(--nav-active-bg);
+  /* 淺色主題下 nav-active-bg (#e6f4ea) 貼在近白頁底上對比很低，加一圈 accent 綠內框
+     讓按鈕在兩個主題下都明確框得出來 */
+  box-shadow: inset 0 0 0 1px var(--nav-active-text);
+}
+
+.icon-btn--accent:hover {
+  background: var(--nav-active-bg);
+  box-shadow: inset 0 0 0 2px var(--nav-active-text);
+}
+
+/* 頂列「工具更新」鈕：一般更新＝黃框、重點更新＝紅框（蓋掉 .icon-btn--accent 的綠框），
+   外框做成呼吸燈漸變（使用者 2026-08-28）——重點更新的節奏快一點、比較急。 */
+.update-toggle--general,
+.update-toggle--general:hover {
+  background: rgba(255, 204, 0, 0.18);
+  animation: update-breathe-general 2.4s ease-in-out infinite;
+}
+
+.update-toggle--important,
+.update-toggle--important:hover {
+  background: rgba(220, 53, 69, 0.18);
+  animation: update-breathe-important 1.5s ease-in-out infinite;
+}
+
+/* 外框顏色本身也漸變（使用者 2026-08-28）：亮處＝1.5px 全飽和內框＋緊密外暈，
+   暗處＝1px 半透明內框＋擴散淡暈，整圈框看起來在「呼吸」。 */
+@keyframes update-breathe-general {
+  0%, 100% { box-shadow: inset 0 0 0 1.5px rgba(255, 214, 0, 1), 0 0 4px 1px rgba(255, 204, 0, 0.65); }
+  50%      { box-shadow: inset 0 0 0 1px rgba(255, 204, 0, 0.35), 0 0 12px 4px rgba(255, 204, 0, 0.1); }
+}
+
+@keyframes update-breathe-important {
+  0%, 100% { box-shadow: inset 0 0 0 1.5px rgba(233, 60, 78, 1), 0 0 4px 1px rgba(220, 53, 69, 0.7); }
+  50%      { box-shadow: inset 0 0 0 1px rgba(220, 53, 69, 0.35), 0 0 14px 5px rgba(220, 53, 69, 0.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .update-toggle--general {
+    animation: none;
+    box-shadow: inset 0 0 0 1px rgb(255, 204, 0);
+  }
+  .update-toggle--important {
+    animation: none;
+    box-shadow: inset 0 0 0 1px rgb(220, 53, 69);
+  }
+}
+
+/* 透明底＋accent 綠內框——「透明設計、但兩個主題下都看得出是按鈕」（使用者 2026-08-27：
+   完全透明的「重新檢查」鈕在暗色／白色主題都看不太到，綠色外框要保留）。 */
+.icon-btn--outline {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--nav-active-text);
+}
+
+.icon-btn--outline:hover {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--nav-active-text);
+}
+
+#content-pane {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 左邊「收合／展開側欄」鈕、右邊（首頁才有）「展開／收合週期表」鈕排在同一水平線上。
+   其他頁面沒有右邊那顆，單一子項目在 space-between 下維持靠左。見
+   docs/requirements/web_redesign_round2.md 階段 1 */
+.content-top {
+  padding: 1rem 1.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 左上一組：收合鈕 + 訂閱通知鈕，同一水平線，一起隨側欄開合左右移動 */
+.content-top-left {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* 訂閱通知：鈕 + 下拉面板。面板 absolute 掛在 wrap 底下 */
+.notif-wrap {
+  position: relative;
+}
+
+#notif-panel {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  width: 22rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  padding: 0.5rem;
+  z-index: 30;
+}
+
+#notif-panel .notif-empty {
+  margin: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+#notif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notif-item {
+  padding: 0.6rem 0.5rem;
+  border-top: 1px solid var(--border);
+}
+.notif-item:first-child {
+  border-top: none;
+}
+.notif-item p {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+.notif-item-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.notif-item-actions button {
+  font-size: 0.85rem;
+  padding: 0.25rem 0.6rem;
+}
+
+/* 官方公告通知：番劇名稱（粗）／機動調整結果／原始公告文字（淡、小字） */
+.notif-item-title {
+  font-weight: 600;
+}
+.notif-item-adjust {
+  color: var(--text-muted);
+}
+.notif-item-clause {
+  font-size: 0.82rem !important;
+  color: var(--text-muted);
+  padding-left: 0.6rem;
+  border-left: 2px solid var(--border);
+}
+
+/* 「立即操作／更改操作」處置視窗——比一般 modal-box 寬一點，容得下自訂日期時間欄位 */
+.gossip-modal-box {
+  max-width: 32rem;
+  text-align: left;
+}
+.gossip-modal-box .gossip-event {
+  margin-bottom: 0;
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+#page-content {
+  padding: 1rem 1.5rem 2rem;
+  flex: 1;
+}
+
+/* ---- 搜尋番劇：頂部搜尋框 ---- */
+
+.search-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-bar input[type="search"] {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.75rem;
+}
+
+.search-bar .icon-btn {
+  flex-shrink: 0;
+  padding: 0 0.9rem;
+}
+
+/* ---- 卡片格載入指示（近期熱播下滑無限捲動）----
+   放在 #page-content 流裡、水平置中——#page-content 的寬度本來就會跟著側欄開合變動，
+   所以 justify-content:center 就是「內容區中央」，不用 JS 算位置。 */
+.card-grid-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+}
+
+.card-grid-loading[hidden] {
+  display: none;
+}
+
+.card-grid-loading img {
+  width: 48px;
+  height: 48px;
+}
+
+/* 訊息態（「已經到底了」「載入失敗…」）：不顯示旋轉動畫 */
+.card-grid-loading:not(.is-loading) img {
+  display: none;
+}
+
+/* ---- 導覽整頁重載期間的即時回饋（shell.js showNavLoading）----
+   點側欄項目到新頁 paint 之間畫面沒變化，蓋一層置中載入動畫讓使用者知道點到了。
+   固定覆蓋整個視窗；整頁重載時會連同這層一起丟棄，不用自己拆。 */
+.nav-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--text-muted);
+  background: var(--overlay-bg);
+}
+
+.nav-loading-overlay img {
+  width: 48px;
+  height: 48px;
+}
+
+/* ---- 首頁：本季新番卡片格 + 週期表側板 ---- */
+
+#home-page {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+#home-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 本季新番環狀捲動（home_circular.js）：有資料時 home.html 給 #shell 掛 .home-circular，
+   把整條 chain 鎖在視窗高度內，只讓 #newanime-scroll 捲。標題「本季新番」＋「共 N 部」
+   固定在上方不捲；日期分組、卡片格樣式完全不變。
+   使用者 2026-09-05：近期熱播／最新上架／搜尋番劇／訂閱列表也要「上方標題＋數量固定、
+   只有卡片格捲動」——共用同一套「鎖 #shell 視窗高度」機制，另開一個通用的
+   `.pinned-scroll`（跟 `.home-circular` 平行，不是取代它——環狀捲動另外還有隱藏捲軸／
+   複製三輪那些專屬的東西）。各頁自己的內容外層（`#trending-page` 等）＋內部捲動容器
+   （`#trending-scroll` 等）比照 `#home-page`／`#newanime-scroll` 各自加規則。 */
+#shell.home-circular,
+#shell.pinned-scroll {
+  height: 100vh;
+  overflow: hidden;
+}
+
+#shell.home-circular #content-pane,
+#shell.pinned-scroll #content-pane {
+  min-height: 0;
+}
+
+#shell.home-circular #page-content,
+#shell.pinned-scroll #page-content {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#shell.home-circular #home-page,
+#shell.pinned-scroll #home-page {
+  flex: 1;
+  min-height: 0;
+  /* 預設 align-items:flex-start 會讓 #home-main 縮成內容高度；環狀捲動要它撐滿
+     #home-page 的高度，裡面的 #newanime-scroll 才有可視區可以 flex:1 */
+  align-items: stretch;
+}
+
+#shell.home-circular #home-main,
+#shell.pinned-scroll #home-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 新番快訊：標題（.page-head）與說明（.help-text）之間、說明與捲動卡片格之間都留白，
+   不然三者擠在一起（使用者 2026-09-08）。flex 直欄沒有 margin collapse，直接給間距。 */
+#shell.pinned-scroll #home-main > .page-head {
+  margin-bottom: 0.5rem;
+}
+
+#shell.pinned-scroll #home-main > .help-text {
+  margin: 0 0 1.25rem;
+}
+
+#newanime-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  /* 環狀捲動時捲軸滑塊會一直跳，藏起來——仍可滾輪／觸控捲動（比照 #schedule-panel-scroll）。 */
+  scrollbar-width: none;
+}
+
+#newanime-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* 環狀捲動：每一組日期之間的間隔要統一——包含「每一輪之間的接縫」（上一輪最後一組
+   ↔ 下一輪第一組），不然接縫看起來比組跟組之間窄（使用者 2026-09-01）。
+   - .newanime-cycle 用 display:flow-root 建立 BFC，讓每輪「第一個標題的 margin-top」
+     被包在該輪的 offsetHeight 裡（不 collapse 穿出去）→ 每輪高度一致、接縫 = 一般
+     組間距、home_circular.js 用 offsetHeight 環狀平移是像素對齊的。
+   - 蓋掉 .home-day-heading:first-of-type 的 0.5rem，讓每輪第一個標題也用一般的 1.5rem。
+   「切齊上緣」由 home_circular.js 微調 scrollTop（把中間那輪第一個標題捲到貼齊），
+   不靠拿掉 margin。 */
+#newanime-scroll .newanime-cycle {
+  display: flow-root;
+}
+
+#newanime-scroll .newanime-cycle > .home-day-heading:first-of-type {
+  margin-top: 1.5rem;
+}
+
+/* 非環狀（抓取失敗／沒資料）時 #newanime-scroll 不存在，或存在但沒有 .home-circular
+   → 不套 flex/overflow，維持一般頁面捲動。 */
+#shell:not(.home-circular) #newanime-scroll {
+  overflow: visible;
+}
+
+/* 近期熱播／最新上架／搜尋番劇／訂閱列表：標題（＋數量／搜尋框）固定，只有卡片格那塊
+   （`#xxx-scroll`）捲動——跟上面 `.home-circular`／`#home-page`／`#newanime-scroll` 同一套
+   機制，這裡是各頁自己的容器 id。`.pinned-scroll` 沒掛的頁面（理論上不會發生，四個頁面
+   都固定掛）這幾條規則直接不生效，容器退回一般文件流。
+   新番快訊（`/newanime`）沿用首頁的 `#home-page`/`#home-main` flex 版型（上面
+   `#shell.pinned-scroll #home-page`/`#home-main` 那組），卡片格外層是
+   `#newanime-list-scroll`。 */
+#shell.pinned-scroll #trending-page,
+#shell.pinned-scroll #latest-page,
+#shell.pinned-scroll #search-page,
+#shell.pinned-scroll #subs-page,
+#shell.pinned-scroll #leaderboard-page,
+#shell.pinned-scroll #downloads-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#trending-scroll,
+#latest-scroll,
+#search-scroll,
+#subs-scroll,
+#leaderboard-scroll,
+#downloads-scroll,
+#newanime-list-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* 日誌／發送歷史／官方公告／資料庫整頓：資料多、要換頁，希望頭尾固定、只有清單捲動
+   （使用者 2026-09-08）。`.auth-card.paged-card` 掛 `.pinned-scroll` 時變成撐滿視窗
+   高度的 flex 直欄，`__head`／`__foot` 不捲、`__body` 捲。沒掛 `.pinned-scroll`
+   （理論上不會）就退回一般的置中卡片。 */
+#shell.pinned-scroll .paged-card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 1.5rem auto;
+  overflow: hidden;
+  width: 100%;
+}
+
+#shell.pinned-scroll .paged-card__head,
+#shell.pinned-scroll .paged-card__foot {
+  flex: 0 0 auto;
+}
+
+#shell.pinned-scroll .paged-card__head {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+#shell.pinned-scroll .paged-card__head > *:last-child {
+  margin-bottom: 0;
+}
+
+#shell.pinned-scroll .paged-card__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* 卡片內距（1.5rem 2rem）本來靠 padding 撐上下留白——改成 flex 直欄後，捲動區
+   自己的上下留白要另外補，不然清單第一／最後一列會貼著頭尾。 */
+#shell.pinned-scroll .paged-card__body {
+  padding: 0.75rem 0;
+}
+#shell.pinned-scroll .paged-card__foot {
+  margin: 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+/* 「歡迎回來」放在頂欄通知鈴鐺旁邊（原本在首頁標題旁邊，那個位置改顯示數量，
+   見 .page-head；使用者 2026-09-05）。 */
+.topbar-welcome {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* 首頁／最新上架／訂閱列表：標題＋數量（原本「歡迎回來」的位置）同一列、
+   左右對齊（使用者 2026-09-05）。 */
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-head .anime-grid-count {
+  margin-bottom: 0;
+}
+
+.anime-grid-count {
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.anime-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+}
+
+/* .0 改進.txt 第 23 項：首頁本季新番的「M/D（週X）」分組標題（仿官方時間軸） */
+.home-day-heading {
+  font-size: 0.95rem;
+  color: var(--nav-active-text);
+  margin: 1.5rem 0 0.75rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.home-day-heading:first-of-type {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 90rem) {
+  .anime-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 60rem) {
+  .anime-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 每張番劇卡片有自己的背景框，跟頁面底色區分開（使用者 2026-08-28 回饋，比照動畫瘋
+   站上的卡片）——全站所有顯示番劇的頁面共用（首頁／近期熱播／最新上架／搜尋／訂閱
+   列表／下載列表／番劇詳細頁的相關動畫）。 */
+.anime-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  padding: 0.5rem;
+  transition: border-color 0.12s ease;
+}
+
+.anime-card:hover {
+  border-color: var(--accent);
+}
+
+/* ---- 訂閱鈴鐺（見 _bell.html）----
+   灰／白＝未訂閱，沿用既有主題圖示（跟其他側欄圖示同一套黑白邏輯，不另外做灰色
+   資源）；已訂閱時用 CSS filter 把圖示轉成金色——`brightness(0)` 先把任何顏色的
+   來源圖示壓成純黑（保留 alpha），後面幾個 filter 再疊上去染色，兩種主題圖示
+   套用同一組 filter 結果一致，不用為淺色/深色各調一次。
+   底色：未訂閱＝中性底＋邊框、已訂閱＝金色底＋金框——透明的圖示鈕在兩個主題下都
+   看不出來是可按的按鈕（使用者 2026-08-26 回饋）。 */
+.bell-btn {
+  z-index: 2;
+  background: var(--bg-elevated);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.bell-btn:hover {
+  background: var(--nav-hover-bg);
+}
+
+.bell-btn.subscribed {
+  background: rgba(255, 204, 0, 0.16);
+  box-shadow: inset 0 0 0 1px rgb(255, 204, 0);
+}
+
+.bell-btn.subscribed .bell-icon {
+  filter: brightness(0) saturate(100%) invert(75%) sepia(64%) saturate(1000%) hue-rotate(1deg) brightness(101%)
+    contrast(101%);
+}
+
+.anime-card-cover {
+  display: block;
+  aspect-ratio: 3 / 4;
+  border-radius: 0.4rem;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* 首頁本季新番／週期表的卡片封面，站方給的是 16:9 的單集截圖（960×540），不是
+   直式海報——用 3:4 直式框會把兩側裁掉一大塊，改成 16:9 顯示完整畫面（訂閱列表／
+   下載列表用的是 animeVideo.php 的直式海報，維持 3:4，所以這裡只 scope 到 #home-page） */
+#home-page .anime-card-cover {
+  aspect-ratio: 16 / 9;
+}
+
+/* 新番快訊（/newanime）的卡片圖是 youranimes 的直式主視覺圖——比照近期熱播／最新上架
+   維持 3:4，不吃上面 #home-page 的 16:9（new_anime_bulletin.md §6b）。 */
+#home-page .newanime-grid .anime-card-cover {
+  aspect-ratio: 3 / 4;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.newanime-cover-fallback {
+  padding: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--text-muted, #888);
+  text-align: center;
+}
+
+/* VIP／地區限制徽章——比照日誌等級徽章的「外框上色字」（§6c）。 */
+.newanime-badge {
+  position: absolute;
+  top: 0.3rem;
+  left: 0.3rem;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border: 1.5px solid currentColor;
+  border-radius: 0.25rem;
+  background: var(--card-bg, #1c1c1c);
+}
+
+.newanime-badge--region {
+  top: auto;
+  bottom: 0.3rem;
+}
+
+.newanime-badge--vip {
+  color: #d9a400;
+}
+
+.newanime-badge--region {
+  color: #d94f4f;
+}
+
+/* 詳細頁的標題列：徽章排在標題旁邊（不是浮在封面上），回到正常流。 */
+.anime-detail-title-row .newanime-badge {
+  position: static;
+  align-self: center;
+}
+
+.newanime-track-form {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+/* 鈴鐺／「重新檢查」鈕放在標題右側的 .anime-card-foot 裡（不浮在封面上，使用者
+   2026-08-26／27 回饋：不要擋到封面圖）——全站卡片統一（_cards.html anime_card macro）。 */
+.anime-card-foot {
+  display: flex;
+  gap: 0.4rem;
+  align-items: flex-start;
+  position: relative;  /* .anime-card-public 絕對定位的參考 */
+}
+
+.anime-card-foot .anime-card-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.anime-card-foot .bell-btn,
+.anime-card-foot .recheck-btn {
+  flex-shrink: 0;
+  margin-top: 0.3rem;
+}
+
+.anime-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 標題固定預留 2 行高度——單行標題也佔 2 行的位置，讓下方 meta（第 3 行）在每張卡片
+   都對齊、不因標題長短而高低不一（使用者 2026-08-27「統一規格」）。 */
+.anime-card-title {
+  margin: 0.5rem 0 0.15rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.3;
+  min-height: 2.6em;   /* 2 行 × line-height 1.3 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.anime-card-meta {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* 週期表項目標題跑馬燈（title_marquee.js）：過長被截斷的標題水平捲動看完整
+   （使用者 2026-09-01）。金框那列預設就捲、其餘列滑鼠移上去才捲；捲動時序由 JS
+   的 Web Animations API 排（固定速度＋兩端停頓），這裡只把 span 變成能位移的
+   inline-block。 */
+.schedule-entry-title.is-marquee > .marquee-inner {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* 展開時側板「浮」在本季新番卡片格上面（position:fixed、脫離文件流），不擠壓
+   #home-main 讓卡片格重排——見 web_redesign_round2.md 階段 2-1（使用者 2026-08-26
+   回饋：要蓋過去、不要擠壓）。top/bottom 一起定住＝視窗高度扣掉上下留白，內部
+   #schedule-panel-scroll 用 flex 撐滿、環狀週期表在裡面捲。 */
+#schedule-panel {
+  position: fixed;
+  top: 1rem;
+  right: 1.5rem;  /* 對齊 #page-content 的左右 padding，右緣跟切換鈕同一條垂直線 */
+  bottom: 1rem;
+  width: 20rem;
+  z-index: 20;  /* 蓋在卡片格（.bell-btn z-index:2）上面、但在 modal（1000）下面 */
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 收合態：整塊側板收掉。切換鈕在 .content-top、不在側板裡。 */
+#schedule-panel.collapsed {
+  display: none;
+}
+
+/* 週期表展開時，切換鈕 position:fixed 到 fixed 側板的左緣——跟著側板一起「移位」、
+   不被側板蓋住，也不用在側板上另放一顆收合鈕（使用者 2026-08-26 回饋：要跟左側
+   收合鈕一樣一起移動位置）。收合回來就回到 .content-top 的正常流。`right` ＝側板
+   right(1.5rem) ＋ 側板 width(20rem) ＋ 一點間距。 */
+#shell.schedule-open #schedule-panel-toggle {
+  position: fixed;
+  top: 1rem;
+  right: calc(1.5rem + 20rem + 0.4rem);
+  z-index: 21;
+}
+
+.schedule-panel-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* 番劇詳細頁「製作／配音／音樂」右側浮動面板（使用者 2026-09-01：右欄改可收合，
+   比照 #schedule-panel）。切換鈕在 .content-top（anime_detail.html 的 content_top_end
+   block），開合邏輯在 ya_panel.js。 */
+#ya-panel {
+  position: fixed;
+  top: 1rem;
+  right: 1.5rem;
+  bottom: 1rem;
+  width: 20rem;
+  z-index: 20;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+#ya-panel.collapsed {
+  display: none;
+}
+
+.ya-panel-heading {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+#ya-panel-scroll {
+  flex: 1;
+  overflow-y: auto;
+}
+
+#shell.ya-panel-open #ya-panel-toggle {
+  position: fixed;
+  top: 1rem;
+  right: calc(1.5rem + 20rem + 0.4rem);
+  z-index: 21;
+}
+
+/* round 7 第 4 項：訂閱列表頁的「排程清單」右側浮動面板（比照 #schedule-panel） */
+#subs-schedule-panel {
+  position: fixed;
+  top: 1rem;
+  right: 1.5rem;
+  bottom: 1rem;
+  width: min(34rem, 46vw); /* 使用者 2026-08-29 回饋：右側欄再寬一些 */
+  z-index: 20;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+#subs-schedule-panel.collapsed {
+  display: none;
+}
+
+#subs-schedule-frame {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border: 0;
+  background: transparent;
+}
+
+#shell.subs-schedule-open #subs-schedule-toggle {
+  position: fixed;
+  top: 1rem;
+  right: calc(1.5rem + min(34rem, 46vw) + 0.4rem);
+  z-index: 21;
+}
+
+/* schedule_embed.html（iframe 內）：無殼、只有排程清單本體 */
+.schedule-embed-body {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}
+
+.schedule-embed {
+  padding: 0.25rem;
+}
+
+#schedule-panel-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  position: relative;
+  /* 環狀捲動時捲軸滑塊會一直跳位置很干擾，直接把捲軸藏起來——仍可捲動（滾輪／
+     觸控／拖曳）。見 web_redesign_round2.md 階段 2-1（使用者 2026-08-26 回饋）。 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* 舊 Edge/IE */
+}
+
+#schedule-panel-scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Edge/Safari */
+}
+
+/* 「最近剛更新過」的那筆：金色外框（沿用訂閱鈴鐺已訂閱的同一個金 rgb(255,204,0)）。
+   外框要清楚框住整列——時間（左）到訂閱鈴鐺（右）都包進去（使用者 2026-08-26 回饋）。
+   用 inset box-shadow 而不是 outline：outline 會畫在 border box 外緣，這一列被捲到
+   scroller 頂端時上緣會被 overflow 裁掉（round 6 第 1 項）；inset shadow 完全畫在
+   框內、永遠不會被裁。 */
+.schedule-entry--recent {
+  /* 預設四邊都框（單獨一筆時就是它）。同時段有多筆時，下面的 -first / -last / 中段
+     規則會把相鄰的邊拿掉，看起來像一個大框把整組框在一起（使用者 2026-08-29）。 */
+  box-shadow:
+    inset 0 2px 0 rgb(255, 204, 0),
+    inset 0 -2px 0 rgb(255, 204, 0),
+    inset 2px 0 0 rgb(255, 204, 0),
+    inset -2px 0 0 rgb(255, 204, 0);
+  border-radius: 0.375rem;
+  background: rgba(255, 204, 0, 0.12);
+}
+
+/* .0 改進.txt 第 24 項：把 .schedule-entry 自己的灰色 border-bottom 藏起來（雙 class
+   提高優先級蓋過後面的 .schedule-entry）——不然金框裡／外緣會多一條灰線，看起來像
+   「沒切齊」。金框本身就是分隔線。 */
+.schedule-entry.schedule-entry--recent {
+  border-bottom-color: transparent;
+}
+
+/* 金框最上緣那一筆往上拉 1px，蓋掉上一筆 entry 的 border-bottom 灰線，金框頂邊才會
+   真的貼齊、不會上面浮一條灰線 */
+.schedule-entry.schedule-entry--recent-first {
+  margin-top: -1px;
+}
+
+/* 一組多筆：中段（不是第一也不是最後）只框左右 */
+.schedule-entry--recent:not(.schedule-entry--recent-first):not(.schedule-entry--recent-last) {
+  box-shadow:
+    inset 2px 0 0 rgb(255, 204, 0),
+    inset -2px 0 0 rgb(255, 204, 0);
+  border-radius: 0;
+}
+
+/* 第一筆：框上＋左右，不框下、下緣不圓角 */
+.schedule-entry--recent-first:not(.schedule-entry--recent-last) {
+  box-shadow:
+    inset 0 2px 0 rgb(255, 204, 0),
+    inset 2px 0 0 rgb(255, 204, 0),
+    inset -2px 0 0 rgb(255, 204, 0);
+  border-radius: 0.375rem 0.375rem 0 0;
+}
+
+/* 最後一筆：框下＋左右，不框上、上緣不圓角 */
+.schedule-entry--recent-last:not(.schedule-entry--recent-first) {
+  box-shadow:
+    inset 0 -2px 0 rgb(255, 204, 0),
+    inset 2px 0 0 rgb(255, 204, 0),
+    inset -2px 0 0 rgb(255, 204, 0);
+  border-radius: 0 0 0.375rem 0.375rem;
+}
+
+.schedule-day h3 {
+  font-size: 0.9rem;
+  margin: 1rem 0 0.4rem;
+  color: var(--text-muted);
+}
+
+.schedule-day:first-of-type h3 {
+  margin-top: 0.5rem;
+}
+
+.schedule-entry {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.4rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.schedule-entry-link {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  font-size: 0.85rem;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.schedule-entry .bell-btn {
+  flex-shrink: 0;
+  /* 明確固定成 28×28，不靠 padding+img 疊出來——不然某些狀態（金框列、圖示還沒
+     載入）算出來的尺寸會不一致，看起來「沒切齊」（使用者 2026-09-04）。 */
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+}
+
+.schedule-entry .bell-btn img {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* 金框列裡的已訂閱鈴鐺：底色本來跟金框一樣是淡金 → 看不出按鈕邊界、視覺上像比
+   別列的鈴鐺大一圈。給它一個實心底，明確是一顆跟其他列一樣大的小按鈕。 */
+.schedule-entry--recent .bell-btn.subscribed {
+  background: var(--bg-elevated);
+}
+
+.schedule-entry-time {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 3rem;
+}
+
+.schedule-entry-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-entry-episode {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* ---- 搜尋番劇：右側篩選面板（屬性／類型／對象，round3 階段 7-2）----
+   結構比照 #schedule-panel：position:fixed 浮在結果格上、切換鈕在 .content-top，
+   展開時切換鈕跟著移到面板左緣。面板內是一個 <form method=get>，送出就導頁。 */
+#search-filter-panel {
+  position: fixed;
+  top: 1rem;
+  right: 1.5rem;
+  width: 21.5rem;
+  /* 高度跟著內容走、最多到視窗底（不像週期表側板那樣硬撐滿高） */
+  max-height: calc(100vh - 2rem);
+  z-index: 20;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+#search-filter-panel.collapsed {
+  display: none;
+}
+
+#shell.filter-open #search-filter-toggle {
+  position: fixed;
+  top: 1rem;
+  right: calc(1.5rem + 21.5rem + 0.4rem);
+  z-index: 21;
+}
+
+.filter-group {
+  margin-bottom: 1rem;
+}
+
+.filter-group h3 {
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem;
+  color: var(--text-muted);
+}
+
+.filter-count {
+  font-weight: normal;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+/* 屬性 chip 依字數分組（中文二字每行 6 個／三字／四字／英文各一行），每組一個
+   .filter-chip-row，見階段 7-2 使用者回饋。 */
+.filter-chips--attrs {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.filter-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.filter-chip-row--len2 {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.filter-chip-row--len2 .filter-chip {
+  display: block;      /* grid cell 撐滿 */
+}
+
+.filter-chip-row--len2 .filter-chip span {
+  display: block;
+  padding-left: 0.2rem;
+  padding-right: 0.2rem;
+  text-align: center;
+}
+
+.filter-chip {
+  cursor: pointer;
+  margin: 0;           /* 蓋掉 `form label { display:block; margin-bottom }` */
+  display: inline-flex;
+}
+
+/* 蓋掉全域 `form input { display:block; width:100% }`——這些是視覺隱藏的
+   checkbox/radio，真正看得到的是後面的 <span> chip。 */
+.filter-chip input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.filter-chip span {
+  display: inline-block;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  user-select: none;
+}
+
+.filter-chip input:checked + span {
+  background: var(--nav-active-bg);
+  border-color: var(--nav-active-text);
+  color: var(--nav-active-text);
+}
+
+.filter-chip input:disabled + span {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.btn-plain {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.btn-plain:hover {
+  color: var(--text);
+}
+
+/* ---- 番劇詳細頁 ---- */
+
+/* 番劇詳細頁整塊在內容區水平置中（使用者 2026-08-27）——#page-content 的寬度本來
+   就會跟著側欄開合變動，margin auto 就是「可用寬度內置中」，不用 JS 算。 */
+.anime-detail-page {
+  max-width: 64rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.anime-detail-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* 更名按鈕的外層 wrap（訂閱後才顯示）——不佔版面，讓按鈕就像 title-row 的直接子項 */
+.rename-btn-wrap {
+  display: contents;
+}
+.rename-btn-wrap[hidden] {
+  display: none;
+}
+
+.anime-detail-title {
+  text-align: center;
+  margin: 0;
+}
+
+/* 「更名」進入編輯態：標題 <h1> 裡塞一個輸入框，看起來還是像標題 */
+.rename-input {
+  font: inherit;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+  width: min(28rem, 60vw);
+  max-width: 100%;
+  padding: 0.15rem 0.5rem;
+}
+
+.anime-detail-top {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+/* 封面＋評分擺左欄一直行，評分移到封面正下方——騰出整條寬度給右邊的簡介
+   （使用者 2026-08-26 回饋） */
+.anime-detail-left {
+  flex-shrink: 0;
+  width: 12rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.anime-detail-cover {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+}
+
+.anime-detail-info {
+  flex: 1 1 20rem;
+  min-width: 0;
+}
+
+/* youranimes.tw 補充資料（製作 / 配音 / 音樂）——內容包在 #ya-panel 可收合面板的
+   #ya-panel-scroll 裡（見 anime_detail.html）。缺資料的區塊整段不出現，三個都沒有
+   時整個面板都不 render（見 web/browse.py）。 */
+.anime-detail-youranimes {
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+.anime-detail-youranimes .ya-panel-section + .ya-panel-section {
+  margin-top: 1rem;
+}
+.anime-detail-youranimes h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid var(--border);
+}
+.anime-detail-youranimes dl {
+  margin: 0;
+  display: grid;
+  /* 使用者 2026-09-05：有些職稱很長（例如「キャラクター・デバイス・バリア
+     ジャケット原案」）——`max-content` 是「假設不換行」量出來的寬度，職稱欄
+     沒有上限的話那一整欄（同一個 grid 的所有列共用同一組欄寬）會被撐到極寬，
+     把 1fr 那欄（內容）擠到幾乎沒有空間，看起來像整份資料都是空的。加個
+     `min(9em, max-content)` 的上限，超過這個寬度就換行，不再拖累其他列。 */
+  grid-template-columns: minmax(0, min(9em, max-content)) 1fr;
+  column-gap: 0.6rem;
+  row-gap: 0.25rem;
+}
+.anime-detail-youranimes dt {
+  color: var(--text-muted);
+  overflow-wrap: break-word;
+}
+.anime-detail-youranimes dd {
+  margin: 0;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.anime-detail-meta-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.anime-detail-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.genre-tag {
+  background: var(--nav-active-bg);
+  color: var(--nav-active-text);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+/* 作品分類標籤做成連結時（登入態、且對得上搜尋篩選的屬性）：可點、hover 提示
+   （使用者 2026-09-06） */
+a.genre-tag--link {
+  text-decoration: none;
+  transition: background-color 0.12s, color 0.12s;
+}
+a.genre-tag--link:hover,
+a.genre-tag--link:focus-visible {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.anime-detail-description {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text);
+  white-space: pre-line;
+}
+
+.anime-detail-rating {
+  width: 100%;
+  text-align: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.75rem 0.5rem;
+}
+
+.rating-score {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: var(--nav-active-text);
+}
+
+.rating-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* 即時匿名使用統計：番劇頁「評價」下方的訂閱數／觀看次數（使用者 2026-09-08）。 */
+.anime-detail-stats {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+.anime-detail-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.6rem;
+}
+.anime-detail-stat-label {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+.anime-detail-stat-num {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 播放器關閉鈕左側的看完次數／正在收看（使用者 2026-09-08）。 */
+.player-topbar-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.player-stats {
+  display: inline-flex;
+  gap: 0.7rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* BahaAD 排行榜——側欄「訂閱列表」下方的專屬頁（使用者 2026-09-08）。 */
+.leaderboard-boards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+  padding-bottom: 1rem;
+}
+.leaderboard-board {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  padding: 0.9rem 1rem;
+}
+.leaderboard-board h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.92rem;
+}
+.leaderboard-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.leaderboard-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.28rem 0;
+}
+.leaderboard-list li + li {
+  border-top: 1px solid var(--border);
+}
+.leaderboard-rank {
+  flex: none;
+  width: 1.6rem;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* 名次徽章：rank-N-white.png 當 mask、金／銀／銅上色（不隨主題變，使用者 2026-09-08）。 */
+.leaderboard-medal {
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.5rem;
+  vertical-align: middle;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+.leaderboard-medal--1 {
+  background: linear-gradient(160deg, #ffe08a 0%, #f5b301 45%, #d99400 100%);
+}
+.leaderboard-medal--2 {
+  background: linear-gradient(160deg, #eef1f5 0%, #c3c9d2 45%, #9aa2ad 100%);
+}
+.leaderboard-medal--3 {
+  background: linear-gradient(160deg, #e6a978 0%, #cd7f42 45%, #a75f28 100%);
+}
+/* 第四、五名：數字圓牌（灰色系，跟金銀銅同尺寸，使用者 2026-09-08）。 */
+.leaderboard-numbadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--surface-2, rgba(128, 128, 128, 0.18));
+  border: 1px solid var(--border, rgba(128, 128, 128, 0.35));
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.leaderboard-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+a.leaderboard-name {
+  color: inherit;
+  text-decoration: none;
+}
+a.leaderboard-name:hover {
+  color: var(--nav-active-text, var(--text));
+  text-decoration: underline;
+}
+.leaderboard-count {
+  flex: none;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+/* hover 番劇圖：跟著滑鼠的浮動預覽。 */
+.leaderboard-cover-pop {
+  position: fixed;
+  z-index: 1200;
+  width: 150px;
+  height: auto;
+  max-height: 210px;
+  border-radius: 0.4rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  background: var(--bg-elevated);
+}
+
+.episode-picker {
+  margin-bottom: 2rem;
+}
+
+.episode-category-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.episode-category-title {
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* 「〈分類〉全部下載」／「整個番劇 全部下載」：透明底＋accent 綠外框，跟主要的「下載」
+   （btn-accent 綠底）區隔——是「一次全抓」的次要動作。 */
+.episode-all-btn {
+  background: transparent;
+  color: var(--nav-active-text);
+  border: 1px solid var(--nav-active-text);
+  border-radius: 0.25rem;
+  padding: 0.3rem 0.7rem;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.episode-all-btn:hover {
+  background: var(--nav-active-bg);
+}
+
+.cache-clear-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* round 7 第 1 項：檔名 token 說明表的「點一下插入」按鈕 */
+.token-help td {
+  padding: 0.2rem 0.5rem 0.2rem 0;
+  vertical-align: middle;
+}
+
+.token-insert-btn {
+  font: inherit;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 0.3rem;
+  background: var(--bg-elevated);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.token-insert-btn code {
+  background: none;
+  padding: 0;
+  font-size: 0.82rem;
+}
+
+.token-insert-btn:hover {
+  border-color: var(--nav-active-text);
+}
+
+/* round 7 第 13 項：日誌頁 */
+.logs-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+}
+
+.logs-levels {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.logs-levels .btn-neutral.is-active {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: transparent;
+}
+
+.logs-table-scroll {
+  overflow-x: auto;
+}
+
+.logs-table {
+  width: 100%;
+  font-size: 0.82rem;
+}
+
+.logs-table td {
+  vertical-align: top;
+}
+
+.log-ts {
+  white-space: nowrap;
+  color: var(--text-muted, #888);
+}
+
+.log-logger {
+  white-space: nowrap;
+  color: var(--text-muted, #888);
+}
+
+.log-message {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.log-level-badge {
+  display: inline-block;
+  /* 視窗窄時「等級」欄被擠到把「錯誤」拆成兩行直排（使用者 2026-09-01）——
+     nowrap 讓這一格至少撐到徽章寬度、字維持水平。 */
+  white-space: nowrap;
+  padding: 0 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border: 1px solid currentColor;
+}
+
+.log-level-badge.log-info {
+  color: var(--nav-active-text);
+}
+
+.log-level-badge.log-warning {
+  color: #f0b429;
+}
+
+.log-level-badge.log-error,
+.log-level-badge.log-critical {
+  color: #e5484d;
+}
+
+/* 發送歷史「結果」欄——跟日誌等級徽章同一套（外框＋色，使用者 2026-09-02） */
+.log-level-badge.notify-result-ok {
+  color: #16a34a;
+}
+.log-level-badge.notify-result-fail {
+  color: #e5484d;
+}
+
+/* 發送歷史寬度／欄位比照官方公告歷史（extra-wide-card）。 */
+.notify-history-table {
+  font-size: 0.82rem;
+}
+.notify-history-table td {
+  vertical-align: top;
+}
+.notify-history-table td:first-child,
+.notify-history-table td:nth-child(2),
+.notify-history-table td:nth-child(3),
+.notify-history-table td:nth-child(5) {
+  white-space: nowrap;
+}
+/* 使用者 2026-09-05：狀態（第 5 欄，只有徽章）與錯誤訊息（第 6 欄）拆開。 */
+.notify-history-error {
+  min-width: 10rem;
+  max-width: 22rem;
+  word-break: break-word;
+}
+/* 內容欄：完整顯示、列高自動拉長（使用者 2026-09-04，推翻 09-02 的「格子內自己捲」）。 */
+.notify-history-message {
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-width: 24rem;
+}
+
+.logs-pager {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* round 7 第 7 項：資料庫整頓頁的「刪除歷史」小節 */
+.db-cleanup-subhead {
+  font-size: 1.05rem;
+  margin: 2rem 0 0.5rem;
+}
+
+.removed-swatch {
+  display: inline-block;
+  padding: 0 0.35rem;
+  margin: 0 0.15rem;
+  border: 1.5px solid #8b5cf6;
+  border-radius: 0.25rem;
+  color: #8b5cf6;
+  font-size: 0.85em;
+}
+
+/* 集數方格：不再固定每行 12（使用者 2026-08-27，階段 1-6）——塞得下幾個算幾個。
+   每格固定 2.75rem 見方、不隨視窗寬度縮放（使用者 2026-08-27 回饋：方格要維持一樣
+   大小），所以用固定 track 寬度而不是 minmax(..., 1fr)。 */
+.episode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 2.75rem);
+  gap: 0.4rem;
+}
+
+.episode-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border-radius: 0.375rem;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.episode-cell input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.episode-cell.not-downloaded {
+  border: 1.5px solid var(--border);
+}
+
+.episode-cell.downloading {
+  border: 1.5px solid #f0b429;
+}
+
+.episode-cell.downloaded {
+  border: 1.5px solid var(--nav-active-text);
+}
+
+/* round 7 第 7 項：曾下載過、但檔案已被使用者刪掉 → 紫框（灰＝未下載／黃＝下載中／
+   藍＝已下載／紫＝已移除）。刪檔後排程會重抓，所以還是可以勾選下載。 */
+.episode-cell.removed {
+  border: 1.5px solid #8b5cf6;
+}
+
+/* .0 改進.txt 第 13 項：這一集下載失敗 → 紅框（灰/黃/藍/紫之外多一個紅） */
+.episode-cell.failed {
+  border: 1.5px solid #e5484d;
+}
+
+/* 播放到 80% 算看完（使用者 2026-09-05）——橘底黑字，跟其他狀態的純外框區分開；
+   放在 .selected 前面，選取中的格子還是優先顯示選取色。 */
+.episode-cell.watched {
+  background: #ff8c00;
+  color: #000;
+}
+
+.episode-cell.selected {
+  background: var(--nav-active-bg);
+  color: var(--nav-active-text);
+  font-weight: 600;
+}
+
+.episode-picker-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+/* 「播放」鈕：預設隱藏，只有點到「已下載」的單一集數時 episode_picker.js 才拿掉 hidden。
+   `.btn-neutral { display:inline-flex }` 特異度跟 UA `[hidden]` 一樣又排後面 → 不明寫這條
+   的話進番劇頁就一直看得到播放鈕（使用者 2026-09-04 回報）。 */
+#episode-play-btn[hidden] {
+  display: none;
+}
+
+#episode-submit-btn {
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1.5rem;
+  font-weight: 600;
+}
+
+#episode-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.related-anime-title {
+  font-size: 1.1rem;
+  margin: 2rem 0 0.75rem;
+}
+
+/* 相關動畫改用全站共用 .anime-grid / .anime-card（round3 階段 3-2），版型跟其他頁一致。 */
+
+/* ---- 「點擊載入更多」按鈕（相關動畫／搜尋結果，round3 階段 3）----
+   置中在內容區——.load-more 是 #page-content 流裡的 flex 容器，justify-content:center
+   就跟著側欄開合置中，不用 JS 算位置（比照 .card-grid-loading）。 */
+.load-more {
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+
+.load-more[hidden] {
+  display: none;
+}
+
+.load-more button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.load-more button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.load-more button:disabled {
+  cursor: default;
+  color: var(--text-muted);
+}
+
+.load-more button img.theme-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+/* 「載入更多」reveal 模式：預先 render 但還沒輪到的卡片（.anime-card 在 .anime-grid
+   底下靠 UA 的 [hidden]=display:none 收起，grid 不該把它算進版位）。 */
+.anime-card[hidden] {
+  display: none;
+}
+
+/* ---- 下載列表頁 ---- */
+
+.downloads-section-title {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+/* .0 改進.txt 第 12 項：下載冷卻中的橫幅（黃色調，跟「下載中」外框同色系） */
+.download-cooldown-banner {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #f0b429;
+  border-radius: 0.375rem;
+  color: #f0b429;
+  font-size: 0.85rem;
+}
+
+.download-cooldown-banner[hidden] {
+  display: none;
+}
+
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+  max-height: calc(2 * 16rem);
+  overflow-y: auto;
+}
+
+@media (max-width: 90rem) {
+  .task-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 60rem) {
+  .task-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.task-card {
+  min-width: 0; /* CSS Grid 子項目預設 min-width:auto，裡面 .task-title 的
+    white-space:nowrap 會撐開內容最小寬度，導致整個 grid 橫向溢出捲動——見
+    web_redesign.md Phase 5 實作後補充 */
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.6rem;
+  transition: opacity 0.3s ease;
+}
+
+.task-card.state-finalizing {
+  border-color: #f0b429;
+}
+
+/* 「最近失敗」卡片（階段 3 從 /dashboard 搬過來）：紅框，封面正中央一顆重試鈕 */
+.task-card.state-failed {
+  border-color: #e5484d;
+}
+
+.task-card.state-failed .task-state {
+  color: #e5484d;
+}
+
+/* round 7 第 17 項：失敗原因文字 */
+.task-error {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  color: var(--text-muted, #888);
+  line-height: 1.4;
+}
+
+/* 下載完成：綠框（放在 state-* 之後，蓋掉 finalizing 的黃框；round 7 第 7 項） */
+.task-card.completed {
+  opacity: 0.6;
+  border-color: #16a34a;
+}
+
+.task-card.completed .task-state {
+  color: #16a34a;
+}
+
+/* 中止下載：紅框「下載已取消」（放在 completed 之後，蓋掉綠框；.0 改進.txt 第 11 項） */
+.task-card.cancelled {
+  opacity: 0.6;
+  border-color: #e5484d;
+}
+
+.task-card.cancelled .task-state {
+  color: #e5484d;
+}
+
+.task-thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  background: var(--bg);
+  margin-bottom: 0.4rem;
+}
+
+/* 封面正中央的重試鈕：半透明綠底 ＋白色 refresh 圖示（跟主題無關、壓在任何封面上
+   都清楚），約原本一半大小（使用者 2026-08-26 回饋） */
+.task-retry-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0.5rem;
+  background: rgba(46, 125, 50, 0.62);
+  box-shadow: none;
+}
+
+.task-retry-btn:hover {
+  background: rgba(46, 125, 50, 0.82);
+  box-shadow: none;
+}
+
+.task-retry-btn img {
+  width: 1.75rem;
+  height: 1.75rem;
+  /* 圖示來源檔是純黑 glyph——壓在半透明深綠 scrim（＋任意封面）上要強制純白才看得清，
+     跟頁面主題無關 */
+  filter: brightness(0) invert(1);
+}
+
+.task-retry-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* round 7 第 18 項：「狀態」那一行右側的紅色控制鈕（僅圖示）——進行中／排隊中＝
+   「中止」，失敗＝「丟棄」。放在進度條上方、狀態文字右側（使用者 2026-08-28 回饋）。 */
+.task-state-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.task-state-row .task-state {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-danger-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  padding: 0.25rem;
+  border-radius: 6px;
+  background: #e5484d;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.task-danger-btn:hover {
+  background: #cf3238;
+}
+
+.task-danger-btn img {
+  width: 0.95rem;
+  height: 0.95rem;
+  filter: brightness(0) invert(1);
+}
+
+.task-danger-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* round 7 第 11 項：下載完成、等待搬進下載目錄 */
+.task-card.state-awaiting-move {
+  border-color: #8b5cf6;
+}
+
+.task-card.state-awaiting-move .task-state {
+  color: #8b5cf6;
+}
+
+.task-move-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+.task-move-actions .btn-accent,
+.task-move-actions .btn-neutral {
+  font-size: 0.72rem;
+  padding: 0.25rem 0.5rem;
+  text-decoration: none;
+}
+
+/* 只框直屬的封面圖——`> img`，不要連 .task-retry-btn 裡的圖示也一起撐成滿版 */
+.task-thumb > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.task-title {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-episode {
+  margin: 0.1rem 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.task-state {
+  margin: 0.1rem 0 0.3rem;
+  font-size: 0.75rem;
+}
+
+.task-progress-bar {
+  height: 0.35rem;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.task-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.4s linear;
+}
+
+
+/* ---- 既有的最小可用樣式，改用主題色票 ---- */
+
+.auth-card {
+  max-width: 28rem;
+  margin: 3rem auto;
+  background: var(--bg-elevated);
+  border-radius: 0.5rem;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 驗證碼輸入框＋「發送驗證碼」鈕同一列（首次設定驗證頁／忘記密碼頁，使用者
+   2026-09-06） */
+.verify-code-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+  margin: 0.75rem 0;
+}
+.verify-code-row input {
+  width: auto;
+  flex: 1;
+  min-width: 0;
+  letter-spacing: 0.15em;
+  font-variant-numeric: tabular-nums;
+}
+.verify-code-row button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.warning {
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  border-radius: 0.375rem;
+  padding: 0.75rem 1rem;
+  margin: 1rem 1.5rem 0;
+}
+
+/* 忘記密碼頁「完整重置」鈕：跟上面的警告框拉開距離（使用者 2026-09-04） */
+.reset-all-button {
+  margin-top: 1.25rem;
+}
+
+/* 更新提示橫幅：按鈕接在說明文字後面、同一列，跟文字之間留一點距離 */
+.warning form {
+  display: inline;
+}
+
+.warning .btn-accent {
+  margin-left: 0.5rem;
+}
+
+/* 主題色動作按鈕（accent 綠底＋對比文字）——<button> 跟 <a> 都能套。用在更新橫幅、
+   各頁面的主要動作（儲存／建立／登入／下載／確認…）。 */
+.btn-accent {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn-accent:hover {
+  background: var(--nav-active-text);
+}
+
+.btn-accent:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* 中性動作按鈕：跟 .btn-accent 同尺寸，但用中性配色（次要動作，例如登入提示頁的
+   「稍後再說」要跟「現在登入」等大）。同時也能套在 <a> 上（round 7 第 6 項：把包
+   <button> 的連結改成直接 <a class="btn-neutral">，高度才跟旁邊的 <button> 一致）。 */
+.btn-neutral {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.375rem;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn-neutral:hover {
+  background: var(--nav-hover-bg);
+}
+
+.btn-sm {
+  font-size: 0.78rem;
+  padding: 0.25rem 0.6rem;
+}
+
+/* 使用者 2026-08-29 回饋：頁面裡「開啟某某畫面」這類文字超連結一律做成按鈕樣式。
+   從段落文字獨立成一顆自己的按鈕，跟說明文字之間留點距離。 */
+.link-btn {
+  margin-top: 0.9rem;
+}
+
+/* 登入頁：「登入」跟「忘記密碼？」排同一列、等高等寬（使用者 2026-09-01）。
+   align-items:stretch 讓 <button>（inline-block）跟 <a class="btn-neutral">（inline-flex）
+   高度一致；flex:1 讓兩顆平分列寬、大小相同。 */
+.login-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.login-actions > .btn-accent,
+.login-actions > .btn-neutral {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  justify-content: center;
+}
+
+/* .inline-form 裡的 .link-btn（例：GitHub「中斷連結」）——form 是 flex 項目時
+   margin-top 要加在 form 上才有效 */
+.settings-section form.inline-form:has(.link-btn) {
+  display: block;
+  margin-top: 0.9rem;
+}
+
+/* round 7 第 6 項 + 2026-09-01：動畫瘋登入區塊——「目前已設定帳號：」自己一行（窄視窗
+   也乾淨），下面一行放「帳號 + 重新登入／刪除登入資訊／更新帳號密碼」，塞不下時鈕之間
+   才互相 wrap。 */
+.gamer-account-label {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.gamer-account-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem 0.5rem;
+  flex-wrap: wrap;
+}
+
+.gamer-account-name {
+  margin-right: 0.25rem;
+}
+
+.gamer-account-row .inline-form {
+  margin: 0;
+  display: inline-flex; /* form 當 flex 項時 display:inline 會被 blockify，明寫成 flex 對齊才穩 */
+}
+
+/* 三顆鈕（btn-accent <button>／btn-neutral <button>／btn-neutral <a>）水平切齊：
+   統一 inline-flex + 置中 + 同一組尺寸／min-height，不然 inline-block 跟 inline-flex
+   的基線差會讓它們高高低低（使用者 2026-09-01）。 */
+/* 選擇器帶上 .btn-accent／.btn-neutral 是為了特異度贏過
+   「.settings-section form > button.btn-accent { margin-top: 0.9rem }」——那條是給表單
+   底部獨立儲存鈕的，套到這一行的鈕上會把 form 撐高、鈕高低不齊。 */
+.gamer-account-row .inline-form button.btn-accent,
+.gamer-account-row .inline-form button.btn-neutral,
+.gamer-account-row > a.btn-neutral {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  padding: 0.25rem 0.55rem;
+  min-height: 1.75rem;
+  box-sizing: border-box;
+  margin-top: 0;
+}
+
+.gamer-login-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.9rem;
+}
+
+.gamer-login-actions .inline-form {
+  margin: 0;
+}
+
+.gamer-login-actions .inline-form button,
+.gamer-login-actions > .btn-neutral,
+.gamer-login-actions > .btn-accent {
+  height: 100%;
+}
+
+form label {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+/* 設定頁：控制項 + 儲存鈕排同一列（使用者 2026-08-29 回饋——按鈕不要單獨掉一行） */
+.settings-save-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.settings-save-row--center {
+  align-items: center;
+}
+
+.settings-save-row > label,
+.settings-save-row .checkbox-label {
+  margin-bottom: 0;
+}
+
+/* checkbox 底下換行的舉例說明——比一般 help-text 再往內縮，對齊 checkbox 文字 */
+.checkbox-help {
+  margin-top: -0.4rem;
+  margin-left: 1.5rem;
+}
+
+/* 數字設定值（保留天數／檢查週期…）：短輸入框接在說明文字後面，不獨佔一整列、
+   不撐滿版寬（使用者 2026-09-01 回饋）。文字輸入框（檔名模板等）維持整列；
+   「一般設定」區塊的 .setting-row-main 自己有版面，排除。 */
+.auth-card form label:not(.setting-row-main > label):has(> input[type="number"]) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.auth-card form label:not(.setting-row-main > label) > input[type="number"] {
+  display: inline-block;
+  width: 5rem;
+  margin-top: 0;
+}
+
+/* 說明文字後面緊接核取方塊時留點距離（使用者 2026-09-01：官方公告設定頁的備註
+   跟下一個核取方塊貼太近） */
+.help-text + .checkbox-label {
+  margin-top: 0.9rem;
+}
+
+form input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+}
+
+/* checkbox 不套用上面文字輸入框的區塊化樣式（display:block/width:100%），
+   比照 episode_picker.js 對 checkbox 另外處理的慣例 */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.checkbox-label input[type="checkbox"] {
+  display: inline;
+  width: auto;
+  margin-top: 0;
+}
+
+/* 所有 <button> 的預設樣式：套主題色票（中性、elevated 底＋邊框），不留瀏覽器原生的
+   淺灰鈕在深色頁面上（使用者 2026-08-26 回饋「所有按鈕都進行檢查」）。主要動作
+   （儲存／建立／登入／下載／確認…）另外套 .btn-accent 變綠。.icon-btn／.bell-btn／
+   .btn-accent 都用 class 選擇器，特異度高於這裡，不受影響。 */
+button {
+  cursor: pointer;
+  padding: 0.45rem 0.9rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+}
+
+button:hover {
+  background: var(--nav-hover-bg);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.modal-overlay {
+  position: fixed;
+  /* 遮罩蓋滿整個視窗——連左側欄、右側面板一起擋住，彈窗開著時全頁都不能操作
+     （使用者 2026-08-29 回饋）。 */
+  inset: 0;
+  box-sizing: border-box;
+  /* 但對話框本身仍置中在「內容區」而不是整個視窗（round 7 第 2 項）：用 padding 把
+     左側欄／右側面板的寬度讓出來，flex 置中就會落在中間內容區。#modal-root 掛在
+     #shell 內、繼承得到 --overlay-left/right；登出頁沒有 #shell，fallback 到 0。 */
+  padding-left: var(--overlay-left, 0px);
+  padding-right: var(--overlay-right, 0px);
+  background: var(--overlay-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* 很窄的視窗：內容區已經沒剩多少，提示回到整個視窗置中，別再往右擠 */
+@media (max-width: 640px) {
+  #shell {
+    --overlay-left: 0px;
+    --overlay-right: 0px;
+  }
+}
+
+.modal-box {
+  background: var(--bg-elevated);
+  color: var(--text);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  max-width: 24rem;
+  width: 90%;
+}
+
+.modal-box p {
+  margin: 0.35rem 0;
+  line-height: 1.65;
+}
+
+/* 帶圖示的標題列（訂閱說明＝鈴鐺、退訂警示＝警示圖示），見 subscribe.js。
+   同一個對話框可以有多個區塊（陣列 message），區塊之間留白。 */
+.modal-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  margin: 0 0 0.6rem;
+}
+
+.modal-box p + .modal-heading {
+  margin-top: 1.15rem;
+}
+
+.modal-heading img {
+  width: 1.35rem;
+  height: 1.35rem;
+  flex-shrink: 0;
+  filter: var(--icon-tint); /* 說明圖示＝accent 綠 */
+}
+
+/* 警示圖示＝琥珀色（跟 .warning 橫幅同色系），語意上不該用綠 */
+.modal-heading[data-icon="warning"] img {
+  filter: brightness(0) saturate(100%) invert(72%) sepia(58%) saturate(1200%)
+    hue-rotate(357deg) brightness(97%) contrast(93%);
+}
+
+.modal-heading[data-icon="warning"] {
+  color: var(--warning-border);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  /* 置中在內容區（round 7 第 2 項）：內容區中線＝(左緣 + (視窗寬 − 右緣)) / 2 */
+  left: calc((var(--overlay-left, 0px) + 100vw - var(--overlay-right, 0px)) / 2);
+  transform: translateX(-50%);
+  background: var(--toast-bg);
+  color: var(--toast-text);
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  z-index: 1000;
+}
+
+/* ---- 重新檢查排程更新（階段 4）：recheck.js 的對話框 ---- */
+
+/* 「共 N 部動畫」＋「重新檢查」按鈕排在同一列、垂直置中（訂閱列表頁；其他頁面
+   .anime-grid-count 只有文字，當成單一 flex 子項目、視覺不變） */
+.anime-grid-count {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+/* display:flex 特異度跟 [hidden] 一樣又排在後面，不明寫這條的話最新上架頁載入前
+   那句「共 N 部」會先閃出來（比照 .gossip-custom[hidden]）。 */
+.anime-grid-count[hidden] {
+  display: none;
+}
+/* .recheck-btn 大小沿用 .icon-btn base（padding 0.4rem + img.theme-icon 1.1rem），跟
+   .bell-btn 一致——使用者 2026-08-27：重新檢查鈕大小要跟鈴鐺相同、透明設計。 */
+
+.recheck-box {
+  max-width: 32rem;
+}
+
+.recheck-body > p {
+  margin: 0 0 0.5rem;
+}
+
+.recheck-bulk {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.recheck-bulk button {
+  font-size: 0.8rem;
+  padding: 0.2rem 0.5rem;
+}
+
+.recheck-list {
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.recheck-group + .recheck-group {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.recheck-group h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+}
+
+.recheck-ep {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.2rem 0;
+  font-size: 0.85rem;
+}
+
+.recheck-ep select {
+  width: auto;
+  display: inline-block;
+  margin: 0;
+  padding: 0.2rem 0.4rem;
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+}
+
+.wide-card {
+  max-width: 40rem;
+}
+
+/* 設定頁：兩欄（使用者 2026-08-29）。跟首頁一樣不設窄 max-width，用 grid 分欄；
+   窄視窗自動疊成一欄。 */
+.settings-card {
+  max-width: 72rem;
+}
+
+.settings-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.settings-col {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .settings-cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+.setting-row {
+  margin-bottom: 1rem;
+}
+
+/* 設定欄位：label＋輸入框佔一列，右側接「還原」鈕（round5 項目 12）。 */
+.setting-row-main {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.setting-row-main > label {
+  flex: 1;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.setting-reset-btn,
+.setting-save-btn {
+  flex-shrink: 0;
+}
+
+.help-text {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* 通知範本頁：說明文字跟第一個收納區塊之間留出間距（round 6 第 3 項） */
+.notify-templates-intro {
+  margin-bottom: 1.25rem;
+}
+
+/* 通知中心：管道標題 = 圖示 + 名稱 + 啟用狀態徽章（round 6 第 6 項） */
+.notify-channel-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+/* round 7 第 16 項：Telegram/Discord 圖示改隨主題黑/白（跟其他 theme-icon 一致的
+   accent 綠染色）＋外框 */
+.notify-channel-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem;
+  border: 1px solid var(--border);
+  border-radius: 0.35rem;
+  -webkit-user-drag: none;
+}
+
+.notify-channel-icon img {
+  width: 1.1rem;
+  height: 1.1rem;
+  filter: var(--icon-tint);
+}
+.status-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+}
+.status-badge.on {
+  background: #16a34a;
+  color: #fff;
+}
+.status-badge.off {
+  background: var(--border);
+  color: var(--text-muted);
+}
+
+.reset-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* 隱私權說明頁——docs/PRIVACY_POLICY.md 即時轉出的 HTML，排版盡量貼近原文件 */
+.markdown-doc {
+  line-height: 1.7;
+}
+.markdown-doc h1 {
+  font-size: 1.5rem;
+  margin: 0 0 1rem;
+}
+.markdown-doc h2 {
+  font-size: 1.2rem;
+  margin: 1.8rem 0 0.6rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border);
+}
+.markdown-doc h3 {
+  font-size: 1.05rem;
+  margin: 1.4rem 0 0.5rem;
+}
+.markdown-doc p {
+  margin: 0.7rem 0;
+}
+.markdown-doc ul {
+  margin: 0.6rem 0;
+  padding-left: 1.4rem;
+}
+.markdown-doc li {
+  margin: 0.3rem 0;
+}
+.markdown-doc blockquote {
+  margin: 1rem 0;
+  padding: 0.5rem 0.9rem;
+  border-left: 3px solid var(--border);
+  color: var(--text-muted);
+}
+.markdown-doc hr {
+  margin: 1.8rem 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+.markdown-doc code {
+  background: var(--nav-hover-bg);
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+}
+.markdown-doc table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+}
+.markdown-doc th,
+.markdown-doc td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+.markdown-doc th {
+  background: var(--nav-hover-bg);
+}
+
+/* 「查看隱私權說明」浮層——疊在目前頁面上（設定／首次設定），點任一處或 Esc 關閉
+   （使用者 2026-09-03）。比 modal（z-index:1000）再高一層。 */
+.doc-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  justify-content: center;
+  padding: 3vh 1rem;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.55);
+}
+.doc-overlay-card {
+  width: 100%;
+  max-width: 52rem;
+  max-height: 94vh;
+  overflow-y: auto;
+  cursor: default;
+  /* margin:auto（不是 align-items:center）＝有空間就上下置中、上下留白一樣寬；
+     內容超過視窗時 auto 邊界收成 0、不會把卡片頂端裁掉滑不到（使用者 2026-09-05）。 */
+  margin: auto;
+}
+/* 卡片內距（.auth-card 的 1.5rem 2rem）就是上下留白——把第一／最後一個區塊自己的
+   外距歸零，捲到頂端跟捲到底端看到的留白才一樣寬（使用者 2026-09-05）。 */
+.doc-overlay-card > :first-child {
+  margin-top: 0;
+}
+.doc-overlay-card > :last-child {
+  margin-bottom: 0;
+}
+/* 隱私權政策浮層：標題 + 即時統計晶片置頂固定，只有政策內文捲動（使用者 2026-09-08）。 */
+.doc-overlay-card:has(.privacy-stats-head) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.privacy-stats-head {
+  flex: none;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--border, rgba(128, 128, 128, 0.3));
+}
+.privacy-stats-head h2 {
+  margin: 0 0 0.7rem;
+}
+.privacy-stats-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.pv-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.32rem 0.6rem;
+  border-radius: 0.4rem;
+  background: var(--surface-2, rgba(128, 128, 128, 0.12));
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+.pv-chip-label {
+  color: var(--text-muted);
+}
+.pv-chip-num {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.doc-overlay-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 0.9rem;
+}
+
+/* 番劇詳細頁：已下載集數的瀏覽器內建播放器浮層（使用者 2026-09-04）。 */
+.player-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2vh 1rem;
+  background: rgba(0, 0, 0, 0.9);
+}
+/* `display:flex` 特異度跟 UA 的 `[hidden]` 一樣、又排在後面 → 不明寫這條的話進番劇頁
+   就直接看到空的播放器浮層（使用者 2026-09-04 回報）。比照 .gossip-custom[hidden]。 */
+.player-overlay[hidden] {
+  display: none;
+}
+.player-box {
+  max-width: min(1100px, 94vw);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.player-box video {
+  width: 100%;
+  max-height: 74vh;
+  display: block;
+  background: #000;
+}
+/* 按鈕全放在影片外的獨立橫條，不浮在影片上（使用者 2026-09-04）。 */
+.player-topbar,
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-elevated);
+  padding: 0.5rem 0.75rem;
+}
+.player-topbar {
+  justify-content: space-between;
+  border-radius: 0.4rem 0.4rem 0 0;
+}
+.player-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+/* 網路狀態呼吸燈 */
+.player-net {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: help;
+  flex-shrink: 0;
+}
+.player-net-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+.player-net[data-net="good"] .player-net-dot {
+  background: #22c55e;
+  animation: player-net-breathe 2s ease-in-out infinite;
+}
+.player-net[data-net="ok"] .player-net-dot {
+  background: #eab308;
+  animation: player-net-breathe 1.4s ease-in-out infinite;
+}
+.player-net[data-net="bad"] .player-net-dot {
+  background: #ef4444;
+  animation: player-net-breathe 0.8s ease-in-out infinite;
+}
+@keyframes player-net-breathe {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 currentColor; }
+  50% { opacity: 0.35; }
+}
+.player-net-tip {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  z-index: 5;
+  white-space: pre;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+.player-controls {
+  flex-wrap: wrap;
+  justify-content: center;
+  border-radius: 0 0 0.4rem 0.4rem;
+}
+.player-caption {
+  color: var(--text);
+  font-size: 0.9rem;
+}
+.player-close {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 0.375rem;
+  padding: 0.3rem 0.7rem;
+  font: inherit;
+  cursor: pointer;
+}
+.player-controls button {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 0.375rem;
+  padding: 0.35rem 0.8rem;
+  font: inherit;
+  cursor: pointer;
+}
+.player-close:hover,
+.player-controls button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.player-controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 段落文字裡當連結用的按鈕（首次設定頁「查看隱私權說明」） */
+.link-inline-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* 表單底部的動作按鈕列（儲存 + 次要動作排一排、等大）。 */
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.inline-form {
+  display: inline;
+}
+
+.inline-form button {
+  font-size: 0.85rem;
+  padding: 0.3rem 0.6rem;
+}
+
+.extra-wide-card {
+  max-width: 82rem;
+}
+
+/* 歷史公告表格：時間／作品／判斷／處置給固定寬度，「公告原文」吃剩下的空間
+   （使用者 2026-09-01「欄位可以寬一些」——固定欄不要被原文擠到換行）。 */
+.gossip-history-table {
+  table-layout: fixed;
+  /* 固定欄加起來就 ~44rem，視窗窄時「公告原文」那欄會被擠到一字一行——給個
+     min-width，窄的時候讓外層（`.paged-card__body` / 一般頁面）橫向捲，不要擠爛。 */
+  min-width: 60rem;
+}
+.gossip-history-table th:nth-child(1),
+.gossip-history-table td:nth-child(1) { width: 8.5rem; }
+.gossip-history-table th:nth-child(3),
+.gossip-history-table td:nth-child(3) { width: 14rem; }
+.gossip-history-table th:nth-child(4),
+.gossip-history-table td:nth-child(4) { width: 12rem; }
+.gossip-history-table th:nth-child(5),
+.gossip-history-table td:nth-child(5) { width: 9rem; }
+.gossip-history-table td { vertical-align: top; word-break: break-word; }
+
+.entry-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+}
+
+.entry-table th,
+.entry-table td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+/* 資料庫整頓：可用多選手勢選取的列（round5 項目 13）。 */
+tr.cleanup-row {
+  cursor: pointer;
+  user-select: none;
+}
+
+tr.cleanup-row.selected {
+  background: rgba(255, 204, 0, 0.12);
+  outline: 2px solid rgb(255, 204, 0);
+  outline-offset: -2px;
+}
+
+tr.cleanup-row .cleanup-checkbox {
+  pointer-events: none;
+}
+
+/* ---- 排程清單（round3 階段 6：唯讀列表＋點「編輯」才展開）---- */
+.schedule-page {
+  max-width: 52rem;
+}
+
+.schedule-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+}
+
+.schedule-item {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+  background: var(--bg-elevated);
+}
+
+/* 版面（使用者 2026-09-03）：番劇名一行 → 「月份歸類 · 更新時間」＋最右側「編輯」
+   → （有的話）臨時異動黃字。 */
+.schedule-item-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.6rem 0.75rem;
+}
+
+.schedule-item-name {
+  font-weight: 600;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.schedule-item-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.schedule-item-meta-text {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  min-width: 0;
+}
+
+/* 「編輯」——取消追蹤走卡片鈴鐺（使用者 2026-08-31 第 8 項）。跟「月份歸類 · 更新
+   時間」同一行、靠右、水平置中對齊。 */
+.schedule-edit-toggle {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.85rem;
+}
+
+.schedule-item-gossip {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #f0b429;
+}
+
+.schedule-item-edit {
+  padding: 0 0.75rem 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.schedule-item-edit[hidden] {
+  display: none;
+}
+
+.schedule-item-edit label {
+  display: block;
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+}
+
+.schedule-time-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.schedule-time-fields legend {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding: 0 0.3rem;
+}
+
+.schedule-time-fields select {
+  width: auto;
+  margin: 0;
+}
+
+.schedule-time-fields input[type="number"] {
+  width: 4rem;
+  margin: 0;
+  text-align: center;
+}
+
+.schedule-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.text-editor {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: "Consolas", "Courier New", monospace;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+/* 子頁面（官方公告／通知中心）的分頁頁籤列 */
+.subpage-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+}
+
+/* 目前所在分頁：用 accent 底色的按鈕樣式，但不可點（span 而非 a） */
+.subpage-tabs .is-current {
+  cursor: default;
+}
+
+/* ---- 通知範本編輯（round3 階段 5-4）---- */
+.notify-template-block {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.notify-toolbar,
+.notify-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.notify-tool-btn,
+.notify-chip {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.3rem;
+  background: var(--bg-elevated);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.notify-chip {
+  border-radius: 999px;
+  color: var(--text-muted);
+}
+
+.notify-tool-btn:hover,
+.notify-chip:hover {
+  border-color: var(--accent);
+}
+
+.notify-discord-label {
+  display: block;
+  margin: 0.3rem 0 0.2rem;
+}
+
+.notify-discord-preview {
+  margin: 0 0 0.5rem;
+  padding: 0.5rem 0.6rem;
+  min-height: 2.4rem;
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: 0.3rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.notify-preview-modal {
+  max-width: 32rem;
+}
+
+.notify-tg-bubble,
+.notify-dc-card {
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.notify-tg-bubble {
+  background: #d9fdd3;
+  color: #111;
+}
+
+.notify-dc-card {
+  background: #313338;
+  color: #dbdee1;
+  border-left: 3px solid var(--accent);
+}
+
+.notify-tg-bubble a,
+.notify-dc-card a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.notify-tg-bubble blockquote,
+.notify-dc-card blockquote {
+  border-left: 3px solid currentColor;
+  margin: 0.2rem 0;
+  padding-left: 0.5rem;
+  opacity: 0.85;
+}
+
+.preview-spoiler {
+  background: currentColor;
+  border-radius: 0.2rem;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+/* 設定頁的收納夾（round3 階段 5-1）：<details>/<summary> 原生收納，不引 JS。 */
+.settings-section {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+  background: var(--bg-elevated);
+}
+
+.settings-section > summary {
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  list-style: none;
+}
+
+.settings-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-section > summary::before {
+  content: "▸ ";
+  color: var(--text-muted);
+}
+
+.settings-section[open] > summary::before {
+  content: "▾ ";
+}
+
+.settings-section > *:not(summary) {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.settings-section > *:last-child {
+  margin-bottom: 1.25rem;
+}
+/* 公開模式白名單勾選框——絕對定位在卡片 foot 的右下角：水平靠右緣（訂閱鈴鐺正下方）、
+   垂直落在「共 N 集」那一行（標題固定佔 2 行高，meta 行位置是定的）（使用者 2026-09-04）。 */
+.anime-card-public {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+.anime-card-public input {
+  margin: 0;
+  cursor: pointer;
+}
+/* 「檔案命名」區塊的表單後面跟著一段內嵌 <script>（即時預覽）——那個 script 才是
+   :last-child，會把留白吃掉、讓「儲存」鈕貼著外框。表單自己補上底部留白（使用者
+   2026-09-05）。 */
+.settings-section > form:has(~ script:last-child) {
+  margin-bottom: 1.25rem;
+}
+
+/* 「偏好畫質」等按鈕組欄位（quality_picker.js）：點一下直接存、選中的變色。 */
+.setting-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+.setting-choice-label {
+  font-weight: 500;
+}
+.choice-btns {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.choice-btn {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--bg-elevated);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.choice-btn:hover:not(:disabled):not(.selected) {
+  border-color: var(--accent);
+}
+.choice-btn.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+.choice-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 圖示版（偏好畫質牌）：按鈕是一個色塊 + 那張牌。選中的整顆染成 accent 綠、
+   未選的用一般表面色（深色主題也看得到），disabled 再調淡。使用者 2026-09-05。 */
+.choice-btns--icon {
+  gap: 0.4rem;
+}
+.choice-btns--icon .choice-btn {
+  padding: 3px;
+  border-width: 2px;
+  border-color: var(--border);
+  background: var(--nav-hover-bg);
+  line-height: 0;
+  border-radius: 0.5rem;
+  transition: background 0.12s, border-color 0.12s, opacity 0.12s;
+}
+.choice-btns--icon .choice-btn img {
+  width: 42px;
+  height: 42px;
+  display: block;
+}
+.choice-btns--icon .choice-btn:hover:not(:disabled):not(.selected) {
+  border-color: var(--accent);
+}
+.choice-btns--icon .choice-btn.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.choice-btns--icon .choice-btn:disabled {
+  opacity: 0.4;
+}
+
+/* 使用者 2026-08-29：區塊裡的送出按鈕跟上面的文字保持固定距離，離外框也要留白。 */
+.settings-section form > button.btn-accent,
+.settings-section form > button.btn-neutral,
+.settings-section form > .settings-save-row {
+  margin-top: 0.9rem;
+}
+
+/* 「更改帳號與密碼」區塊：改帳號／改密碼兩個表單之間的分隔線 */
+.settings-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.25rem 0 1rem;
+}
+
+/* details 展開時，第一個非 summary 的內容跟標題列也留一點距離 */
+.settings-section[open] > *:not(summary):first-of-type {
+  margin-top: 0.75rem;
+}
+
+/* 進階存取：已設定代理設定組的列表 */
+.settings-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+.settings-table th,
+.settings-table td {
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.settings-table th {
+  color: var(--text-muted, var(--text));
+  font-weight: 600;
+}
+.settings-table form {
+  margin: 0;
+}
+/* 進階存取：新增設定組的一排欄位 */
+.settings-inline-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+}
+.settings-inline-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+.settings-inline-fields input,
+.settings-inline-fields select {
+  min-width: 8rem;
+}
+
+/* 官方公告設定頁：第一個 checkbox 離上面的說明文字太近（使用者 2026-08-29 第 10 項） */
+.auth-card form > .checkbox-label:first-child {
+  margin-top: 0.75rem;
+}
+
+.gossip-pager {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  margin-left: 0.4rem;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+/* 官方公告三頁（操作處置／歷史／機動調整）的開頭說明——跟上方分頁列、下方內容框
+   都留出呼吸空間（使用者 2026-09-01「說明與外框靠太近」）。 */
+.extra-wide-card > .help-text:first-of-type {
+  margin: 1.1rem 0 1.4rem;
+  line-height: 1.6;
+}
+
+.gossip-event {
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-elevated);
+}
+
+.gossip-event-clause {
+  margin: 0 0 0.4rem;
+  font-weight: 600;
+}
+
+/* 系統判斷／預計時間／系統建議／對應追蹤項目：標題一行、內容一行（round5 項目 4） */
+.gossip-meta {
+  margin: 0.4rem 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.gossip-meta dt {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.gossip-meta dt:first-child {
+  margin-top: 0;
+}
+
+.gossip-meta dd {
+  margin: 0.1rem 0 0;
+}
+
+.gossip-assign-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+/* 處置表單：第一列「處置方式 下拉 + 套用處置」永遠水平對齊、擠在一起；選了「自訂*」
+   處置才顯示的日期／時間／集數欄位排在第二列（`.gossip-custom`），不再把套用鈕往下
+   或往右推（使用者 2026-08-27 回饋）。 */
+.gossip-disposition-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.gossip-disposition-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* 全域 `form label { display:block; margin-bottom:0.75rem }` 會讓下拉那顆 <label> 的
+   下緣多一截 → flex 置中後「套用處置」按鈕看起來比下拉低半行。這裡歸零。 */
+.gossip-disposition-row label,
+.gossip-assign-form label,
+.gossip-custom label {
+  margin-bottom: 0;
+}
+
+.gossip-custom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+/* 三組自訂欄位預設都帶 hidden（樣板），JS 依選中的處置留一組——`.gossip-custom` 的
+   `display:flex` 特異度跟 `[hidden]` 一樣、又排在 UA 樣式後面，不明寫這條的話 hidden
+   會失效、進頁面瞬間三組全閃出來（round3 階段 8-3）。 */
+.gossip-custom[hidden] {
+  display: none;
+}
+
+/* 設定分頁：「儲存」跟「重新檢查」排同一列 */
+.gossip-settings-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* 歷史公告：目前仍掛在動畫瘋首頁的公告原文用金框框住（沿用週期表
+   .schedule-entry--recent 的金 rgb(255,204,0) 外框＋淡金底）。 */
+.gossip-clause--current {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.375rem;
+  outline: 2px solid rgb(255, 204, 0);
+  outline-offset: -1px;
+  background: rgba(255, 204, 0, 0.12);
+}
+
+.gossip-legend {
+  margin: 0 0.15rem;
+  font-size: 0.75rem;
+}

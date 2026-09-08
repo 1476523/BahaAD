@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% import "_notify_tabs.html" as tabs with context %}
+{% block title %}通知中心 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card wide-card">
+  <h1>通知中心</h1>
+  {{ tabs.notify_tabs('settings') }}
+
+  <p class="help-text">
+    特定事件發生時（下載完成／失敗、官方公告偵測到異動、系統事件、每日彙整），推送通知到
+    Telegram／Discord。完全可選，兩個管道可以只設一個，或都不設。
+  </p>
+
+  {% set icon_variant = 'black' if ui_theme == 'light' else 'white' %}
+  <h2 class="notify-channel-head">
+    <span class="notify-channel-icon">
+      <img class="theme-icon" data-icon="telegram" src="{{ url_for('static', filename='icons/telegram-' + icon_variant + '.png') }}" alt="">
+    </span>
+    Telegram
+    <span id="telegram-status-badge" class="status-badge {{ 'on' if notify_credentials.telegram_bot_token else 'off' }}">{{ '已啟用' if notify_credentials.telegram_bot_token else '未啟用' }}</span>
+  </h2>
+  {% set cid = notify_credentials.telegram_chat_id or '' %}
+  <form method="post" action="{{ url_for('notify.save_telegram_credentials') }}" data-ajax>
+    <label>Bot Token
+      <input type="password" name="telegram_bot_token" placeholder="{{ '（留空表示不變更）' if notify_credentials.telegram_bot_token else '' }}" autocomplete="off">
+    </label>
+    <label>Chat ID
+      <input type="text" name="telegram_chat_id" placeholder="{{ '（留空表示不變更）' if cid else '' }}" autocomplete="off">
+    </label>
+    {# 打碼的「目前值」提示放在 Chat ID 欄位正下方（使用者 2026-09-05：原本浮在最上面、
+       離欄位很遠、而且下面輸入框又把完整值秀出來，等於沒遮）。 #}
+    <p class="help-text" id="telegram-chat-id-line"{{ '' if cid else ' hidden' }}>目前 Chat ID：<span id="telegram-chat-id-masked">{{ cid[:3] ~ '…' ~ cid[-3:] if cid|length > 6 else cid }}</span></p>
+    <div class="form-actions">
+      <button type="submit" class="btn-accent">儲存</button>
+      <button type="submit" class="btn-neutral" formaction="{{ url_for('notify.clear_telegram_credentials') }}" formnovalidate>清除 Telegram 設定</button>
+      <button type="button" class="btn-neutral notify-test-btn" data-channel="telegram">發送測試訊息</button>
+    </div>
+  </form>
+
+  <h2 class="notify-channel-head">
+    <span class="notify-channel-icon">
+      <img class="theme-icon" data-icon="discord" src="{{ url_for('static', filename='icons/discord-' + icon_variant + '.png') }}" alt="">
+    </span>
+    Discord
+    <span id="discord-status-badge" class="status-badge {{ 'on' if notify_credentials.discord_webhook_url else 'off' }}">{{ '已啟用' if notify_credentials.discord_webhook_url else '未啟用' }}</span>
+  </h2>
+  <form method="post" action="{{ url_for('notify.save_discord_credentials') }}" data-ajax>
+    <label>Webhook URL
+      <input type="password" name="discord_webhook_url" placeholder="{{ '（留空表示不變更）' if notify_credentials.discord_webhook_url else 'https://discord.com/api/webhooks/...' }}" autocomplete="off">
+    </label>
+    <div class="form-actions">
+      <button type="submit" class="btn-accent">儲存</button>
+      <button type="submit" class="btn-neutral" formaction="{{ url_for('notify.clear_discord_credentials') }}" formnovalidate>清除 Discord 設定</button>
+      <button type="button" class="btn-neutral notify-test-btn" data-channel="discord">發送測試訊息</button>
+    </div>
+  </form>
+
+  <h2>通知類別</h2>
+  <form method="post" action="{{ url_for('notify.save_categories') }}" data-ajax>
+    {% for category in notify_categories %}
+    <label class="checkbox-label">
+      <input type="checkbox" name="{{ category }}" {{ 'checked' if notify_category_settings.get(category, True) else '' }}>
+      {{ notify_category_labels[category] }}
+    </label>
+    {% endfor %}
+    <button type="submit" class="btn-accent">儲存</button>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+// 憑證存檔／清除後就地更新徽章＋遮罩過的 Chat ID＋清空輸入框，不整頁重載
+// （使用者 2026-09-01：任何儲存都不該刷新頁面）
+document.addEventListener("ajaxform:done", function (e) {
+  var d = e.detail;
+  if (!d || !d.ok || !d.channel) return;
+  var badge = document.getElementById(d.channel + "-status-badge");
+  if (badge) {
+    badge.textContent = d.enabled ? "已啟用" : "未啟用";
+    badge.className = "status-badge " + (d.enabled ? "on" : "off");
+  }
+  if (d.channel === "telegram") {
+    var line = document.getElementById("telegram-chat-id-line");
+    var masked = document.getElementById("telegram-chat-id-masked");
+    if (line && masked) {
+      if (d.chat_id_masked) { masked.textContent = d.chat_id_masked; line.hidden = false; }
+      else { line.hidden = true; }
+    }
+  }
+  // 已存的憑證絕不回填——存完把使用者剛打的清掉、placeholder 提示「留空＝不變更」
+  // （Chat ID 也一樣：type=text 但比照 Bot Token，存完不回填、下面用打碼提示目前值）
+  e.target.querySelectorAll('input[type="password"], input[name="telegram_chat_id"]').forEach(function (i) {
+    i.value = "";
+    var stillSet = i.name === "telegram_chat_id" ? !!d.chat_id_masked : d.enabled;
+    if (stillSet) i.placeholder = "（留空表示不變更）";
+  });
+});
+
+document.querySelectorAll(".notify-test-btn").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    btn.disabled = true;
+    fetch("/notify/test/" + btn.dataset.channel, { method: "POST" })
+      .then(function (res) { return res.json(); })
+      .then(function (data) { showAlert(data.info); })
+      .catch(function () { showAlert("測試訊息送出失敗，請稍後再試一次"); })
+      .finally(function () { btn.disabled = false; });
+  });
+});
+</script>
+{% endblock %}

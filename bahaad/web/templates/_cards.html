@@ -1,0 +1,57 @@
+{# 全站共用的番劇卡片版型（首頁本季新番／近期熱播／最新上架／搜尋結果／訂閱列表／
+   下載列表）。統一規格（使用者 2026-08-27）：
+
+   - 封面 16:9（首頁單集截圖）或直式海報，由頁面 CSS 決定
+   - 標題固定預留 2 行高度（單行標題也佔 2 行的位置），meta 永遠在第 3 行、位置一致
+   - meta（第 3 行）內容由呼叫端組好字串傳進來：
+       首頁＝「集數 ・ 更新時間」／近期熱播＝「年份 ・ 集數」／
+       最新上架＝「上架日或最近更新 ・ 集數」／訂閱・下載列表＝「共 N 集」
+   - 鈴鐺／「重新檢查」鈕在標題右側的 .anime-card-foot 裡（不浮在封面上）
+
+   呼叫端要 `{% import "_cards.html" as cards with context %}`（帶 context 才拿得到
+   ui_theme／subscribed_sns）。#}
+{% import "_bell.html" as bell with context %}
+
+{# 已訂閱且設過「更名」的番劇，全站顯示的標題都用改後的下載資料夾名稱（＝以後這部的
+   資料夾叫什麼）。`subscribed_renames`（{sn: rename}）由 web/__init__.py 的
+   `_inject_subscribed_sns` context processor 提供。見 web_redesign_round3.md C1。
+   `video_sn` 是 none／查不到 rename 時原樣回 `fallback`。 #}
+{% macro display_title(video_sn, fallback) -%}
+{{ subscribed_renames.get(video_sn) or fallback }}
+{%- endmacro %}
+
+{% macro anime_card(href, title, meta, cover="", bell_sn=none, bell_ref_sn=none, subscribed=false, remove_card=false, show_recheck=false, hidden=false, public_title=none, public_on=true) %}
+<div class="anime-card"{% if hidden %} hidden data-load-more-hidden{% endif %}>
+  <a class="anime-card-cover" href="{{ href }}">
+    {% if cover %}
+    <img src="{{ cover | cached_img }}" alt="" loading="lazy">
+    {% endif %}
+  </a>
+  <div class="anime-card-foot">
+    <div class="anime-card-text">
+      <p class="anime-card-title">{{ title }}</p>
+      <p class="anime-card-meta">{{ meta }}</p>
+    </div>
+    {% if bell_sn or bell_ref_sn %}
+    {% if show_recheck and bell_sn %}{{ bell.recheck_button(bell_sn, title) }}{% endif %}
+    {{ bell.bell_button(bell_sn, subscribed, remove_card=remove_card, anime_title=title, ref_sn=bell_ref_sn) }}
+    {% endif %}
+    {% if public_title %}
+    {# 公開模式白名單勾選框（使用者 2026-09-04）：排在訂閱鈴鐺正下方、跟「共 N 集」同一
+       水平線、靠卡片右緣（絕對定位在 .anime-card-foot 右下角）。 #}
+    <label class="anime-card-public" title="在公開模式下讓未登入的訪客看到這部番劇">
+      <input type="checkbox" class="public-toggle" data-title="{{ public_title }}" {{ 'checked' if public_on else '' }}>
+      <span>公開</span>
+    </label>
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{# theme-list 卡片（近期熱播／最新上架／搜尋）的 dict → anime_card 的薄包裝。 #}
+{% macro theme_card(item, show_bell=False, hidden=False) %}
+{{ anime_card(item.detail_url, display_title(item.video_sn, item.title), item.meta, cover=item.cover_url,
+   bell_sn=(item.video_sn if show_bell else none),
+   bell_ref_sn=(item.ref_sn if (show_bell and not item.video_sn) else none),
+   subscribed=(item.video_sn in subscribed_sns), hidden=hidden) }}
+{% endmacro %}
