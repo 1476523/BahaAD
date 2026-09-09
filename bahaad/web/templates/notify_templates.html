@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% import "_notify_tabs.html" as tabs with context %}
+{% block title %}範本編輯 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card wide-card">
+  <h1>通知中心</h1>
+  {{ tabs.notify_tabs('templates') }}
+  <p class="help-text notify-templates-intro">
+    範本支援 Telegram HTML 標籤子集（<code>&lt;b&gt;</code> 等），送 Discord 時自動轉成 markdown。
+    「有新版本可用」不在這裡——那則通知內容是系統產生的版本資訊，刻意不開放自訂。
+  </p>
+
+  {% for category in categories %}
+  <details class="notify-template-block settings-section" data-category="{{ category }}">
+    <summary>{{ notify_category_labels[category] }}{% if not templates[category].is_default %} <span class="help-text">（已自訂）</span>{% endif %}</summary>
+
+    <div class="notify-toolbar">
+      {% for insert, name, _hint in telegram_html_tags %}
+      <button type="button" class="notify-tool-btn" data-insert="{{ insert }}" title="{{ name }}（{{ _hint }}）">{{ name }}</button>
+      {% endfor %}
+    </div>
+
+    <div class="notify-chips">
+      <span class="help-text">插入 token：</span>
+      {% for token, description, usage in placeholder_reference %}
+      <button type="button" class="notify-chip" data-token="{{ token }}" title="{{ token }}｜{{ usage }}">{{ description }}</button>
+      {% endfor %}
+    </div>
+
+    <form method="post" action="{{ url_for('notify.save_template', category=category) }}" class="notify-template-form" data-ajax>
+      <textarea name="template" class="text-editor notify-template-textarea" rows="4">{{ templates[category].template }}</textarea>
+      <label class="help-text notify-discord-label">Discord 版本（自動轉換，唯讀）</label>
+      <pre class="notify-discord-preview"></pre>
+      <div class="form-actions">
+        <button type="submit" class="btn-accent">儲存</button>
+        <button type="button" class="btn-neutral notify-preview-btn">模擬預覽</button>
+        <button type="button" class="btn-neutral notify-test-tpl-btn">模板測試（實際發一次）</button>
+        <button type="submit" class="btn-neutral" formaction="{{ url_for('notify.reset_template', category=category) }}" formnovalidate>還原預設值</button>
+      </div>
+    </form>
+  </details>
+  {% endfor %}
+
+  <h2>範本 token 參考</h2>
+  {# 依類別收納，不整條攤成一張大表（使用者 2026-09-05）。預設收起。 #}
+  {% for group_label, rows in placeholder_reference_groups %}
+  <details class="notify-token-ref settings-section">
+    <summary>{{ group_label }}<span class="help-text">（{{ rows | length }}）</span></summary>
+    <div class="table-scroll">
+      <table class="entry-table">
+        <tr><th>Token</th><th>說明</th><th>適用</th></tr>
+        {% for token, description, usage in rows %}
+        <tr><td><code>{{ token }}</code></td><td>{{ description }}</td><td>{{ usage }}</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+  </details>
+  {% endfor %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='notify_templates.js') }}"></script>
+{% endblock %}

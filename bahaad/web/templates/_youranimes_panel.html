@@ -1,0 +1,38 @@
+{# 番劇詳細頁「製作 / 配音 / 音樂」——包在 anime_detail.html 的 #ya-panel 可收合
+   右側面板裡。缺的區塊整段不出現。由 web/browse.py anime_detail() 傳入 `youranimes`
+   （YourAnimesPanel），只有 has_right_column 為真時才 include。 #}
+<div class="anime-detail-youranimes">
+  {% if youranimes.staff %}
+  <section class="ya-panel-section">
+    <h3>製作</h3>
+    <dl>
+      {% for s in youranimes.staff %}
+      <dt>{{ s.job }}</dt>
+      <dd>{{ s.names | join("、") }}</dd>
+      {% endfor %}
+    </dl>
+  </section>
+  {% endif %}
+  {% if youranimes.cast %}
+  <section class="ya-panel-section">
+    <h3>配音</h3>
+    <dl>
+      {% for c in youranimes.cast %}
+      <dt>{{ c.character }}</dt>
+      <dd>{{ c.actor }}</dd>
+      {% endfor %}
+    </dl>
+  </section>
+  {% endif %}
+  {% if youranimes.music %}
+  <section class="ya-panel-section">
+    <h3>音樂</h3>
+    <dl>
+      {% for m in youranimes.music %}
+      <dt>{{ m.slot }}</dt>
+      <dd>{{ m.song }}{% if m.artist %}／{{ m.artist }}{% endif %}</dd>
+      {% endfor %}
+    </dl>
+  </section>
+  {% endif %}
+</div>

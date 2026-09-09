@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="zh-Hant" data-theme="{{ ui_theme }}" data-public-readonly="{{ 'true' if public_readonly else 'false' }}"
+      data-idle-timeout-min="{{ idle_timeout_minutes|default(0) }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}BahaAD{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any">
+{# 阻塞式、要在 <body> 解析前先攔到封面 <img>——限制同時進行的 /cache/img 請求數，
+   避免一次 60 張突發被本機過濾軟體（AdGuard 等）重設連線（使用者 2026-09-09）。檔案很小。 #}
+<script src="{{ url_for('static', filename='img_loader.js') }}"></script>
+</head>
+<body>
+{% if session.logged_in or public_readonly %}
+<div id="shell" class="{{ 'sidebar-collapsed' if ui_sidebar_collapsed else '' }} {% block shell_class %}{% endblock %}"
+     data-subscribe-intro-seen="{{ 'true' if subscribe_intro_seen else 'false' }}">
+  <aside id="sidebar">
+    <div class="sidebar-top">
+      <a class="sidebar-brand" href="{{ url_for('browse.subscriptions') if public_readonly else url_for('index') }}">
+        <img class="brand-logo" src="{{ url_for('static', filename='icons/logo.png') }}" alt="BahaAD" draggable="false">
+        <span class="brand-name nav-label">BahaAD</span>
+      </a>
+    </div>
+    <nav class="sidebar-nav">
+      {% if public_readonly %}
+      {# 公開模式：側欄只剩訂閱列表、BahaAD 排行榜、（擁有者有追蹤中的新番才有）新番快訊、下載列表
+         （使用者 2026-09-04／2026-09-08） #}
+      {% set nav_items = [
+        (url_for('browse.subscriptions'), 'subscriptions', '訂閱列表', request.endpoint == 'browse.subscriptions'),
+        (url_for('stats.leaderboard_page'), 'ranking', 'BahaAD 排行榜', request.endpoint == 'stats.leaderboard_page'),
+      ] %}
+      {% if newanime_nav_visible %}
+      {% set nav_items = nav_items + [
+        (url_for('newanime.index'), 'track', '新番快訊', request.endpoint and request.endpoint.startswith('newanime.')),
+      ] %}
+      {% endif %}
+      {% set nav_items = nav_items + [
+        (url_for('browse.downloads'), 'downloads', '下載列表', request.endpoint == 'browse.downloads'),
+      ] %}
+      {% else %}
+      {% set nav_items = [
+        (url_for('index'), 'home', '首頁', request.endpoint == 'index'),
+        (url_for('browse.trending'), 'trending', '近期熱播', request.endpoint == 'browse.trending'),
+        (url_for('browse.latest'), 'latest', '最新上架', request.endpoint == 'browse.latest'),
+        (url_for('browse.search'), 'search', '搜尋番劇', request.endpoint == 'browse.search'),
+        (url_for('gossip.history_index'), 'announcement', '官方公告', request.endpoint and request.endpoint.startswith('gossip.')),
+      ] %}
+      {# 新番快訊入口：只在有「新番節目資訊」公告、且還在時效內時出現（§6a）。放在
+         「官方公告」正下方。 #}
+      {% if newanime_nav_visible %}
+      {% set nav_items = nav_items + [
+        (url_for('newanime.index'), 'track', '新番快訊', request.endpoint and request.endpoint.startswith('newanime.')),
+      ] %}
+      {% endif %}
+      {% set nav_items = nav_items + [
+        (url_for('browse.subscriptions'), 'subscriptions', '訂閱列表', request.endpoint == 'browse.subscriptions'),
+        (url_for('stats.leaderboard_page'), 'ranking', 'BahaAD 排行榜', request.endpoint == 'stats.leaderboard_page'),
+        (url_for('browse.downloads'), 'downloads', '下載列表', request.endpoint == 'browse.downloads'),
+        (url_for('notify.index'), 'notify', '通知中心', request.endpoint and request.endpoint.startswith('notify.')),
+      ] %}
+      {% endif %}
+      {% for href, icon, label, active in nav_items %}
+      <a class="nav-item {{ 'active' if active else '' }}" href="{{ href }}">
+        <img class="theme-icon" data-icon="{{ icon }}" src="{{ url_for('static', filename='icons/' + icon + '-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="">
+        <span class="nav-label">{{ label }}</span>
+      </a>
+      {% endfor %}
+    </nav>
+    {# 主題切換 + 登出（round3 階段 9）：放「原本主題切換鈕」的位置。展開時浮在側欄
+       右上角（主題在登出左側、同一水平線）；收合時排進 flex 流、緊接在「設定」上方
+       （主題在登出正上方、同一垂直線）。登出只有圖示、不放「登出」二字。 #}
+    <div class="sidebar-actions">
+      {# 主題切換：公開模式（未登入唯讀）也給——不寫擁有者偏好，改存訪客自己的
+         localStorage（shell.js），純前端（使用者 2026-09-04）。 #}
+      <button type="button" id="theme-toggle" class="icon-btn icon-btn--accent" title="切換主題">
+        <img class="theme-icon" data-icon="theme" src="{{ url_for('static', filename='icons/theme-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="切換主題">
+      </button>
+      {# 登入／登出：同一個位置、同一種樣式（icon-btn，只有圖示）。公開模式放「登入」、
+         登入後放「登出」（使用者 2026-09-04：公開模式的登入鈕要跟登入後的登出鈕一致）。 #}
+      {% if public_readonly %}
+      <a class="icon-btn sidebar-logout" href="{{ url_for('auth.login') }}" title="登入">
+        <img class="theme-icon" data-icon="login" src="{{ url_for('static', filename='icons/login-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="登入">
+      </a>
+      {% else %}
+      <a class="icon-btn sidebar-logout" href="{{ url_for('auth.logout') }}" title="登出">
+        <img class="theme-icon" data-icon="logout" src="{{ url_for('static', filename='icons/logout-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="登出">
+      </a>
+      {% endif %}
+    </div>
+    {% if not public_readonly %}
+    <a class="nav-item sidebar-bottom {{ 'active' if request.endpoint == 'settings.index' else '' }}"
+       href="{{ url_for('settings.index') }}">
+      <img class="theme-icon" data-icon="settings" src="{{ url_for('static', filename='icons/settings-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="">
+      <span class="nav-label">設定</span>
+    </a>
+    {% endif %}
+    {# 版本號 + BETA 標記（設定下方）。主版本為 0 就顯示 BETA（is_beta()，見
+       bahaad/_version.py），1.0.0 起自己消失。BETA 用 CSS 徽章（染色、放大都好控制，
+       比圖檔清楚，使用者 2026-08-28）。 #}
+    <p class="sidebar-version">
+      <span class="nav-label">v{{ app_version }}</span>
+      {% if app_is_beta %}<span class="beta-badge">BETA</span>{% endif %}
+      {# 「隱私權政策」按鈕：從設定頁移到這裡（使用者 2026-09-08）——版本號／BETA 徽章
+         的右側，公開模式與非公開模式都有。側欄收合時整個 .sidebar-version 只剩置中的
+         圖示化版本號，這顆按鈕跟著 .nav-label 一起被 CSS 藏起來。 #}
+      <button type="button" class="sidebar-privacy-btn nav-label" id="privacy-policy-open"
+              data-privacy-url="{{ url_for('settings.privacy_policy') }}">隱私權政策</button>
+    </p>
+    {# 打包版的 build 識別碼另起一小行（接在版本號後面會把上一行擠到換行，使用者
+       2026-09-09）。開發模式沒有這個值。側欄收合時跟 .nav-label 一起藏起來。 #}
+    {% if app_build_tag %}<p class="sidebar-build nav-label">{{ app_build_tag }}</p>{% endif %}
+  </aside>
+  <div id="content-pane">
+    <div class="content-top">
+      <div class="content-top-left">
+        <button type="button" id="sidebar-toggle" class="icon-btn icon-btn--accent" title="收合／展開側欄">
+          <img class="theme-icon" data-icon="sidebar-collapse" id="sidebar-toggle-icon"
+               src="{{ url_for('static', filename='icons/' + ('sidebar-expand' if ui_sidebar_collapsed else 'sidebar-collapse') + '-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="">
+        </button>
+        {# 訂閱通知鈕（跟收合鈕同一水平線、一起隨側欄開合左右移動）。沒未處理通知＝
+           subscribe 圖示；有＝notify-animated.gif（notif.js 換）。點擊開合 #notif-panel。
+           公開模式：通知是擁有者專屬（/notifications 也沒白名單），不顯示。 #}
+        {% if not public_readonly %}
+        <div class="notif-wrap">
+          <button type="button" id="notif-toggle" class="icon-btn icon-btn--accent" title="訂閱通知">
+            <img class="theme-icon" data-icon="notif" id="notif-toggle-icon"
+                 src="{{ url_for('static', filename='icons/subscribe-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="訂閱通知">
+          </button>
+          <div id="notif-panel" hidden>
+            <p class="notif-empty">暫時沒有最新訂閱通知</p>
+            <ul id="notif-list"></ul>
+          </div>
+        </div>
+        {% endif %}
+        {# 工具更新鈕：有待套用更新才出現。一般更新＝黃框、重點更新＝紅框。
+           點擊開更新視窗（update_nag.js）。放在「歡迎回來」前面（使用者 2026-09-08）。 #}
+        {% if pending_update %}
+        <button type="button" id="update-toggle" title="工具更新"
+                class="icon-btn icon-btn--accent update-toggle update-toggle--{{ 'important' if pending_update.policy == 'important' else 'general' }}">
+          <img class="theme-icon" data-icon="app-update"
+               src="{{ url_for('static', filename='icons/app-update-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="工具更新">
+        </button>
+        {% endif %}
+        {# 「歡迎回來」原本放在首頁標題旁邊，那個位置改顯示各頁的數量（page-head），
+           搬到這裡跟通知鈴鐺放一起（使用者 2026-09-05）。 #}
+        {% if not public_readonly and session.username %}
+        <span class="topbar-welcome">歡迎回來 {{ session.username }}</span>
+        {% endif %}
+      </div>
+      {% block content_top_end %}{% endblock %}
+    </div>
+    <main id="page-content">
+      {# 更新提示全站橫幅（原本只在已退休的 /dashboard），見 web_redesign_round2.md 階段 3 #}
+      {# 更新提示：說明文字後面接一顆主題色按鈕（使用者 2026-08-26 回饋）。pending_update
+         那個要包 <form>，所以整塊用 div 不用 p（<form> 不能當 <p> 子元素，會被瀏覽器
+         拆散——notify 範本頁踩過同一個坑）。 #}
+      {# pending_update（差異檔已下載好、可以直接套用）優先——有它就不再顯示只會叫人
+         去 GitHub 手動抓的那條，避免使用者搞混（使用者 2026-09-08）。 #}
+      {% if pending_update %}
+      <div class="warning">
+        {% if pending_update.policy == 'important' %}
+        重點更新：必須套用才能繼續使用 BahaAD（v{{ pending_update.version }}）
+        {% else %}
+        有{{ '小' if pending_update.minor }}更新可套用（v{{ pending_update.version }}），建議立即套用並重新啟動
+        {% endif %}
+        {% if pending_update.notes %}（{{ pending_update.notes }}）{% endif %}
+        <form method="post" action="{{ url_for('dashboard.apply_update') }}" id="apply-update-form">
+          <button type="submit" class="btn-accent">套用更新並重新啟動</button>
+        </form>
+      </div>
+      {% elif update_available %}
+      <div class="warning" id="update-downloading-banner">
+        發現新版本 {{ update_available.latest_version }}，更新檔正在背景下載……
+        下載完成後這裡會出現「套用更新並重新啟動」按鈕（系統匣也會通知）。
+        <a href="{{ github_releases_url }}" target="_blank" rel="noopener" class="btn-accent">看更新內容</a>
+      </div>
+      {% endif %}
+      {% if firewall_setup_needed %}
+      <div class="warning" id="firewall-setup-banner">
+        剛才跳過了防火牆放行設定。手機／區網其他裝置要連 BahaAD、以及讓日後更新不會再被
+        Windows 防火牆詢問，需要放行一次——現在設定的話會跳一次系統權限確認（UAC）。
+        <form method="post" action="{{ url_for('settings.firewall_allow') }}">
+          <button type="submit" class="btn-accent">設定防火牆放行</button>
+        </form>
+      </div>
+      {% endif %}
+      {% if access_gate_show_star_reminder %}
+      {# 置中的阻擋式提示（使用者 2026-09-08：要在畫面中間、擋住其他操作，只能按
+         「連結／前往 star」或「下次再說」）。沿用 modal.js 的 .modal-overlay 樣式
+         ——inset:0 蓋滿、對話框置中在內容區、backdrop 點了不關。 #}
+      <div class="modal-overlay" id="star-reminder-modal">
+        <div class="modal-box" style="max-width: 30rem;">
+          <div class="modal-heading" data-icon="warning">
+            <img src="{{ url_for('static', filename='icons/warning-black.png') }}" alt="">
+            支持一下 BahaAD
+          </div>
+          <p>
+            喜歡 BahaAD 的話，可以幫忙到 GitHub 點個 star 支持這個專案～
+            {% if not access_gate_connected %}
+            <br>連結 GitHub 帳號、star 之後，這個提示就會自動消失。
+            {% else %}
+            <br>star 之後這個提示就會自動消失（最多等一次背景檢查）。
+            {% endif %}
+          </p>
+          <div class="modal-actions" style="flex-wrap: wrap;">
+            <button type="button" class="btn-neutral" id="star-reminder-dismiss">下次再說</button>
+            {% if not access_gate_connected %}
+            <a class="btn-accent" href="{{ url_for('access_gate.connect') }}">連結帳號</a>
+            {% endif %}
+            <a class="btn-accent" href="https://github.com/1476523/BahaAD" target="_blank" rel="noopener">前往 GitHub 點 star</a>
+          </div>
+        </div>
+      </div>
+      <script>
+        (function () {
+          // 一直顯示，直到偵測到已 star（伺服器就不再吐這段）。唯一暫時關掉的方式是按
+          // 「下次再說」→ 10 分鐘內不再出現，過了又恢復每頁顯示。點 backdrop、按 Esc
+          // 都不關（使用者 2026-09-08：只能按那三顆按鈕）。
+          var KEY = "bahaad-star-reminder-snooze-until";
+          var SNOOZE_MS = 10 * 60 * 1000;
+          var m = document.getElementById("star-reminder-modal");
+          if (!m) return;
+          var until = 0;
+          try { until = parseInt(localStorage.getItem(KEY), 10) || 0; } catch (e) {}
+          if (Date.now() < until) { m.remove(); return; }
+          // 擋掉 backdrop 點擊冒泡（點對話框以外的地方不關）
+          m.addEventListener("click", function (e) { if (e.target === m) e.stopPropagation(); });
+          var d = document.getElementById("star-reminder-dismiss");
+          if (d) d.addEventListener("click", function () {
+            try { localStorage.setItem(KEY, String(Date.now() + SNOOZE_MS)); } catch (e) {}
+            m.remove();
+          });
+        })();
+      </script>
+      {% endif %}
+      {% if diagnostics_show_reminder %}
+      <p class="warning" id="diagnostics-reminder">
+        目前「錯誤自動回報」是關閉的——開啟它能幫助排查問題、改善程式穩定性，隨時可以在
+        <a href="{{ url_for('settings.index') }}">設定頁</a>重新開啟，不影響任何功能。
+        <button type="button" id="diagnostics-reminder-dismiss">知道了</button>
+      </p>
+      {% endif %}
+      {% if gamer_login_stale %}
+      <div class="warning" id="gamer-login-stale-banner">
+        動畫瘋登入態已失效——付費番劇的下載會失敗。可以現在重新登入，或稍後在
+        <a href="{{ url_for('settings.index') }}">設定 › 動畫瘋登入</a>重新登入。
+        <form method="post" action="{{ url_for('settings.gamer_login_start') }}">
+          <button type="submit" class="btn-accent">重新登入</button>
+        </form>
+        <button type="button" id="gamer-login-stale-dismiss">這次先不用</button>
+      </div>
+      <script>
+        (function () {
+          var b = document.getElementById("gamer-login-stale-banner");
+          try { if (sessionStorage.getItem("bahaad-hide-gamer-login-stale")) b.remove(); } catch (e) {}
+          var d = document.getElementById("gamer-login-stale-dismiss");
+          if (d) d.addEventListener("click", function () {
+            try { sessionStorage.setItem("bahaad-hide-gamer-login-stale", "1"); } catch (e) {}
+            b.remove();
+          });
+        })();
+      </script>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {# modal/toast 掛在 #shell 內：CSS 從 #shell 的 --overlay-left/right 自訂屬性算出「內容區」
+     的範圍（側欄收合、右側面板開啟都會改這兩個值），提示才會置中在內容區而不是整個視窗 #}
+  <div id="modal-root"></div>
+</div>
+{% else %}
+<div id="modal-root"></div>
+{# star 提醒只在已登入 BahaAD 的頁面顯示（context processor 對未登入一律回 False），
+   公開模式／登入前的殼層不放。 #}
+{{ self.content() }}
+{% endif %}
+<script src="{{ url_for('static', filename='no_context_menu.js') }}"></script>
+<script src="{{ url_for('static', filename='img_retry.js') }}"></script>
+<script src="{{ url_for('static', filename='modal.js') }}"></script>
+<script src="{{ url_for('static', filename='ajax_forms.js') }}"></script>
+<script src="{{ url_for('static', filename='title_marquee.js') }}"></script>
+{# 側欄「隱私權政策」按鈕（版本號右側）——公開模式與非公開模式都在 #}
+<script src="{{ url_for('static', filename='privacy_policy.js') }}"></script>
+{# 即時匿名使用統計的即時數字（隱私浮層晶片／番劇頁／排行榜／設定頁）——兩種模式都要 #}
+<script src="{{ url_for('static', filename='stats.js') }}"></script>
+{% if session.logged_in or public_readonly %}
+{# 側欄收合等純 UI 殼層行為——公開模式也要（收合的 POST 會靜默失敗，畫面照樣切） #}
+<script src="{{ url_for('static', filename='shell.js') }}"></script>
+{% endif %}
+{% if session.logged_in %}
+<script src="{{ url_for('static', filename='auth_watch.js') }}"></script>
+{# 閒置太久自動登出（使用者 2026-09-08）——伺服器端才是把關，這支只讓畫面即時跳登入頁 #}
+<script src="{{ url_for('static', filename='idle_logout.js') }}"></script>
+{# update_nag.js 進頁即時判斷用——一般更新才彈提醒視窗（重點更新整個 UI 已被鎖在首頁） #}
+<script type="application/json" id="pending-update-data">{{ (pending_update or {}) | tojson }}</script>
+<script src="{{ url_for('static', filename='notif.js') }}"></script>
+<script src="{{ url_for('static', filename='subscribe.js') }}"></script>
+<script src="{{ url_for('static', filename='recheck.js') }}"></script>
+<script src="{{ url_for('static', filename='rename.js') }}"></script>
+<script src="{{ url_for('static', filename='update_nag.js') }}"></script>
+{% endif %}
+{% if diagnostics_show_reminder %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var btn = document.getElementById("diagnostics-reminder-dismiss");
+  if (!btn) {
+    return;
+  }
+  btn.addEventListener("click", function () {
+    var banner = document.getElementById("diagnostics-reminder");
+    if (banner) {
+      banner.remove();
+    }
+    fetch("/settings/diagnostics/dismiss-reminder", { method: "POST" }).catch(function () {});
+  });
+});
+</script>
+{% endif %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+{% for message in messages %}
+showAlert({{ message | tojson }});
+{% endfor %}
+});
+</script>
+{% endif %}
+{% endwith %}
+{% block scripts %}{% endblock %}
+</body>
+</html>
