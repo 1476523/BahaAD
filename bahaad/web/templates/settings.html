@@ -1,0 +1,630 @@
+{% extends "base.html" %}
+{% block title %}設定 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card settings-card">
+  <h1>設定</h1>
+
+  {# 兩欄配置（使用者 2026-08-29）：左欄下載／檔案相關，右欄帳號／回報／日誌。
+     所有區塊預設收起。窄視窗自動疊成一欄。 #}
+  <div class="settings-cols">
+  <div class="settings-col">
+
+  <details class="settings-section">
+    <summary>一般設定</summary>
+    <form method="post" id="settings-form" data-ajax novalidate>
+      {% for field in fields %}
+      {% if field.kind == "choice" %}
+      {# 按鈕組：點一下直接存這一欄（quality_picker.js → settings.save_field），選中的
+         按鈕變色。無 JS 時每顆按鈕就是一個 submit（帶自己的 value）。使用者 2026-09-05。 #}
+      <div class="setting-row">
+        <div class="setting-choice">
+          <span class="setting-choice-label">{{ field.label }}</span>
+          <div class="choice-btns{% if field.choice_icon_prefix %} choice-btns--icon{% endif %}"
+               data-field="{{ field.key }}"
+               data-save-url="{{ url_for('settings.save_field', key=field.key) }}">
+            {% for val, text in field.choices %}
+            {% set gated = val in field.login_gated_choices and not vault_status.configured %}
+            <button type="submit" name="{{ field.key }}" value="{{ val }}"
+                    formaction="{{ url_for('settings.save_field', key=field.key) }}"
+                    class="choice-btn{% if val == values[field.key] %} selected{% endif %}"
+                    {% if gated %}disabled{% endif %}
+                    title="{{ text }}{% if gated %}（登入動畫瘋後可選）{% endif %}">
+              {% if field.choice_icon_prefix %}
+              <img src="{{ url_for('static', filename='icons/' + field.choice_icon_prefix + val + '.png') }}" alt="{{ text }}">
+              {% else %}{{ text }}{% endif %}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+        {% if field.help_text %}<p class="help-text">{{ field.help_text }}</p>{% endif %}
+      </div>
+      {% else %}
+      <div class="setting-row">
+        <div class="setting-row-main">
+          <label>{{ field.label }}
+            {% if field.kind == "text" %}
+            <input type="text" name="{{ field.key }}" value="{{ values[field.key] }}">
+            {% else %}
+            <input
+              type="number"
+              name="{{ field.key }}"
+              value="{{ values[field.key] }}"
+              step="{{ 'any' if field.kind == 'float' else '1' }}"
+              {% if field.frontend_min is not none %}min="{{ field.frontend_min }}"{% endif %}
+              {% if field.frontend_max is not none %}max="{{ field.frontend_max }}"{% endif %}
+            >
+            {% endif %}
+          </label>
+          {# 還原＝只把這欄輸入框改回預設值（settings.js），不送出、不重整。
+             無 JS 時退回 formaction 導到 reset_field（round 6 第 4 項）。 #}
+          <button type="submit" class="btn-neutral setting-reset-btn"
+                  data-reset-key="{{ field.key }}" data-reset-default="{{ field.default }}"
+                  formaction="{{ url_for('settings.reset_field', key=field.key) }}" formnovalidate>還原</button>
+          {# 每欄自己一顆「儲存」，只存這一欄（settings.save_field）；底部「全部儲存」一次存整組。 #}
+          <button type="submit" class="btn-accent setting-save-btn"
+                  formaction="{{ url_for('settings.save_field', key=field.key) }}">儲存</button>
+        </div>
+        {% if field.help_text %}<p class="help-text">{{ field.help_text }}</p>{% endif %}
+      </div>
+      {% endif %}
+      {% endfor %}
+      <button type="submit" class="btn-accent">全部儲存</button>
+    </form>
+  </details>
+
+  <details class="settings-section">
+    <summary>番劇頁顯示</summary>
+    <form method="post" action="{{ url_for('settings.set_show_dub_episodes') }}" data-ajax>
+      <label class="checkbox-label">
+        <input type="checkbox" name="show_dub_episodes" {{ 'checked' if show_dub_episodes else '' }}>
+        顯示中文配音集數
+      </label>
+      <p class="help-text">
+        預設不顯示。關閉時番劇頁的集數清單只列原音版本（「本篇」「特別篇」等）；開啟後
+        才把「中文配音」「中文電影」的集數也列出來。
+      </p>
+      <button type="submit" class="btn-accent">儲存</button>
+    </form>
+  </details>
+
+  <details class="settings-section">
+    <summary>檔案命名</summary>
+    <form method="post" action="{{ url_for('settings.set_filename_settings') }}" id="filename-form" data-ajax>
+      <label>檔名模板
+        <input type="text" name="filename_template" value="{{ filename_template }}"
+               data-default="{{ '@anime_title@ [@episode_num@]' }}">
+      </label>
+      <label>集數補齊長度
+        <input type="number" name="filename_pad_width" value="{{ filename_pad_width }}" min="1" max="6">
+      </label>
+      <p class="help-text">
+        預覽：<code id="filename-preview">{{ filename_preview }}</code>
+      </p>
+      <p class="help-text">點一下 token 插入到「檔名模板」游標處：</p>
+      <table class="token-help">
+        <tbody>
+        {% for token, desc in filename_tokens %}
+          <tr>
+            <td><button type="button" class="token-insert-btn" data-token="{{ token }}"><code>{{ token }}</code></button></td>
+            <td>{{ desc }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <label class="checkbox-label">
+        <input type="checkbox" name="auto_season_folder" {{ 'checked' if auto_season_folder else '' }}>
+        自動歸類至每季的資料夾內
+      </label>
+      <p class="help-text checkbox-help">
+        例：<code>七月新番／番劇名／…</code>。排程清單設了「分類」則以分類為準。
+      </p>
+      <label class="checkbox-label">
+        <input type="checkbox" name="auto_season_year_folder" {{ 'checked' if auto_season_year_folder else '' }}>
+        自動加入年分資料夾
+      </label>
+      <p class="help-text checkbox-help">
+        例：<code>2026／七月新番／番劇名／…</code>。需先開啟上一項。
+      </p>
+      <label class="checkbox-label">
+        <input type="checkbox" name="download_danmu" {{ 'checked' if download_danmu else '' }}>
+        下載彈幕（存成 <code>.ass</code> 字幕檔）
+      </label>
+      <button type="submit" class="btn-accent">儲存</button>
+    </form>
+    <script>
+      (function () {
+        var f = document.getElementById("filename-form");
+        if (!f) return;
+        var tpl = f.querySelector('[name="filename_template"]');
+        var pad = f.querySelector('[name="filename_pad_width"]');
+        var out = document.getElementById("filename-preview");
+        var FULLWIDTH = {
+          "<": "＜", ">": "＞", ":": "：", '"': "＂",
+          "/": "／", "\\": "＼", "|": "｜", "?": "？", "*": "＊"
+        };
+        var seasonCb = f.querySelector('[name="auto_season_folder"]');
+        var yearCb = f.querySelector('[name="auto_season_year_folder"]');
+        function pv() {
+          var p = Math.max(1, Math.min(parseInt(pad.value, 10) || 1, 6));
+          var n = String(3).padStart(p, "0");
+          var s = (tpl.value || "@anime_title@ [@episode_num@]")
+            .replace(/@anime_title@/g, "葬送的芙莉蓮")
+            .replace(/@sn@/g, "12345")
+            .replace(/@episode_num@/g, n)
+            .replace(/@episode_zh@/g, "第" + n + "集")
+            .replace(/@episode_ep_zh@/g, "第" + n + "話")
+            .replace(/@resolution_upper@/g, "1080P")
+            .replace(/@container_upper@/g, "MP4")
+            .replace(/@resolution@/g, "1080p")
+            .replace(/@fps@/g, "24")
+            .replace(/@vcodec@/g, "H.264")
+            .replace(/@acodec@/g, "AAC")
+            .replace(/@container@/g, "mp4")
+            .replace(/@date@/g, "2026-08-29")
+            .replace(/@time@/g, "203005")
+            .replace(/[<>:"/\\|?*]/g, function (c) { return FULLWIDTH[c]; })
+            .trim();
+          var prefix = "";
+          if (seasonCb && seasonCb.checked) {
+            prefix = (yearCb && yearCb.checked ? "2026／" : "") + "七月新番／葬送的芙莉蓮／";
+          }
+          out.textContent = prefix + (s || "葬送的芙莉蓮 [" + n + "]") + ".mp4";
+        }
+        tpl.addEventListener("input", pv);
+        pad.addEventListener("input", pv);
+        if (seasonCb) seasonCb.addEventListener("change", pv);
+        if (yearCb) yearCb.addEventListener("change", pv);
+        pv();
+
+        f.querySelectorAll(".token-insert-btn").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var token = btn.getAttribute("data-token");
+            var start = tpl.selectionStart == null ? tpl.value.length : tpl.selectionStart;
+            var end = tpl.selectionEnd == null ? tpl.value.length : tpl.selectionEnd;
+            tpl.value = tpl.value.slice(0, start) + token + tpl.value.slice(end);
+            var caret = start + token.length;
+            tpl.focus();
+            tpl.setSelectionRange(caret, caret);
+            tpl.dispatchEvent(new Event("input", { bubbles: true }));
+          });
+        });
+      })();
+    </script>
+  </details>
+
+  <details class="settings-section">
+    <summary>新番偵測</summary>
+    <p class="help-text">
+      每季動畫瘋在官方公告掛出「新番節目資訊」時，自動抓下來整理成可追蹤的清單
+      （右側「官方公告」下方會多一個「新番快訊」入口），並在有新增／改時間／下架時發通知。
+      關閉後整個停用：不掃描、不顯示入口、不發新番通知；已追蹤的項目會保留，但不再自動轉成訂閱。
+    </p>
+    <form method="post" action="{{ url_for('settings.set_newanime_detect') }}" data-ajax>
+      <div class="settings-save-row settings-save-row--center">
+        <label class="checkbox-label">
+          <input type="checkbox" name="newanime_detect_enabled" {{ 'checked' if newanime_detect_enabled else '' }}>
+          開啟新番偵測（預設開啟）
+        </label>
+        <button type="submit" class="btn-accent">儲存</button>
+      </div>
+    </form>
+  </details>
+
+  <details class="settings-section">
+    <summary>訂閱完結偵測</summary>
+    <p class="help-text">
+      已訂閱的番劇如果連續一週從動畫瘋的每日新番時刻表上消失（且期間沒有「暫時下架」的
+      官方公告），就判定為完結。偵測到完結時要怎麼處理：
+    </p>
+    <form method="post" action="{{ url_for('settings.set_completion_action') }}" data-ajax>
+      <div class="settings-save-row">
+        <label>完結時的處置
+          <select name="completion_action">
+            <option value="unsubscribe" {{ 'selected' if completion_action == 'unsubscribe' else '' }}>自動退訂（預設）</option>
+            <option value="notify" {{ 'selected' if completion_action == 'notify' else '' }}>只通知，自己決定要不要退訂</option>
+            <option value="mark" {{ 'selected' if completion_action == 'mark' else '' }}>標記完結、不再自動檢查更新，但保留訂閱</option>
+          </select>
+        </label>
+        <button type="submit" class="btn-accent">儲存</button>
+      </div>
+    </form>
+  </details>
+
+  <details class="settings-section">
+    <summary>資料庫整頓</summary>
+    <p>
+      清掉「已經不在追蹤清單、但資料庫裡還有紀錄」的番劇（官方公告／未完成的手動任務／
+      被標記為已下載的集數）。只影響資料庫紀錄，不會刪除已下載的檔案。
+    </p>
+    <a class="btn-neutral link-btn" href="{{ url_for('settings.db_cleanup') }}">開啟整頓畫面</a>
+  </details>
+
+  <details class="settings-section">
+    <summary>番劇資料快取</summary>
+    <p>
+      番劇標題／簡介／集數清單／封面圖的本地快取，讓頻繁造訪首頁／番劇頁時不用一直重新
+      抓取，降低被站方風控的機率。清空後下次造訪會重新抓、重新快取。
+    </p>
+    <form method="post" action="{{ url_for('settings.set_anime_cache_ttl') }}" data-ajax>
+      <div class="settings-save-row settings-save-row--center">
+        <label>快取保留天數
+          <input type="number" name="anime_cache_ttl_days" value="{{ anime_cache_ttl_days }}" min="1">
+        </label>
+        <button type="submit" class="btn-accent">儲存</button>
+      </div>
+      <p class="help-text">超過這天數的快取，下次造訪會重新抓取。</p>
+    </form>
+    <div class="cache-clear-row">
+      <span class="help-text" id="anime-cache-size">目前使用約 {{ anime_cache_size }}</span>
+      <form method="post" action="{{ url_for('settings.clear_anime_cache') }}" class="inline-form" data-ajax>
+        <button type="submit">清空番劇資料快取</button>
+      </form>
+    </div>
+  </details>
+
+  </div>
+  <div class="settings-col">
+
+  {% if gamer_login_available %}
+  <details class="settings-section">
+    <summary>動畫瘋登入</summary>
+    <p>
+      下載付費番劇需要你的動畫瘋登入狀態。帳號、密碼、Cookie 都用 Windows DPAPI 加密後
+      才存在本機，只有這台電腦、這個 Windows 使用者帳戶能解開。
+    </p>
+    {% if vault_status.configured %}
+    <div class="gamer-account-block">
+      <span class="gamer-account-label">目前已設定帳號：</span>
+      <div class="gamer-account-row">
+        <strong class="gamer-account-name">{{ vault_status.account }}</strong>
+        <form method="post" action="{{ url_for('settings.gamer_login_start') }}" class="inline-form">
+          <button type="submit" class="btn-accent btn-sm">重新登入</button>
+        </form>
+        <form method="post" action="{{ url_for('settings.gamer_login_delete') }}" class="inline-form">
+          <button type="submit" class="btn-neutral btn-sm">刪除登入資訊</button>
+        </form>
+        <a class="btn-neutral btn-sm" href="{{ url_for('gamer_login.creds', next='settings') }}">更新帳號密碼</a>
+      </div>
+    </div>
+    {% else %}
+    <p>目前尚未設定。</p>
+    <a class="btn-accent link-btn" href="{{ url_for('gamer_login.creds', next='settings') }}">登入動畫瘋</a>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('settings.set_cookie_warmup_interval') }}" data-ajax>
+      <div class="settings-save-row settings-save-row--center">
+        <label>登入態檢查週期（小時）
+          <input type="number" name="cookie_warmup_interval_hours"
+                 value="{{ cookie_warmup_interval_hours }}" min="1" max="{{ max_cookie_warmup_hours }}">
+        </label>
+        <button type="submit" class="btn-accent">儲存</button>
+      </div>
+      <p class="help-text">
+        多久做一次完整的登入態檢查（查 token.php，失效才會跳出瀏覽器視窗要你重新登入）。最多 {{ max_cookie_warmup_hours }} 小時。
+        <br>背景每 30 分鐘還會自動用現有 cookie 走一趟「巴哈首頁 → 動畫瘋」保活，讓登入不會因為閒置太久而掉，這個不用設定、也不會跳視窗。
+      </p>
+    </form>
+
+    <p class="help-text">
+      沒有 VIP 時，免費番劇會自動跑一次「看廣告回報」交握（約 30 秒），完成後照常下載
+      （已登入但非 VIP 也一樣）。付費會員限定、年齡限制的番劇仍需登入有 VIP 的帳號。
+      這是預設行為，不需要另外設定。
+    </p>
+
+    <h2>環境偽裝指紋</h2>
+    <p class="help-text">
+      用一次真實瀏覽器採集的 UA / JA3 / Akamai 指紋，取代程式內建的罐頭指紋，降低被站方
+      風控的機率。採集時會短暫開一個瀏覽器視窗、自動關閉。
+    </p>
+    <p class="help-text" id="fingerprint-status">
+      {% if fingerprint_status.configured %}目前已套用自訂指紋（更新於 {{ fingerprint_status.updated_at }}）
+      {%- else %}目前使用內建預設指紋{% endif %}
+    </p>
+    <div class="gamer-login-actions">
+      <form method="post" action="{{ url_for('settings.fingerprint_refresh') }}" class="inline-form">
+        <button type="submit">{{ '重新取得指紋' if fingerprint_status.configured else '取得環境偽裝指紋' }}</button>
+      </form>
+      <form method="post" action="{{ url_for('settings.fingerprint_clear') }}" class="inline-form" data-ajax
+            id="fingerprint-clear-form"{{ '' if fingerprint_status.configured else ' hidden' }}>
+        <button type="submit">清除、改用預設</button>
+      </form>
+    </div>
+  </details>
+  {% endif %}
+
+  <details class="settings-section">
+    <summary>GitHub 帳號連結</summary>
+    <p>完全可選——不連結不影響任何下載/排程功能。連結之後會啟用「star 提醒」跟「同帳號多 IP 防護」，兩者一起生效，無法只開其中一個。</p>
+    {% if access_gate_status.connected %}
+    {# 版面比照「動畫瘋登入」：帳號名 + 按鈕同一行（使用者 2026-09-09）。 #}
+    <div class="gamer-account-block">
+      <span class="gamer-account-label">目前已連結：</span>
+      <div class="gamer-account-row">
+        <strong class="gamer-account-name">{{ access_gate_status.github_login }}</strong>
+        <form method="post" action="{{ url_for('access_gate.disconnect') }}" class="inline-form">
+          <input type="hidden" name="next" value="settings.index">
+          <button type="submit" class="btn-neutral btn-sm">中斷連結</button>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <p>目前未連結。</p>
+    <a class="btn-accent link-btn" href="{{ url_for('access_gate.connect') }}">連結 GitHub 帳號</a>
+    {% endif %}
+  </details>
+
+  <details class="settings-section">
+    <summary>公開模式</summary>
+    <p class="help-text">
+      預設<strong>關閉</strong>——所有頁面都要先登入。開啟後，在<strong>沒有登入</strong>的
+      狀態下也能查看訂閱番劇／已下載的番劇／已建立快取的番劇頁，並直接播放已下載的影片。
+      此時側欄只剩訂閱列表與下載列表，且是純唯讀：不顯示未下載的集數，也沒有下載／改名／
+      取消訂閱按鈕。沒有快取的番劇頁會顯示「請登入後建立快取」。
+    </p>
+    <p class="help-text">
+      公開模式下<strong>預設公開全部</strong>訂閱／已下載的番劇（含之後新增的）。要藏起
+      個別番劇：到<a href="{{ url_for('browse.subscriptions') }}">訂閱列表</a>或
+      <a href="{{ url_for('browse.downloads') }}">下載列表</a>，把該番劇卡片的「公開」取消勾選。
+      目前已藏起 <strong>{{ public_hidden_count }}</strong> 部。
+    </p>
+    <form method="post" action="{{ url_for('settings.set_public_mode') }}" data-ajax>
+      <label class="checkbox-label">
+        <input type="checkbox" name="public_mode" {{ 'checked' if public_mode else '' }}>
+        開啟公開模式（預設關閉）
+      </label>
+      <button type="submit" class="btn-accent">儲存</button>
+    </form>
+  </details>
+
+  <details class="settings-section">
+    <summary>進階存取</summary>
+    <p class="help-text">
+      部分網路環境連不上動畫瘋時，可以透過代理連線。填入 Clash / v2ray / sing-box 之類
+      工具在本機開的混合埠（例：SOCKS5 <code>127.0.0.1:7890</code>）。這裡不解析 vmess／
+      vless 連結、也不讀設定檔——只用代理本身。
+    </p>
+    <p class="help-text">
+      可以設定多組，依<strong>主要 → 備用 → 其他</strong>的順序嘗試；某一組連不上會
+      自動切到下一組，全部都連不上才會顯示錯誤（不會偷偷改走直連）。
+    </p>
+    <form method="post" action="{{ url_for('settings.set_advanced_access_enabled') }}" data-ajax>
+      <label class="checkbox-label">
+        <input type="checkbox" name="advanced_access_enabled" {{ 'checked' if advanced_access_enabled else '' }}>
+        開啟進階存取（透過代理連線，預設關閉）
+      </label>
+      <button type="submit" class="btn-accent">儲存</button>
+    </form>
+
+    <hr class="settings-divider">
+    {% if advanced_access_proxies %}
+    <table class="settings-table">
+      <thead><tr><th>角色</th><th>名稱</th><th>代理</th><th></th></tr></thead>
+      <tbody>
+      {% for p in advanced_access_proxies %}
+        <tr>
+          <td>{{ p.role_label }}</td>
+          <td>{{ p.label }}</td>
+          <td><code>{{ p.scheme_label }} {{ p.host }}:{{ p.port }}</code></td>
+          <td>
+            <form method="post" action="{{ url_for('settings.delete_advanced_access_proxy') }}" data-ajax>
+              <input type="hidden" name="scheme" value="{{ p.scheme }}">
+              <input type="hidden" name="host" value="{{ p.host }}">
+              <input type="hidden" name="port" value="{{ p.port }}">
+              <button type="submit" class="btn-neutral">刪除</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if advanced_access_enabled and advanced_access_status and advanced_access_status.active %}
+    <p class="help-text">目前生效：<code>{{ advanced_access_status.active.scheme }}://{{ advanced_access_status.active.host }}:{{ advanced_access_status.active.port }}</code>
+      （第 {{ advanced_access_status.active_index + 1 }} / {{ advanced_access_status.count }} 組）</p>
+    {% endif %}
+    {% else %}
+    <p class="help-text">尚未設定任何代理設定組。</p>
+    {% endif %}
+
+    <hr class="settings-divider">
+    <form method="post" action="{{ url_for('settings.add_advanced_access_proxy') }}" data-ajax>
+      <p class="help-text">新增設定組</p>
+      <div class="settings-inline-fields">
+        <label>角色
+          <select name="role">
+            <option value="primary">主要設定組</option>
+            <option value="backup">備用設定組</option>
+            <option value="other" selected>其他設定組</option>
+          </select>
+        </label>
+        <label>名稱（可留空）
+          <input type="text" name="label" placeholder="例：家用 Clash" maxlength="40">
+        </label>
+      </div>
+      <div class="settings-inline-fields">
+        <label>協定
+          <select name="scheme">
+            <option value="socks5h" selected>SOCKS5（遠端 DNS）</option>
+            <option value="socks5">SOCKS5</option>
+            <option value="http">HTTP</option>
+            <option value="https">HTTPS</option>
+            <option value="socks4a">SOCKS4a</option>
+            <option value="socks4">SOCKS4</option>
+          </select>
+        </label>
+        <label>主機
+          <input type="text" name="host" placeholder="127.0.0.1" required>
+        </label>
+        <label>連接埠
+          <input type="number" name="port" min="1" max="65535" placeholder="7890" required>
+        </label>
+      </div>
+      <button type="submit" class="btn-accent">新增</button>
+    </form>
+  </details>
+
+  <details class="settings-section">
+    <summary>匿名使用統計</summary>
+    {# 「錯誤自動回報」與「即時統計」是兩件完全獨立的事（使用者 2026-09-08：避免互相
+       打架），各自的開關、各自的背景執行緒。「隱私權政策」按鈕在側欄版本號右側。 #}
+    <p>
+      程式發生任何錯誤（含未預期的例外）時，自動回報固定欄位（錯誤代碼／操作類型／例外類型名稱／錯誤發生的模組／網路量測值／連線狀態分類／檔案完整性比對結果／去識別化的路徑資訊），幫助排查問題、改善穩定性。
+      <strong>不會</strong>回報帳號密碼、Cookie、您追蹤/下載的番劇清單內容、檔案內容本身、完整例外堆疊或原始錯誤訊息文字、含使用者名稱的原始檔案路徑。
+    </p>
+    <form method="post" action="{{ url_for('settings.set_diagnostics_enabled') }}" data-ajax>
+      <div class="settings-save-row settings-save-row--center">
+        <label class="checkbox-label">
+          <input type="checkbox" name="diagnostics_enabled" {{ 'checked' if diagnostics_enabled else '' }}>
+          開啟錯誤自動回報（預設開啟）
+        </label>
+        <button type="submit" class="btn-accent">儲存</button>
+      </div>
+    </form>
+    <p class="help-text">已回報錯誤的次數：{{ diagnostics_reported_count }}</p>
+    <p class="help-text">所有使用者已回報次數：<span data-stats-all-reports>—</span></p>
+
+    <hr class="settings-divider">
+    <p>
+      匿名回報使用數據（總下載次數、番劇訂閱／收藏數、使用人數、在線人數、番劇觀看次數），
+      彙總後顯示在隱私權政策與番劇頁上。回報都帶一組首次啟動時隨機產生的匿名識別碼，
+      <strong>不含</strong>任何個人資訊、帳號、Cookie。與「錯誤自動回報」分開獨立運作。
+    </p>
+    <form method="post" action="{{ url_for('settings.set_realtime_stats_enabled') }}" data-ajax>
+      <div class="settings-save-row settings-save-row--center">
+        <label class="checkbox-label">
+          <input type="checkbox" name="realtime_stats_enabled" {{ 'checked' if realtime_stats_enabled else '' }}>
+          開啟即時統計（預設開啟）
+        </label>
+        <button type="submit" class="btn-accent">儲存</button>
+      </div>
+    </form>
+  </details>
+
+  <details class="settings-section">
+    <summary>版本更新提示</summary>
+    <form method="post" action="{{ url_for('settings.set_update_channel') }}" data-ajax>
+      <div class="settings-save-row settings-save-row--center">
+        <label class="checkbox-label">
+          <input type="checkbox" name="version_check_include_prereleases" {{ 'checked' if include_prereleases else '' }}>
+          接收 Beta 版更新提示（prerelease）
+        </label>
+        <button type="submit" class="btn-accent">儲存</button>
+      </div>
+      <p class="help-text">
+        {% if app_is_beta %}
+        你目前跑的是 Beta 版，預設會收到下一個 Beta（prerelease）的更新提示。取消勾選後只在有正式版時提示。
+        {% else %}
+        預設只在有正式版時提示。勾選後也會收到標記為 prerelease 的 Beta 版更新提示。
+        {% endif %}
+        僅影響「有新版本」的提示，不會自動下載或安裝。每小時檢查一次。
+      </p>
+    </form>
+  </details>
+
+  <details class="settings-section">
+    <summary>日誌</summary>
+    <p>
+      程式的完整執行紀錄（含例外堆疊），存在資料庫裡。可依等級篩選、分頁查看、一鍵清空。
+    </p>
+    <a class="btn-neutral link-btn" href="{{ url_for('settings.logs') }}">開啟日誌</a>
+  </details>
+
+  <details class="settings-section">
+    <summary>更改帳號與密碼</summary>
+    <p class="help-text">
+      網頁介面的登入帳號密碼。更改任一項都需要輸入<strong>目前的密碼</strong>確認身分；
+      成功後所有登入階段（含其他開著的分頁）都會失效，需要用新帳密重新登入。
+    </p>
+
+    <form method="post" action="{{ url_for('settings.change_account') }}" data-ajax autocomplete="off">
+      <input type="hidden" name="mode" value="username">
+      <label>新的帳號名稱
+        <input type="text" name="new_username" value="{{ web_username }}" autocomplete="off" required>
+      </label>
+      <label>目前的密碼
+        <input type="password" name="current_password" autocomplete="off" required>
+      </label>
+      <button type="submit" class="btn-accent">更改帳號</button>
+    </form>
+
+    <hr class="settings-divider">
+
+    <form method="post" action="{{ url_for('settings.change_account') }}" data-ajax autocomplete="off">
+      <input type="hidden" name="mode" value="password">
+      <label>目前的密碼
+        <input type="password" name="current_password" autocomplete="off" required>
+      </label>
+      <label>新密碼
+        <input type="password" name="new_password" autocomplete="new-password" required>
+      </label>
+      <label>再次輸入新密碼
+        <input type="password" name="confirm_new_password" autocomplete="new-password" required>
+      </label>
+      <button type="submit" class="btn-accent">更改密碼</button>
+    </form>
+
+    <hr class="settings-divider">
+
+    <h2>重置整個 BahaAD</h2>
+    <p class="help-text">
+      清空所有資料（訂閱清單、動畫瘋帳號登入狀態、所有設定、快取），無法復原。程式會關閉，
+      重新啟動後跳首次設定頁。只有坐在這台電腦前（<code>127.0.0.1</code>）才能執行。
+    </p>
+    <button type="button" id="reset-everything-button" class="btn-neutral">重置整個 BahaAD</button>
+    <form id="reset-everything-form" method="post"
+          action="{{ url_for('auth.reset_everything') }}" style="display:none"></form>
+  </details>
+
+  </div>
+  </div>
+
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='settings.js') }}"></script>
+<script src="{{ url_for('static', filename='quality_picker.js') }}"></script>
+<script>
+// 後端本來就不會拒絕超過上限的值（DownloadPool/SegmentDownloader 建構時才會夾住），
+// 這裡的前端檢查是為了避免使用者以為自己設定了比實際上限更大的並發數而困惑。
+document.getElementById("settings-form").addEventListener("submit", function (event) {
+  if (event.submitter && event.submitter.classList.contains("setting-reset-btn")) {
+    return;
+  }
+  var capped = [
+    ["max_concurrent_downloads", {{ (fields | selectattr('key', 'equalto', 'max_concurrent_downloads') | first).frontend_max }}],
+    ["max_concurrent_segments", {{ (fields | selectattr('key', 'equalto', 'max_concurrent_segments') | first).frontend_max }}]
+  ];
+  for (var i = 0; i < capped.length; i++) {
+    var input = document.querySelector('[name="' + capped[i][0] + '"]');
+    if (input && Number(input.value) > capped[i][1]) {
+      event.preventDefault();
+      showAlert("最多只能設定 " + capped[i][1] + "，超過的部分實際上不會生效。");
+      return;
+    }
+  }
+});
+
+// 清除環境偽裝指紋後就地更新狀態文字＋收起「清除」鈕，不整頁重載
+// （使用者 2026-09-01：任何儲存都不該刷新）
+document.addEventListener("ajaxform:done", function (e) {
+  if (!e.detail || !e.detail.ok || e.target.id !== "fingerprint-clear-form") return;
+  var status = document.getElementById("fingerprint-status");
+  if (status) status.textContent = "目前使用內建預設指紋";
+  e.target.hidden = true;
+  var refreshBtn = document.querySelector('form[action$="fingerprint/refresh"] button');
+  if (refreshBtn) refreshBtn.textContent = "取得環境偽裝指紋";
+});
+
+// 「重置整個 BahaAD」：打字確認 → 送出 → 程式關閉
+(function () {
+  var btn = document.getElementById("reset-everything-button");
+  if (!btn) return;
+  btn.addEventListener("click", function () {
+    showTypedConfirm(
+      "這會清空所有資料（訂閱清單、動畫瘋帳號登入狀態、所有設定），且無法復原。",
+      "確定要重置",
+      function () { document.getElementById("reset-everything-form").submit(); }
+    );
+  });
+})();
+</script>
+{% endblock %}

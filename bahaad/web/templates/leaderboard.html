@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}BahaAD 排行榜 - BahaAD{% endblock %}
+
+{# 標題固定在上、只有榜單捲動（比照訂閱列表等）。 #}
+{% block shell_class %}pinned-scroll{% endblock %}
+
+{% block content %}
+<div id="leaderboard-page">
+  <div class="page-head">
+    <h1>BahaAD 排行榜</h1>
+    <p class="help-text">所有 BahaAD 使用者的匿名彙總——即時更新。</p>
+  </div>
+  <div id="leaderboard-scroll">
+    {# stats.js 從 /ui/stats/leaderboard 拉四個榜（訂閱數／收藏數／總觀看／看完），
+       前三名附獎牌圖示。伺服器沒上線時各榜顯示「尚無資料」。 #}
+    <div class="leaderboard-boards" data-stats-leaderboard></div>
+  </div>
+</div>
+{% endblock %}
