@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% import "_notify_tabs.html" as tabs with context %}
+{% block title %}發送歷史 - BahaAD{% endblock %}
+{# 使用者 2026-09-08：資料多、要換頁 → 頭尾固定、只有清單捲動。 #}
+{% block shell_class %}pinned-scroll{% endblock %}
+{% block content %}
+<div class="auth-card extra-wide-card paged-card">
+  <div class="paged-card__head">
+    <h1>通知中心</h1>
+    {{ tabs.notify_tabs('history') }}
+    <div class="logs-toolbar">
+      <p class="help-text">共 {{ total }} 筆</p>
+      {% if history %}
+      <form method="post" action="{{ url_for('notify.history_index') }}" id="notify-history-clear-form">
+        <input type="hidden" name="action" value="clear">
+        <button type="submit" class="btn-neutral">清空</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% if history %}
+  <div class="paged-card__body">
+    <div class="logs-table-scroll">
+      <table class="entry-table notify-history-table">
+      <thead>
+        <tr><th>時間</th><th>管道</th><th>類別</th><th>內容</th><th>狀態</th><th>錯誤訊息</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for row in history %}
+        <tr>
+          <td class="log-ts">{{ row.sent_at }}</td>
+          <td>{{ row.channel }}</td>
+          <td class="log-logger">{{ row.category }}</td>
+          <td><div class="notify-history-message">{{ row.message }}</div></td>
+          <td>
+            {% if row.success %}
+            <span class="log-level-badge notify-result-ok">成功</span>
+            {% else %}
+            <span class="log-level-badge notify-result-fail">失敗</span>
+            {% endif %}
+          </td>
+          <td>{% if not row.success and row.error %}<div class="notify-history-error help-text">{{ row.error }}</div>{% endif %}</td>
+          <td>
+            {% if not row.success %}
+            <button type="button" class="notify-retry-btn btn-neutral" data-id="{{ row.id }}">重試</button>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="paged-card__foot logs-pager">
+    {% if page > 1 %}
+    <a class="btn-neutral" href="{{ url_for('notify.history_index', page=page-1) }}">← 上一頁</a>
+    {% endif %}
+    <span class="help-text">第 {{ page }} 頁</span>
+    {% if has_next %}
+    <a class="btn-neutral" href="{{ url_for('notify.history_index', page=page+1) }}">下一頁 →</a>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="paged-card__body"><p class="help-text">目前還沒有任何發送紀錄。</p></div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  var clearForm = document.getElementById("notify-history-clear-form");
+  if (clearForm) {
+    clearForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      window.showConfirm("確定要清空所有發送歷史嗎？此動作無法復原。", function () { clearForm.submit(); });
+    });
+  }
+  document.querySelectorAll(".notify-retry-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      btn.disabled = true;
+      fetch("/notify/history/" + btn.dataset.id + "/retry", { method: "POST" })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          showAlert(data.info);
+          if (data.ok) {
+            window.location.reload();
+          }
+        })
+        .catch(function () { showAlert("重試失敗，請稍後再試一次"); })
+        .finally(function () { btn.disabled = false; });
+    });
+  });
+})();
+</script>
+{% endblock %}

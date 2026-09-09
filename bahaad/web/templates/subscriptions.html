@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% import "_cards.html" as cards with context %}
+{% block title %}訂閱列表 - BahaAD{% endblock %}
+
+{# round 7 第 4 項：排程清單改成訂閱列表頁專屬的右側浮動面板（只有這頁有）。切換鈕
+   填進 base.html 的 .content-top，跟左側「收合側欄」鈕排在同一水平線上。 #}
+{% block content_top_end %}
+{% if not public_readonly %}
+<button type="button" id="subs-schedule-toggle" class="icon-btn icon-btn--accent" title="開啟／收合排程清單">
+  <img class="theme-icon" data-icon="panel-expand" id="subs-schedule-toggle-icon"
+       src="{{ url_for('static', filename='icons/panel-expand-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="">
+</button>
+{% endif %}
+{% endblock %}
+
+{# 使用者 2026-09-05：標題＋數量固定在上方，只有卡片格那塊捲動（比照首頁）。 #}
+{% block shell_class %}pinned-scroll{% endblock %}
+
+{% block content %}
+<div id="subs-page">
+  <div class="page-head">
+    <h1>訂閱列表</h1>
+    {% if subscribed %}
+    <p class="anime-grid-count">
+      共 {{ subscribed | length }} 部動畫
+      {% if not public_readonly %}
+      {# 「重新檢查排程更新」全域按鈕，接在數量文字後面（見 web_redesign_round2.md 階段 4）。 #}
+      <button type="button" class="icon-btn icon-btn--outline recheck-btn" data-recheck="all"
+              title="重新檢查所有收藏有沒有漏掉的更新">
+        <img class="theme-icon" data-icon="refresh"
+             src="{{ url_for('static', filename='icons/refresh-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="重新檢查排程更新">
+      </button>
+      {% endif %}
+    </p>
+    {% endif %}
+  </div>
+
+  {% if subscribed %}
+  <div id="subs-scroll">
+    <div class="anime-grid">
+      {% for anime in subscribed %}
+      {{ cards.anime_card(
+           url_for('browse.anime_detail', video_sn=anime.video_sn),
+           cards.display_title(anime.video_sn, anime.title),
+           ("尚無快取" if anime.no_cache else "共 " ~ anime.episode_count ~ " 集"),
+           cover=anime.cover_url,
+           bell_sn=(none if public_readonly else anime.video_sn),
+           subscribed=True, remove_card=(not public_readonly), show_recheck=(not public_readonly),
+           public_title=(anime.raw_title if public_pick else none),
+           public_on=(anime.raw_title not in public_hidden)) }}
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <p class="help-text">目前還沒有訂閱任何番劇{% if not public_readonly %}——在首頁的本季新番／週期表卡片點鈴鐺即可訂閱{% endif %}。</p>
+  {% endif %}
+</div>
+
+<aside id="subs-schedule-panel" class="collapsed">
+  <h2 class="schedule-panel-title">排程清單</h2>
+  {# iframe 隔離：排程清單本身有一堆編輯/刪除表單，用無殼版（schedule_embed.html）塞進來 #}
+  <iframe id="subs-schedule-frame" title="排程清單" data-src="{{ url_for('schedule.index', embed=1) }}"></iframe>
+</aside>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='subs_schedule.js') }}"></script>
+{% if not public_readonly %}
+<script src="{{ url_for('static', filename='public_toggle.js') }}"></script>
+{% endif %}
+{% endblock %}

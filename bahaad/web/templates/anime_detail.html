@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% import "_bell.html" as bell with context %}
+{% import "_cards.html" as cards with context %}
+{# 已訂閱且設過「更名」的話，標題（含瀏覽器分頁標題）顯示更名後的名稱；其餘情況顯示
+   番劇原始標題。放在所有 block 外面（不是 content block 裡）——title block 排在
+   content block 前面，Jinja 的 {% set %} 只在同一個 block 內有效，不拉到外層的話
+   title block 拿不到這個變數（使用者 2026-09-06 回報：改名後分頁標題還是舊的）。 #}
+{% set display_title = subscribed_renames.get(detail.video_sn) or detail.title %}
+{% block title %}{{ display_title }} - BahaAD{% endblock %}
+
+{# 「製作／配音／音樂」右側浮動面板的切換鈕，填進 base.html 的 .content-top（跟首頁
+   週期表切換鈕同一個位置、同一種互動）。只有真的有 youranimes 補充資料時才出現。 #}
+{% block content_top_end %}
+{% if youranimes and youranimes.has_right_column %}
+<button type="button" id="ya-panel-toggle" class="icon-btn icon-btn--accent" title="展開／收合製作資訊">
+  <img class="theme-icon" data-icon="panel-expand" id="ya-panel-toggle-icon"
+       src="{{ url_for('static', filename='icons/panel-expand-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="">
+</button>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="anime-detail-page">
+  {# display_title 在檔案最上面（title block 之前）算好了，這裡直接用 #}
+  <div class="anime-detail-title-row">
+    <h1 class="anime-detail-title">{{ display_title }}</h1>
+    {% if not public_readonly %}
+    {# 「重新檢查」鈕只放在訂閱列表頁（使用者 2026-08-27） #}
+    {{ bell.bell_button(detail.video_sn, detail.video_sn in subscribed_sns, anime_title=detail.title) }}
+    {# 一律渲染、未訂閱時 hidden——訂閱後 subscribe.js 立即顯示，不用整頁重載（第 3 項） #}
+    <span class="rename-btn-wrap" data-rename-for="{{ detail.video_sn }}" data-subbed="{{ 'true' if detail.video_sn in subscribed_sns else 'false' }}"{{ '' if detail.video_sn in subscribed_sns else ' hidden' }}>{{ bell.rename_button(detail.video_sn, display_title) }}</span>
+    {% endif %}
+  </div>
+
+  <div class="anime-detail-top">
+    <div class="anime-detail-left">
+      <img class="anime-detail-cover" src="{{ detail.cover_url | cached_img }}" alt="">
+      <div class="anime-detail-rating">
+        {% if detail.rating_score %}
+        <div class="rating-score">{{ detail.rating_score }}</div>
+        <div class="rating-count">{{ detail.rating_count }}</div>
+        {% else %}
+        <div class="help-text">尚無評價</div>
+        {% endif %}
+      </div>
+      {# 即時匿名使用統計：訂閱數（評價下方）＋ 番劇總觀看次數（訂閱數下方）。
+         key＝首集 sn，跟訂閱／收藏對齊。stats.js 即時刷新、伺服器沒上線就顯示「—」。 #}
+      <div class="anime-detail-stats" data-stats-anime data-first-sn="{{ stats_first_ep_sn }}">
+        <div class="anime-detail-stat">
+          <span class="anime-detail-stat-label">番劇訂閱數</span>
+          <span class="anime-detail-stat-num" data-stats-metric="subscription">—</span>
+        </div>
+        <div class="anime-detail-stat">
+          <span class="anime-detail-stat-label">總觀看次數</span>
+          <span class="anime-detail-stat-num" data-stats-metric="views">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="anime-detail-info">
+      <div class="anime-detail-meta-row">
+        <div><span class="help-text">首播日期</span><br>{{ detail.air_date or "－" }}</div>
+        <div><span class="help-text">導演監督</span><br>{{ detail.director or "－" }}</div>
+        <div><span class="help-text">代理廠商</span><br>{{ detail.distributor or "－" }}</div>
+        <div><span class="help-text">製作廠商</span><br>{{ detail.producer or "－" }}</div>
+      </div>
+      {% if detail.genres %}
+      <div class="anime-detail-genres">
+        {% for genre in detail.genres %}
+        {% if genre_search and genre in genre_search %}
+        {# 點了跳到「搜尋番劇」並套上這個屬性篩選 #}
+        <a class="genre-tag genre-tag--link" href="{{ url_for('browse.search', tags=genre) }}">{{ genre }}</a>
+        {% else %}
+        <span class="genre-tag">{{ genre }}</span>
+        {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+      <p class="anime-detail-description">{{ synopsis or detail.description or "暫無簡介" }}</p>
+    </div>
+  </div>
+
+  {# 「製作／配音／音樂」改成可收合的右側浮動面板（比照首頁週期表側板，使用者
+     2026-09-01 回饋）。預設收起、用右上角切換鈕開合、點面板外收起（ya_panel.js）。 #}
+  {% if youranimes and youranimes.has_right_column %}
+  <aside id="ya-panel" class="collapsed">
+    <h2 class="ya-panel-heading">製作資訊</h2>
+    <div id="ya-panel-scroll">
+      {% include "_youranimes_panel.html" %}
+    </div>
+  </aside>
+  {% endif %}
+
+  {% if episode_categories %}
+  {# 「下載」＝下載所有勾選的集數（跨分類）。每個分類標題列最右一顆「〈分類〉全部下載」；
+     底部「整個番劇 全部下載」在「下載」左邊。多顆 submit 靠 name=download_all 的 value
+     區分（見 web/browse.py download_episodes）。使用者 2026-08-27。
+     episode_categories 已依設定 show_dub_episodes 過濾掉中文配音分類（custom-features #13）。 #}
+  {# data-subscribed／data-anime-title 給 episode_picker.js 判斷要不要先問資料夾名稱
+     （階段 6-5：非訂閱番劇下載前跳 showPrompt）。 #}
+  <form method="post" action="{{ url_for('browse.download_episodes', video_sn=detail.video_sn) }}"
+        id="episode-picker-form"
+        data-subscribed="{{ 'true' if detail.video_sn in subscribed_sns else 'false' }}"
+        data-anime-title="{{ display_title }}"
+        data-remote-playback="{{ 'true' if remote_playback else 'false' }}"
+        data-episode-states-url="{{ url_for('browse.anime_episode_states', video_sn=detail.video_sn) }}">
+    {# 「僅這次顯示」中文配音時，把 dub=1 一起帶進下載請求，讓「全部下載」也含配音 #}
+    {% if dub_this_time and not dub_setting_on %}<input type="hidden" name="dub" value="1">{% endif %}
+    <div class="episode-picker">
+      {% set page = namespace(any=false) %}
+      {% for category in episode_categories %}
+      {# 公開模式：只列已下載（藍框）的集數，其餘不顯示；也沒有「全部下載」鈕 #}
+      {% set cat = namespace(shown=[]) %}
+      {% for ep in category.episodes %}
+        {% if not public_readonly or episode_states.get(ep.video_sn) == 'downloaded' %}
+          {% set cat.shown = cat.shown + [ep] %}
+        {% endif %}
+      {% endfor %}
+      {% if cat.shown %}
+      {% set page.any = true %}
+      <div class="episode-category-row">
+        <h3 class="episode-category-title">{{ category.name }}</h3>
+        {% if not public_readonly %}
+        <button type="submit" name="download_all" value="{{ category.name }}"
+                class="episode-all-btn">{{ category.name }} 全部下載</button>
+        {% endif %}
+      </div>
+      <div class="episode-grid" data-episode-grid>
+        {% for ep in cat.shown %}
+        <label class="episode-cell {{ episode_states.get(ep.video_sn, 'not-downloaded') }}">
+          <input type="checkbox" name="video_sn" value="{{ ep.video_sn }}" class="episode-checkbox">
+          {{ ep.number }}
+        </label>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endfor %}
+      {% if public_readonly and not page.any %}
+      <p class="help-text">這部番劇目前沒有已下載的集數。</p>
+      {% endif %}
+    </div>
+    <div class="episode-picker-actions">
+      {# 點到「已下載」（藍框）的單一集數時才冒出來，開瀏覽器內建播放器（使用者 2026-09-04）。 #}
+      <button type="button" id="episode-play-btn" class="btn-neutral" hidden>▶ 播放</button>
+      {% if not public_readonly %}
+      {% if episode_categories | length > 1 %}
+      <button type="submit" name="download_all" value="__all__" class="episode-all-btn">整個番劇 全部下載</button>
+      {% endif %}
+      <button type="submit" id="episode-submit-btn" class="btn-accent">下載</button>
+      {% endif %}
+    </div>
+  </form>
+
+  <div id="episode-player-overlay" class="player-overlay" hidden>
+    <div class="player-box">
+      <div class="player-topbar">
+        <span class="player-topbar-left">
+          {# 網路狀態呼吸燈：綠/黃/紅。滑鼠移上（或行動裝置長按）看網路判斷／延遲／速度。 #}
+          <span class="player-net" id="episode-player-net" data-net="off" tabindex="0"
+                role="button" aria-label="網路狀態">
+            <span class="player-net-dot"></span>
+            <span class="player-net-tip" id="episode-player-net-tip" hidden></span>
+          </span>
+          <span class="player-caption" id="episode-player-caption"></span>
+        </span>
+        <span class="player-topbar-right">
+          {# 看完次數 ＋ 正在收看（關閉鈕左側，使用者 2026-09-08）——同一部番劇、同一個
+             首集 sn。stats.js 即時刷新。 #}
+          <span class="player-stats" data-stats-anime data-first-sn="{{ stats_first_ep_sn }}">
+            <span class="player-stat" title="看完次數">✓ <span data-stats-metric="completions">—</span></span>
+            <span class="player-stat" title="正在收看">👁 <span data-stats-metric="watching">—</span></span>
+          </span>
+          <button type="button" class="player-close" aria-label="關閉">✕ 關閉</button>
+        </span>
+      </div>
+      <video id="episode-player-video" controls playsinline preload="metadata"
+             controlslist="nodownload"></video>
+      <div class="player-controls">
+        <button type="button" data-player-act="prev">‹ 上一話</button>
+        <button type="button" data-player-act="back">« 10 秒</button>
+        <button type="button" data-player-act="fwd">10 秒 »</button>
+        <button type="button" data-player-act="next">下一話 ›</button>
+        <button type="button" data-player-act="cast" hidden>📺 投放</button>
+      </div>
+    </div>
+  </div>
+  {% if has_dub and not dub_setting_on %}
+  {% if dub_this_time %}
+  <p class="help-text">已臨時顯示「中文配音」集數，離開這個頁面後恢復。要一直顯示可到<a href="{{ url_for('settings.index') }}">設定</a>開啟「顯示中文配音集數」。</p>
+  {% else %}
+  <p class="help-text">
+    這部有「中文配音」的集數版本。
+    <a href="{{ url_for('browse.anime_detail', video_sn=detail.video_sn) }}?dub=1" class="btn-plain">僅這次顯示</a>
+    ｜要一直顯示到<a href="{{ url_for('settings.index') }}">設定</a>開啟「顯示中文配音集數」。
+  </p>
+  {% endif %}
+  {% endif %}
+  {% else %}
+  <p class="help-text">目前抓不到集數清單。</p>
+  {% endif %}
+
+  {% if related_items %}
+  <h2 class="related-anime-title">相關動畫</h2>
+  <div class="anime-grid" id="related-grid">
+    {% for item in related_items %}{{ cards.theme_card(item, show_bell=False) }}{% endfor %}
+  </div>
+  {# 「點擊載入更多」——正中間的更新圖示按鈕，每次補一批（load_more.js，fetch 模式）。 #}
+  <div class="load-more" id="related-load-more"
+       data-target="#related-grid"
+       data-endpoint="{{ url_for('browse.anime_related', video_sn=detail.video_sn) }}"
+       data-next-offset="{{ related_next_offset }}"
+       data-has-next="{{ 'true' if related_has_next else 'false' }}"
+       data-done-text="已經沒有更多相關動畫"
+       {% if not related_has_next %}hidden{% endif %}>
+    <button type="button">
+      <img class="theme-icon" data-icon="refresh"
+           src="{{ url_for('static', filename='icons/refresh-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="">
+      <span>點擊載入更多相關動畫</span>
+    </button>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='multi_select.js') }}"></script>
+<script src="{{ url_for('static', filename='episode_picker.js') }}"></script>
+<script src="{{ url_for('static', filename='load_more.js') }}"></script>
+<script src="{{ url_for('static', filename='ya_panel.js') }}"></script>
+{% endblock %}
