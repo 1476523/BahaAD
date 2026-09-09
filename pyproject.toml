@@ -1,0 +1,33 @@
+[project]
+name = "bahaad"
+version = "0.0.2"
+description = "Bahamut Animation Downloader"
+requires-python = ">=3.11"
+readme = "README.md"
+
+dependencies = [
+    "flask>=3.0",
+    "waitress>=3.0",
+    "curl_cffi>=0.7",
+    "cryptography>=42.0",
+    "pystray>=0.19",
+    "Pillow>=10.0",
+    "websocket-client>=1.6",
+    "beautifulsoup4>=4.12",
+]
+
+[project.optional-dependencies]
+dev = [
+    "nuitka>=2.4",
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["bahaad*"]
+
+[tool.setuptools.package-data]
+"bahaad.assets" = ["*.png", "*.ico"]

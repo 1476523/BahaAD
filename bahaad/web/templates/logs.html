@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}日誌 - BahaAD{% endblock %}
+{# 使用者 2026-09-08：資料多、要換頁 → 頭尾固定、只有清單捲動。 #}
+{% block shell_class %}pinned-scroll{% endblock %}
+{% block content %}
+<div class="auth-card extra-wide-card paged-card">
+  <div class="paged-card__head">
+    <h1>日誌</h1>
+    <p class="help-text">
+      程式的完整執行紀錄（含多行例外堆疊），存在資料庫裡，最多保留一萬筆，可依等級篩選、分頁查看。
+    </p>
+
+    {% if available %}
+    <div class="logs-toolbar">
+      <div class="logs-levels">
+        {% for lv in levels %}
+        <a class="btn-neutral {{ 'is-active' if lv == level else '' }}"
+           href="{{ url_for('settings.logs', level=lv) }}">{{ level_labels.get(lv, lv) }}</a>
+        {% endfor %}
+      </div>
+      <form method="post" action="{{ url_for('settings.logs') }}" id="logs-clear-form">
+        <input type="hidden" name="action" value="clear">
+        <button type="submit" class="btn-neutral">清空</button>
+      </form>
+    </div>
+    <p class="help-text">共 {{ total }} 筆{% if level != 'ALL' %}（{{ level_labels.get(level, level) }}以上）{% endif %}</p>
+    {% endif %}
+  </div>
+
+  {% if not available %}
+  <div class="paged-card__body"><p class="help-text">日誌功能未啟用。</p></div>
+  {% elif entries %}
+  <div class="paged-card__body">
+    <div class="logs-table-scroll">
+      <table class="entry-table logs-table">
+        <thead>
+          <tr><th>時間</th><th>等級</th><th>來源</th><th>訊息</th></tr>
+        </thead>
+        <tbody>
+          {% for e in entries %}
+          <tr class="log-row log-{{ e.level | lower }}">
+            <td class="log-ts">{{ e.ts }}</td>
+            <td><span class="log-level-badge log-{{ e.level | lower }}">{{ level_labels.get(e.level, e.level) }}</span></td>
+            <td class="log-logger">{{ e.logger }}</td>
+            <td class="log-message">{{ e.message }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="paged-card__foot logs-pager">
+    {% if page > 1 %}
+    <a class="btn-neutral" href="{{ url_for('settings.logs', level=level, page=page-1) }}">← 上一頁</a>
+    {% endif %}
+    <span class="help-text">第 {{ page }} 頁</span>
+    {% if has_next %}
+    <a class="btn-neutral" href="{{ url_for('settings.logs', level=level, page=page+1) }}">下一頁 →</a>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="paged-card__body"><p class="help-text">沒有符合的紀錄。</p></div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  var form = document.getElementById("logs-clear-form");
+  if (!form) return;
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    window.showConfirm("確定要清空所有日誌嗎？此動作無法復原。", function () { form.submit(); });
+  });
+})();
+</script>
+{% endblock %}

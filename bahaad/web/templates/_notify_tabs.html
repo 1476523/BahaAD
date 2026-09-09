@@ -1,0 +1,8 @@
+{# 通知中心三個分頁的頁籤列，current 傳 'settings' / 'templates' / 'history'。 #}
+{% macro notify_tabs(current) %}
+<div class="subpage-tabs">
+  {% if current == 'settings' %}<span class="btn-accent is-current">通知設定</span>{% else %}<a class="btn-neutral" href="{{ url_for('notify.index') }}">通知設定</a>{% endif %}
+  {% if current == 'templates' %}<span class="btn-accent is-current">範本編輯</span>{% else %}<a class="btn-neutral" href="{{ url_for('notify.templates_index') }}">範本編輯</a>{% endif %}
+  {% if current == 'history' %}<span class="btn-accent is-current">發送歷史</span>{% else %}<a class="btn-neutral" href="{{ url_for('notify.history_index') }}">發送歷史</a>{% endif %}
+</div>
+{% endmacro %}

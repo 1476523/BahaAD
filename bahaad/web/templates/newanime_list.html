@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}新番快訊 - BahaAD{% endblock %}
+
+{# 使用者 2026-09-08：標題＋「共 N 部」固定在上方，只有卡片格那塊捲動（比照
+   最新上架／訂閱列表）。沿用首頁的 #home-page/#home-main flex 版型（右側面板浮動），
+   pinned 行為靠 .pinned-scroll。 #}
+{% block shell_class %}pinned-scroll{% endblock %}
+
+{# 右側「星期／待定」面板沿用首頁週期表側板的切換鈕 + schedule_panel.js（同樣的
+   #schedule-panel / #schedule-panel-toggle id）。 #}
+{% block content_top_end %}
+<button type="button" id="schedule-panel-toggle" class="icon-btn icon-btn--accent" title="展開／收合更新時段">
+  <img class="theme-icon" data-icon="panel-expand" id="schedule-panel-toggle-icon"
+       src="{{ url_for('static', filename='icons/panel-expand-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="">
+</button>
+{% endblock %}
+
+{% block content %}
+<div id="home-page">
+  <div id="home-main">
+    <div class="page-head">
+      <h1>新番快訊</h1>
+      {% if listing.count %}<p class="anime-grid-count">共 {{ listing.count }} 部</p>{% endif %}
+    </div>
+    <p class="help-text">
+      下一季（{{ bulletin.season_key[:4] }} 年
+      {{ {'01': '1', '04': '4', '07': '7', '10': '10'}[bulletin.season_key[4:]] }} 月）新番。
+      {% if public_readonly %}
+      這裡列出目前追蹤中的下季新番，正式上架後會自動轉成訂閱並開始下載。
+      {% else %}
+      按「追蹤」，番劇正式上架後會自動幫你轉成訂閱並開始下載。
+      {% endif %}
+    </p>
+
+    {% if listing.count == 0 %}
+    <p>還沒有抓到這一季的新番資料，稍後再回來看看。</p>
+    {% else %}
+    <div id="newanime-list-scroll">
+    <div class="anime-grid newanime-grid">
+      {% for card in listing.cards %}
+      <div class="anime-card newanime-card">
+        <a class="anime-card-cover" href="{{ url_for('newanime.detail', virtual_sn=card.virtual_sn) }}">
+          {% if card.cover_url %}
+          <img src="{{ card.cover_url }}" alt="" loading="lazy">
+          {% else %}
+          <span class="newanime-cover-fallback">{{ card.display_name }}</span>
+          {% endif %}
+          {% if card.is_vip %}<span class="newanime-badge newanime-badge--vip">會員</span>{% endif %}
+          {% if card.region_locked %}<span class="newanime-badge newanime-badge--region">僅台灣播出</span>{% endif %}
+        </a>
+        <div class="anime-card-foot">
+          <div class="anime-card-text">
+            <p class="anime-card-title">
+              <a href="{{ url_for('newanime.detail', virtual_sn=card.virtual_sn) }}">{{ card.display_name }}</a>
+            </p>
+            <p class="anime-card-meta">{{ card.update_label }}</p>
+          </div>
+          {% if not public_readonly %}
+          <form method="post" class="newanime-track-form"
+                action="{{ url_for('newanime.untrack' if card.tracked else 'newanime.track', virtual_sn=card.virtual_sn) }}">
+            <button type="submit" class="bell-btn icon-btn{{ ' subscribed' if card.tracked else '' }}"
+                    title="{{ '取消追蹤' if card.tracked else '追蹤（正式上架後自動轉訂閱）' }}">
+              <img class="theme-icon" data-icon="track"
+                   src="{{ url_for('static', filename='icons/track-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}"
+                   alt="{{ '取消追蹤' if card.tracked else '追蹤' }}">
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <aside id="schedule-panel" class="collapsed">
+    <h2 class="schedule-panel-title">更新時段</h2>
+    <div id="schedule-panel-scroll">
+      <div class="schedule-cycle">
+        {% for group in listing.groups %}
+        <div class="schedule-day">
+          <h3>{{ group.label }} （共 {{ group.rows | length }} 部）</h3>
+          {% for row in group.rows %}
+          <div class="schedule-entry"
+               {% if group.key != 'undetermined' and row.first_air_time %}data-weekday="{{ group.key }}" data-time="{{ row.first_air_time }}"{% endif %}>
+            <a class="schedule-entry-link" href="{{ url_for('newanime.detail', virtual_sn=row.virtual_sn) }}">
+              <span class="schedule-entry-time">
+                {%- if group.key == 'undetermined' %}待定
+                {%- elif row.stage == 'airing' and row.ongoing_time %}{{ row.ongoing_time }}
+                {%- else %}{{ row.first_air_time }}{% endif -%}
+              </span>
+              <span class="schedule-entry-title">{{ row.display_name }}</span>
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='schedule_panel.js') }}"></script>
+{% endblock %}

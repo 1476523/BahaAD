@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% import "_gossip_tabs.html" as tabs with context %}
+{% block title %}歷史公告 - BahaAD{% endblock %}
+{# 使用者 2026-09-08：資料多、要換頁 → 頭尾固定、只有清單捲動。 #}
+{% block shell_class %}pinned-scroll{% endblock %}
+{% block content %}
+<div class="auth-card extra-wide-card paged-card">
+  <div class="paged-card__head">
+    <h1>官方公告</h1>
+    {{ tabs.gossip_tabs('history') }}
+    {% if rows %}
+    <p class="help-text">
+      共 {{ total }} 筆子事件（一則公告可能拆成好幾筆）。
+      <span class="gossip-clause--current gossip-legend">金框</span>＝公告目前仍掛在動畫瘋首頁。
+    </p>
+    {% endif %}
+  </div>
+
+  {% if rows %}
+  <div class="paged-card__body">
+  <table class="entry-table gossip-history-table">
+    <thead>
+      <tr><th>時間</th><th>公告原文</th><th>作品</th><th>判斷</th><th>目前處置</th></tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.created_at }}</td>
+        <td>{% if row.is_current %}<span class="gossip-clause--current">{{ row.raw_clause }}</span>{% else %}{{ row.raw_clause }}{% endif %}</td>
+        <td>
+          {{ row.display_name }}
+          {% if row.match_status == "unmatched" %}<span class="help-text">未比對到追蹤項目</span>{% endif %}
+          {% if row.match_status == "no_subscription" %}<span class="help-text">週期表有、但未訂閱（已自動忽略，訂閱後會補處理）</span>{% endif %}
+        </td>
+        <td>
+          {{ "每週更新時間異動" if row.action == "reschedule" else row.status_label }}
+          {% if row.action == "reschedule" and row.target_time %}
+          {% set _p = row.target_time.split("/") %}
+          <span class="help-text">每週{{ "一二三四五六日"[_p[0]|int - 1] }}{% if _p|length > 1 %} {{ _p[1] }}{% endif %}</span>
+          {% elif row.target_date %}<span class="help-text">{{ row.target_date }}{% if row.target_time %} {{ row.target_time }}{% elif row.target_time_start %} {{ row.target_time_start }}~{{ row.target_time_end }}{% endif %}</span>{% endif %}
+        </td>
+        <td>
+          {{ row.disposition }}
+          {% if row.disposition_locked %}<span class="badge">已手動確認</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  {% if total_pages > 1 %}
+  <div class="paged-card__foot gossip-pager">
+    {% if page > 1 %}<a class="btn-neutral" href="{{ url_for('gossip.history_index', page=page - 1) }}">← 上一頁</a>{% endif %}
+    <span class="help-text">第 {{ page }} / {{ total_pages }} 頁</span>
+    {% if page < total_pages %}<a class="btn-neutral" href="{{ url_for('gossip.history_index', page=page + 1) }}">下一頁 →</a>{% endif %}
+  </div>
+  {% endif %}
+  {% else %}
+  <div class="paged-card__body"><p class="help-text">目前還沒有偵測到任何公告。</p></div>
+  {% endif %}
+</div>
+{% endblock %}
