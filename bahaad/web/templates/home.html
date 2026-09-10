@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% import "_bell.html" as bell with context %}
+{% import "_cards.html" as cards with context %}
+{% block title %}首頁 - BahaAD{% endblock %}
+
+{# 有本季新番資料時把首頁鎖在視窗高度內，只讓 #newanime-scroll 捲，home_circular.js
+   把卡片清單複製 3 輪做無縫環狀捲動（比照週期表側板）。抓取失敗／沒資料時不鎖、
+   維持一般頁面捲動。 #}
+{% block shell_class %}{% if newanime and not browse_error %}home-circular{% endif %}{% endblock %}
+
+{# 週期表切換鈕填進 base.html 的 .content-top，跟左側「收合側欄」鈕排在同一水平線上
+   （見 web_redesign_round2.md 階段 1）。schedule_panel.js 用 #schedule-panel-toggle
+   這個 id 抓，按鈕在 DOM 裡的位置不影響。home.html 預設 <aside class="collapsed">，
+   所以初始圖示是 panel-expand。 #}
+{% block content_top_end %}
+<button type="button" id="schedule-panel-toggle" class="icon-btn icon-btn--accent" title="展開／收合週期表">
+  <img class="theme-icon" data-icon="panel-expand" id="schedule-panel-toggle-icon"
+       src="{{ url_for('static', filename='icons/panel-expand-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="">
+</button>
+{% endblock %}
+
+{% block content %}
+<div id="home-page">
+  <div id="home-main">
+    <div class="page-head">
+      <h1>本季新番</h1>
+      {% if newanime %}<p class="anime-grid-count">共 {{ newanime | length }} 部動畫</p>{% endif %}
+    </div>
+
+    {% if browse_error %}
+    <p class="warning">首頁資料抓取失敗，稍後重新整理再試一次。（{{ browse_error }}）</p>
+    {% elif not newanime %}
+    <p>目前沒有抓到任何番劇資料。</p>
+    {% else %}
+    {# home_circular.js 把 .newanime-cycle 複製成 3 輪、捲到邊緣平移回中間做無縫環狀
+       捲動（比照週期表 .schedule-cycle）。內容不比可視區高就不複製。 #}
+    <div id="newanime-scroll">
+      <div class="newanime-cycle">
+        {# .0 改進.txt 第 23 項：依更新日分組，仿官方時間軸在每組上方標日期（"09/01 (二)"）。 #}
+        {% for group in newanime_by_day %}
+        <h2 class="home-day-heading">{{ group.label }}</h2>
+        <div class="anime-grid">
+          {% for card in group.cards %}
+          {# 鈴鐺掛的 sn 可能不是卡片自己的（見 card_bell_sns）——卡片連結仍連卡片的 sn。
+             已訂閱且更名過的話，標題也顯示改後的名稱（C1）。 #}
+          {% set bell_sn = card_bell_sns.get(card.video_sn, card.video_sn) %}
+          {{ cards.anime_card(
+               url_for('browse.anime_detail', video_sn=card.video_sn),
+               cards.display_title(bell_sn, card.title),
+               card.episode_text ~ (' ・ ' ~ card.time_text if card.time_text else ''),
+               cover=card.cover_url,
+               bell_sn=bell_sn,
+               subscribed=bell_sn in subscribed_sns) }}
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <aside id="schedule-panel" class="collapsed">
+    <h2 class="schedule-panel-title">週期表</h2>
+    <div id="schedule-panel-scroll">
+      {% if weekly_schedule %}
+      {# 伺服器只渲染一輪「週一～週日」；schedule_panel.js 展開時複製成 3 輪做無限
+         環狀捲動，並依 data-weekday／data-time 把「最近剛更新過」的那筆用金框框住、
+         捲到頂端。見 docs/requirements/web_redesign_round2.md 階段 2-1。 #}
+      <div class="schedule-cycle">
+        {% for day in weekly_schedule %}
+        {% set wd = loop.index %}{# 1=週一…7=週日，跟 store/schedule_list.py 編碼一致 #}
+        <div class="schedule-day">
+          <h3>{{ day.day }}</h3>
+          {% for entry in day.entries %}
+          {# 番劇每週更新後週期表項目指向新一集的 sn，跟訂閱項目的 sn 不同——鈴鐺改掛
+             「已訂閱的話就掛訂閱那筆」的 sn（card_bell_sns / home_bell_sns），不然會
+             顯示未訂閱＋按下去建重複訂閱（使用者 2026-09-05）。 #}
+          {% set entry_bell_sn = card_bell_sns.get(entry.video_sn, entry.video_sn) %}
+          <div class="schedule-entry" data-weekday="{{ wd }}" data-time="{{ entry.time_text }}">
+            <a class="schedule-entry-link" href="{{ url_for('browse.anime_detail', video_sn=entry.video_sn) }}">
+              <span class="schedule-entry-time">{{ entry.time_text }}</span>
+              <span class="schedule-entry-title">{{ cards.display_title(entry_bell_sn, entry.title) }}</span>
+              <span class="schedule-entry-episode">{{ entry.episode_text }}</span>
+            </a>
+            {{ bell.bell_button(entry_bell_sn, entry_bell_sn in subscribed_sns, anime_title=cards.display_title(entry_bell_sn, entry.title)) }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="help-text">週期表資料開發中。</p>
+      {% endif %}
+    </div>
+  </aside>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='schedule_panel.js') }}"></script>
+<script src="{{ url_for('static', filename='home_auto_refresh.js') }}"></script>
+<script src="{{ url_for('static', filename='home_circular.js') }}"></script>
+{% endblock %}
