@@ -1,0 +1,39 @@
+{
+  "version": "0.0.6",
+  "minimum_required_version": "0.0.1",
+  "mandatory": false,
+  "notes": "手機版面一輪體驗修正：手機版只認觸控裝置（電腦視窗拉窄不再套手機版面）、抽屜圖示方向、捲動時訂閱鈴鐺不再破圖、右側面板切換鈕位置固定＋全螢幕、番劇詳細頁版面重排、搜尋篩選按下後自動收起、日誌表格可左右滑訊息欄不再直排。另：排行榜每列顯示小封面縮圖（點可放大），「發現新版本」通知的細節改用Telegram 引用摺疊、連結改超連結。",
+  "files": [
+    {
+      "path": "BahaAD.exe",
+      "sha256": "0c0c339b9c9dd1ac5fe23495c01b185950ce217fdbe04a580fb9d12bf5a65215",
+      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/BahaAD.exe"
+    },
+    {
+      "path": "bahaad/web/static/home_circular.js",
+      "sha256": "7ff3b7f7e8e0e1ac412bc00a9c2b63e515c248983301127f08473742530ff7fb",
+      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/bahaad/web/static/home_circular.js"
+    },
+    {
+      "path": "bahaad/web/static/search_filter.js",
+      "sha256": "edcf94a4aea1a4f2b93c5d4b6e2c87cdbc1aed8bbe7e78f3a74caf0e03e444a6",
+      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/bahaad/web/static/search_filter.js"
+    },
+    {
+      "path": "bahaad/web/static/shell.js",
+      "sha256": "8b7b6ce86390a0d68d9bd98e60f3ab62b3af523ab569f25e442a13bcbbb586f4",
+      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/bahaad/web/static/shell.js"
+    },
+    {
+      "path": "bahaad/web/static/stats.js",
+      "sha256": "3075a49462684d9e76c89cdf40a0489a89afe4063ae13cb3f317c5cbd9376ac8",
+      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/bahaad/web/static/stats.js"
+    },
+    {
+      "path": "bahaad/web/static/style.css",
+      "sha256": "688e5bb590dfb826fcead32350a9922753921f9b0116d2edcb4d33ff8503ccd1",
+      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/bahaad/web/static/style.css"
+    }
+  ],
+  "signature": "c/ozuIXaP7hR9B2IvvwV2bUooOc237WKtFqZmXtYIKUy7skGP7jLbdTlHUd8f/bg1btZxKG4/Jfgsfr9b9PrDQ=="
+}
