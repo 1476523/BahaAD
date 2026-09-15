@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}連結帳號 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card">
+  <h1>連結帳號</h1>
+  <p class="help-text">
+    你目前登入的
+    <strong>{{ 'Discord' if primary.channel == 'discord' else 'Telegram' }}：{{ primary.display_name or primary.external_id }}</strong>
+    追蹤了 <strong>{{ primary_count }}</strong> 部番劇；要連結的
+    <strong>{{ 'Discord' if other.channel == 'discord' else 'Telegram' }}：{{ other.display_name or other.external_id }}</strong>
+    追蹤了 <strong>{{ other_count }}</strong> 部番劇。兩邊都有訂閱內容，連結後要保留哪一份？
+  </p>
+  <form method="post" action="{{ url_for('subscriber_auth.link_resolve') }}" class="form-actions" style="flex-wrap: wrap;">
+    <button type="submit" name="choice" value="merge" class="btn-accent">合併兩邊的訂閱（推薦）</button>
+    <button type="submit" name="choice" value="primary" class="btn-neutral">只保留目前登入這邊的</button>
+    <button type="submit" name="choice" value="other" class="btn-neutral">只保留另一邊的</button>
+  </form>
+</div>
+{% endblock %}
