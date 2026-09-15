@@ -1,5 +1,10 @@
 // 通知範本編輯：格式工具列（把選取文字包進標籤）／token chip 插入／Discord 唯讀預覽
 // 即時轉換／模擬預覽 modal／模板測試（實際發一次）。見 web_redesign_round3.md 階段 5-4。
+// 使用者 2026-09-12：這支程式同時服務「管理通知範本」跟「訂閱通知範本」兩個頁面——
+// 端點路徑不一樣（管理通知在 /notify/templates/…，訂閱通知在 /notify/subscriber-
+// template/…），改成從每個 `.notify-template-block` 的 `data-preview-url`／
+// `data-test-url` 讀，不要硬編路徑；訂閱通知範本沒有「模板測試」鈕（擁有者不是
+// 訂閱者，沒有「發給自己測試」這個對象），對應的 DOM 查詢要能容忍找不到。
 (function () {
   "use strict";
 
@@ -46,8 +51,8 @@
   }
 
   document.querySelectorAll(".notify-template-block").forEach(function (block) {
-    var category = block.dataset.category;
-    var form = block.querySelector(".notify-template-form");
+    var previewUrl = block.dataset.previewUrl;
+    var testUrl = block.dataset.testUrl;
     var textarea = block.querySelector(".notify-template-textarea");
     var discordPreview = block.querySelector(".notify-discord-preview");
 
@@ -79,7 +84,7 @@
 
     // 模擬預覽
     block.querySelector(".notify-preview-btn").addEventListener("click", function () {
-      fetch("/notify/templates/" + category + "/preview", {
+      fetch(previewUrl, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: "template=" + encodeURIComponent(textarea.value),
@@ -92,15 +97,18 @@
         .catch(function () { showAlert("預覽失敗，請稍後再試一次"); });
     });
 
-    // 模板測試（實際發一次）
-    block.querySelector(".notify-test-tpl-btn").addEventListener("click", function () {
-      showConfirm("用目前「已儲存」的範本＋範例內容，實際發一次測試通知？（未儲存的修改不會生效）", function () {
-        fetch("/notify/templates/" + category + "/test", { method: "POST" })
-          .then(function (r) { return r.json(); })
-          .then(function (data) { showAlert(data.info); })
-          .catch(function () { showAlert("測試送出失敗，請稍後再試一次"); });
+    // 模板測試（實際發一次）——訂閱通知範本沒有這顆鈕，容忍找不到
+    var testBtn = block.querySelector(".notify-test-tpl-btn");
+    if (testBtn && testUrl) {
+      testBtn.addEventListener("click", function () {
+        showConfirm("用目前「已儲存」的範本＋範例內容，實際發一次測試通知？（未儲存的修改不會生效）", function () {
+          fetch(testUrl, { method: "POST" })
+            .then(function (r) { return r.json(); })
+            .then(function (data) { showAlert(data.info); })
+            .catch(function () { showAlert("測試送出失敗，請稍後再試一次"); });
+        });
       });
-    });
+    }
   });
 
   function showPreviewModal(telegramHtml, discordHtml) {

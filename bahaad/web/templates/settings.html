@@ -357,20 +357,34 @@
     <summary>公開模式</summary>
     <p class="help-text">
       預設<strong>關閉</strong>——所有頁面都要先登入。開啟後，在<strong>沒有登入</strong>的
-      狀態下也能查看訂閱番劇／已下載的番劇／已建立快取的番劇頁，並直接播放已下載的影片。
-      此時側欄只剩訂閱列表與下載列表，且是純唯讀：不顯示未下載的集數，也沒有下載／改名／
-      取消訂閱按鈕。沒有快取的番劇頁會顯示「請登入後建立快取」。
+      狀態下也能查看訂閱番劇／已建立快取的番劇頁，並直接播放已下載的影片。此時側欄只剩
+      訂閱列表，且是純唯讀：不顯示未下載的集數，也沒有下載／改名／取消訂閱按鈕；下載
+      列表（本機下載狀態／檔案路徑）不對外開放。沒有快取的番劇頁會顯示「請登入後建立
+      快取」。
     </p>
     <p class="help-text">
       公開模式下<strong>預設公開全部</strong>訂閱／已下載的番劇（含之後新增的）。要藏起
       個別番劇：到<a href="{{ url_for('browse.subscriptions') }}">訂閱列表</a>或
-      <a href="{{ url_for('browse.downloads') }}">下載列表</a>，把該番劇卡片的「公開」取消勾選。
-      目前已藏起 <strong>{{ public_hidden_count }}</strong> 部。
+      <a href="{{ url_for('browse.downloads') }}">下載列表</a>（您自己登入時看得到），把
+      該番劇卡片的「公開」取消勾選。目前已藏起 <strong>{{ public_hidden_count }}</strong> 部。
     </p>
     <form method="post" action="{{ url_for('settings.set_public_mode') }}" data-ajax>
       <label class="checkbox-label">
         <input type="checkbox" name="public_mode" {{ 'checked' if public_mode else '' }}>
         開啟公開模式（預設關閉）
+      </label>
+      <button type="submit" class="btn-accent">儲存</button>
+    </form>
+
+    <h3>域名設定</h3>
+    <p class="help-text">
+      這台 BahaAD 對外可連到的網域根（例如透過 Cloudflare Tunnel），公開分享連結、以及
+      「訂閱通知」裡的番劇連結都會用這個網址組出來。只填網域根，<strong>不要</strong>
+      加路徑或查詢字串——例如 <code>https://example.com</code>。
+    </p>
+    <form method="post" action="{{ url_for('settings.set_public_domain') }}" data-ajax>
+      <label>域名
+        <input type="text" name="public_domain" value="{{ public_domain }}" placeholder="https://example.com" autocomplete="off">
       </label>
       <button type="submit" class="btn-accent">儲存</button>
     </form>

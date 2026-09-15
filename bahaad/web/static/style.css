@@ -357,6 +357,13 @@ img.theme-icon {
   margin: 0 auto 0.25rem;
 }
 
+/* 訂閱者登出用 <form>（POST）包住那顆 icon-btn，視覺上要跟旁邊的 <a class="icon-btn">
+   主題切換鈕完全一樣，不能讓 <form> 自己的預設 margin 把版面擠歪。 */
+.sidebar-logout-form {
+  margin: 0;
+  display: contents;
+}
+
 /* 收合態：nav-item / 主題切換鈕 / 設定鈕的圖示全部置中對齊成一直行——展開態的
    nav-item 是「圖示靠左＋文字」，收合後文字消失、圖示若還停在原本的靠左位置，就會
    跟置中的 icon-btn（主題鈕）對不齊看起來歪一邊（使用者回饋 2026-08-26） */
@@ -911,6 +918,19 @@ img.theme-icon {
 }
 
 .bell-btn.subscribed .bell-icon {
+  filter: brightness(0) saturate(100%) invert(75%) sepia(64%) saturate(1000%) hue-rotate(1deg) brightness(101%)
+    contrast(101%);
+}
+
+/* 訂閱者（第三方登入）自己的訂閱通知鈴鐺——跟上面 .bell-btn 是完全獨立的系統
+   （見 _subscriber_bell.html），但視覺要跟擁有者的鈴鐺一致，不然「已訂閱」跟「未
+   訂閱」看起來一樣，使用者會搞混（使用者 2026-09-13 回饋）。 */
+.subscriber-follow-btn.subscribed {
+  background: rgba(255, 204, 0, 0.16);
+  box-shadow: inset 0 0 0 1px rgb(255, 204, 0);
+}
+
+.subscriber-follow-btn.subscribed .bell-icon {
   filter: brightness(0) saturate(100%) invert(75%) sepia(64%) saturate(1000%) hue-rotate(1deg) brightness(101%)
     contrast(101%);
 }
@@ -1791,7 +1811,8 @@ a.leaderboard-name:hover {
   user-select: none;
 }
 
-/* 點縮圖 → 置中放大浮層（點任一處關閉）。 */
+/* 點縮圖 → 置中放大浮層（點任一處關閉）。cursor: pointer 是必要的——iOS Safari
+   只對「看起來可點」的元素派送 click，少了它點空白背景關不掉浮層（使用者 2026-09-10）。 */
 .leaderboard-cover-overlay {
   position: fixed;
   inset: 0;
@@ -1801,12 +1822,14 @@ a.leaderboard-name:hover {
   justify-content: center;
   padding: 2rem;
   background: rgba(0, 0, 0, 0.7);
+  cursor: pointer;
 }
 .leaderboard-cover-overlay img {
   max-width: min(320px, 82vw);
   max-height: 82vh;
   border-radius: 0.5rem;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+  pointer-events: none;      /* 點圖片本身也當成點背景 → 一律關閉 */
 }
 
 .episode-picker {
@@ -1979,7 +2002,13 @@ a.leaderboard-name:hover {
 .notify-history-table td:nth-child(5) {
   white-space: nowrap;
 }
-/* 使用者 2026-09-05：狀態（第 5 欄，只有徽章）與錯誤訊息（第 6 欄）拆開。 */
+/* 使用者 2026-09-05：狀態與錯誤訊息拆開。使用者 2026-09-12：這欄沒有錯誤內容時
+   （大部分成功紀錄）欄位本身沒有文字撐寬，標題「錯誤訊息」會被擠到換行——欄位本身
+   （不只欄內文字）給個 min-width。管理通知歷史最後還有一欄「重試」鈕，錯誤訊息不一定
+   是最後一欄，所以標題欄用 class 直接標記，不用 :last-child 這種位置選取器。 */
+.notify-history-error-col {
+  min-width: 14rem;
+}
 .notify-history-error {
   min-width: 10rem;
   max-width: 22rem;
@@ -2034,6 +2063,9 @@ a.leaderboard-name:hover {
   color: var(--text);
   cursor: pointer;
   user-select: none;
+  -webkit-user-select: none;
+  /* 長按拖曳多選（multi_select.js）——不要讓 iOS 長按跳出文字選取／複製選單。 */
+  -webkit-touch-callout: none;
   position: relative;
 }
 
@@ -2528,6 +2560,16 @@ a.leaderboard-name:hover {
   margin: 0;
   text-align: center;
   justify-content: center;
+}
+
+/* 訂閱者登入：Discord／Telegram 圖示＋文字擠在同一顆按鈕（使用者 2026-09-12），
+   圖示預設用文字基線對齊會偏低，這裡校正置中。兩顆都用 .btn-neutral（不用
+   .btn-accent 綠底——綠底配這個圖示統一染色的 accent 綠幾乎看不清楚）。 */
+.login-actions .theme-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  vertical-align: middle;
+  margin-right: 0.4rem;
 }
 
 /* .inline-form 裡的 .link-btn（例：GitHub「中斷連結」）——form 是 flex 項目時
@@ -3043,6 +3085,7 @@ button:disabled {
   padding: 3vh 1rem;
   overflow-y: auto;
   background: rgba(0, 0, 0, 0.55);
+  cursor: pointer;      /* 點背景關閉——iOS Safari 少了它不派送 click */
 }
 .doc-overlay-card {
   width: 100%;
@@ -3062,11 +3105,34 @@ button:disabled {
 .doc-overlay-card > :last-child {
   margin-bottom: 0;
 }
-/* 隱私權政策浮層：標題 + 即時統計晶片置頂固定，只有政策內文捲動（使用者 2026-09-08）。 */
+/* 隱私權政策浮層：標題 + 即時統計晶片置頂固定，只有政策內文捲動（使用者 2026-09-08）。
+   `.has-stats-head` 由 privacy_policy.js 直接掛上——不倚賴 :has()，舊版 WebKit 也套得到。 */
+.doc-overlay-card.has-stats-head,
 .doc-overlay-card:has(.privacy-stats-head) {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
+}
+/* 關閉鈕：卡片右上角，疊在統計晶片標題列上方，不佔 flex 版位。 */
+.doc-overlay-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.4rem;
+  background: var(--surface-2, rgba(128, 128, 128, 0.16));
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.doc-overlay-close:hover {
+  background: var(--surface-3, rgba(128, 128, 128, 0.28));
 }
 .privacy-stats-head {
   flex: none;
@@ -3075,6 +3141,7 @@ button:disabled {
 }
 .privacy-stats-head h2 {
   margin: 0 0 0.7rem;
+  padding-right: 2.5rem;      /* 讓開右上角關閉鈕 */
 }
 .privacy-stats-chips {
   display: flex;
@@ -4101,6 +4168,35 @@ tr.cleanup-row .cleanup-checkbox {
   /* 投放鈕（有 Chromecast 時才出現）獨占第二排 */
   .player-controls button[data-player-act="cast"]:not([hidden]) {
     flex-basis: 100%;
+  }
+
+  /* 設定頁：窄畫面已疊成一欄（一般 RWD 的 max-width: 900px）。觸控裝置再把兩個
+     .settings-col 包裝盒拿掉，讓所有收納區塊連成一串——不然兩欄交界處會多出
+     grid row-gap + section margin 疊起來的一段空白（使用者 2026-09-10）。 */
+  .settings-cols,
+  .settings-col {
+    display: contents;
+  }
+
+  /* 隱私權政策浮層：手機改成鋪滿整個畫面的單頁（比照右側面板的手機全螢幕做法）。
+     桌面版靠 flex 置中 + max-height: 94vh；iOS Safari 的 94vh 是「工具列縮起」的
+     大視窗高度，比實際可見範圍高，加上 margin: auto 置中會把卡片頂端（標題／統計
+     晶片）推到畫面外又捲不回去 → 看起來像打不開（使用者 2026-09-10）。 */
+  .doc-overlay {
+    padding: 0;
+    display: block;
+    overflow: hidden;
+  }
+  .doc-overlay-card,
+  .doc-overlay-card.has-stats-head,
+  .doc-overlay-card:has(.privacy-stats-head) {
+    max-width: none;
+    max-height: none;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    border-radius: 0;
+    border-width: 0;
   }
 }
 

@@ -8,10 +8,16 @@
   <div class="paged-card__head">
     <h1>通知中心</h1>
     {{ tabs.notify_tabs('history') }}
+    {# 管理通知／訂閱通知兩套完全獨立的發送歷史（見「真正的推播發送」筆記），
+       用查詢字串切換，不是另一層 blueprint 分頁。 #}
+    <div class="subpage-tabs">
+      {% if scope == 'owner' %}<span class="btn-accent is-current">管理通知</span>{% else %}<a class="btn-neutral" href="{{ url_for('notify.history_index', scope='owner') }}">管理通知</a>{% endif %}
+      {% if scope == 'subscriber' %}<span class="btn-accent is-current">訂閱通知</span>{% else %}<a class="btn-neutral" href="{{ url_for('notify.history_index', scope='subscriber') }}">訂閱通知</a>{% endif %}
+    </div>
     <div class="logs-toolbar">
       <p class="help-text">共 {{ total }} 筆</p>
       {% if history %}
-      <form method="post" action="{{ url_for('notify.history_index') }}" id="notify-history-clear-form">
+      <form method="post" action="{{ url_for('notify.history_index', scope=scope) }}" id="notify-history-clear-form">
         <input type="hidden" name="action" value="clear">
         <button type="submit" class="btn-neutral">清空</button>
       </form>
@@ -22,8 +28,31 @@
   <div class="paged-card__body">
     <div class="logs-table-scroll">
       <table class="entry-table notify-history-table">
+      {% if scope == 'subscriber' %}
       <thead>
-        <tr><th>時間</th><th>管道</th><th>類別</th><th>內容</th><th>狀態</th><th>錯誤訊息</th><th></th></tr>
+        <tr><th>時間</th><th>訂閱者</th><th>番劇</th><th>內容</th><th>狀態</th><th class="notify-history-error-col">錯誤訊息</th></tr>
+      </thead>
+      <tbody>
+        {% for row in history %}
+        <tr>
+          <td class="log-ts">{{ row.sent_at }}</td>
+          <td>{{ 'Discord' if row.channel == 'discord' else 'Telegram' }}：{{ row.display_name or row.external_id }}</td>
+          <td class="log-logger">{{ row.sn if row.sn is not none else '' }}</td>
+          <td><div class="notify-history-message">{{ row.message }}</div></td>
+          <td>
+            {% if row.success %}
+            <span class="log-level-badge notify-result-ok">成功</span>
+            {% else %}
+            <span class="log-level-badge notify-result-fail">失敗</span>
+            {% endif %}
+          </td>
+          <td>{% if not row.success and row.error %}<div class="notify-history-error help-text">{{ row.error }}</div>{% endif %}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      {% else %}
+      <thead>
+        <tr><th>時間</th><th>管道</th><th>類別</th><th>內容</th><th>狀態</th><th class="notify-history-error-col">錯誤訊息</th><th></th></tr>
       </thead>
       <tbody>
         {% for row in history %}
@@ -48,17 +77,18 @@
         </tr>
         {% endfor %}
         </tbody>
+      {% endif %}
       </table>
     </div>
   </div>
 
   <div class="paged-card__foot logs-pager">
     {% if page > 1 %}
-    <a class="btn-neutral" href="{{ url_for('notify.history_index', page=page-1) }}">← 上一頁</a>
+    <a class="btn-neutral" href="{{ url_for('notify.history_index', page=page-1, scope=scope) }}">← 上一頁</a>
     {% endif %}
     <span class="help-text">第 {{ page }} 頁</span>
     {% if has_next %}
-    <a class="btn-neutral" href="{{ url_for('notify.history_index', page=page+1) }}">下一頁 →</a>
+    <a class="btn-neutral" href="{{ url_for('notify.history_index', page=page+1, scope=scope) }}">下一頁 →</a>
     {% endif %}
   </div>
   {% else %}

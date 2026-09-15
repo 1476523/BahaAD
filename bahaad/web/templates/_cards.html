@@ -11,6 +11,7 @@
    呼叫端要 `{% import "_cards.html" as cards with context %}`（帶 context 才拿得到
    ui_theme／subscribed_sns）。#}
 {% import "_bell.html" as bell with context %}
+{% import "_subscriber_bell.html" as subscriber_bell with context %}
 
 {# 已訂閱且設過「更名」的番劇，全站顯示的標題都用改後的下載資料夾名稱（＝以後這部的
    資料夾叫什麼）。`subscribed_renames`（{sn: rename}）由 web/__init__.py 的
@@ -20,7 +21,7 @@
 {{ subscribed_renames.get(video_sn) or fallback }}
 {%- endmacro %}
 
-{% macro anime_card(href, title, meta, cover="", bell_sn=none, bell_ref_sn=none, subscribed=false, remove_card=false, show_recheck=false, hidden=false, public_title=none, public_on=true) %}
+{% macro anime_card(href, title, meta, cover="", bell_sn=none, bell_ref_sn=none, subscribed=false, remove_card=false, show_recheck=false, hidden=false, public_title=none, public_on=true, subscriber_follow_sn=none, subscriber_followed=false, subscriber_remove_card=false) %}
 <div class="anime-card"{% if hidden %} hidden data-load-more-hidden{% endif %}>
   <a class="anime-card-cover" href="{{ href }}">
     {% if cover %}
@@ -38,6 +39,11 @@
     {% if bell_sn or bell_ref_sn %}
     {% if show_recheck and bell_sn %}{{ bell.recheck_button(bell_sn, title) }}{% endif %}
     {{ bell.bell_button(bell_sn, subscribed, remove_card=remove_card, anime_title=title, ref_sn=bell_ref_sn) }}
+    {% elif subscriber_follow_sn %}
+    {# 訂閱者（第三方登入）自己的通知訂閱切換——跟上面擁有者的鈴鐺是兩套完全獨立的
+       系統，見 _subscriber_bell.html 開頭說明；只有公開模式且訂閱者已登入時呼叫端
+       才會傳這個參數進來。 #}
+    {{ subscriber_bell.subscriber_follow_button(subscriber_follow_sn, subscriber_followed, remove_card=subscriber_remove_card) }}
     {% endif %}
     {% if public_title %}
     {# 公開模式白名單勾選框（使用者 2026-09-04）：排在訂閱鈴鐺正下方、跟「共 N 集」同一

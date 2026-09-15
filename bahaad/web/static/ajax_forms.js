@@ -57,11 +57,20 @@
           return;
         }
         toast(data.message || (data.ok ? "已儲存" : "儲存失敗"), !data.ok);
-        // 端點回傳 {"update": {selector: 新文字}} → 就地更新畫面上的字，不用整頁重載
+        // 端點回傳 {"update": {selector: 新文字}} → 就地更新畫面上的字，不用整頁重載。
+        // textarea/input 這種表單控制項要改 .value（改 .textContent 對已解析的
+        // textarea 沒有效果，這是「還原預設值」按了但輸入框沒刷新的根因），並補發
+        // input 事件讓監聽 input 的即時預覽（例如 Discord 唯讀預覽）跟著刷新。
         if (data.update) {
           Object.keys(data.update).forEach(function (sel) {
             var el = document.querySelector(sel);
-            if (el) { el.textContent = data.update[sel]; }
+            if (!el) return;
+            if (el.tagName === "TEXTAREA" || el.tagName === "INPUT" || el.tagName === "SELECT") {
+              el.value = data.update[sel];
+              el.dispatchEvent(new Event("input"));
+            } else {
+              el.textContent = data.update[sel];
+            }
           });
         }
         // 頁面自己要做更細的就地更新（狀態徽章換色、清空輸入框…）就聽這個事件，

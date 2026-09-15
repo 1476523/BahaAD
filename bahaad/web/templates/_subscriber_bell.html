@@ -1,0 +1,16 @@
+{# 訂閱者（第三方登入）自己的「訂閱通知」切換鈕——視覺沿用既有鈴鐺圖示保持風格
+   一致，但 class／data 屬性刻意跟 `_bell.html` 的 `bell_button` 不同名，避免被
+   `static/subscribe.js`（擁有者的週期表自動下載訂閱，完全不同語意）誤攔截。
+   呼叫端要 `{% import "_subscriber_bell.html" as subscriber_bell with context %}`
+   （帶 context 才拿得到 `ui_theme`），並載入 `static/subscriber_follow.js`。 #}
+{% macro subscriber_follow_button(sn, followed, remove_card=false) %}
+<button type="button"
+        class="icon-btn subscriber-follow-btn{{ ' subscribed' if followed else '' }}"
+        data-subscriber-follow-sn="{{ sn }}"
+        data-followed="{{ 'true' if followed else 'false' }}"
+        data-remove-card-on-unfollow="{{ 'true' if remove_card else 'false' }}"
+        title="{{ '取消通知訂閱' if followed else '訂閱通知（番劇更新時收到 Discord/Telegram 通知）' }}">
+  <img class="theme-icon bell-icon" data-icon="bell"
+       src="{{ url_for('static', filename='icons/bell-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="訂閱通知">
+</button>
+{% endmacro %}

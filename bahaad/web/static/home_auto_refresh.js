@@ -8,6 +8,14 @@
 (function () {
   "use strict";
 
+  // 使用者 2026-09-12：番劇時段到了、也下載完了，但人是這之後才登入/開首頁——
+  // 這次拿到的是後端明知過期、已經丟背景執行緒重抓的舊快取（見 anime_data.py
+  // 的 home_data() `refreshing` 旗標），不是「還在未來等時段到」的一般情境，下面
+  // msUntilRefresh() 只會抓「未來」時段、抓不到這種「剛好這次背景重抓已經在跑」
+  // 的狀況。這裡短延遲重載一次，給背景抓取一點時間跑完。
+  var BACKGROUND_REFRESH_RELOAD_MS = 8 * 1000;
+  var currentScript = document.currentScript;
+
   var POST_SLOT_DELAY_MS = 3 * 60 * 1000;
   // 下限拉到 5 分鐘：番劇時段密集（一天幾十部），某個時段剛過的那幾分鐘內 target 會
   // 很小，30 秒下限會讓首頁在使用者沒預期時就整頁 reload（使用者 2026-09-08 回報
@@ -71,6 +79,12 @@
   }
 
   function scheduleNext() {
+    // 這次拿到的本來就是已知過期、後端剛觸發背景重抓的快取——不用等未來時段，
+    // 短延遲重載一次就好（比照上面一般情境同樣的「分頁在背景先不動」處理）。
+    if (currentScript && currentScript.dataset.refreshing === "true") {
+      window.setTimeout(reloadNow, BACKGROUND_REFRESH_RELOAD_MS);
+      return;
+    }
     var until = msUntilRefresh();
     var delay = until === null ? MAX_DELAY_MS : Math.min(MAX_DELAY_MS, Math.max(MIN_DELAY_MS, until));
     window.setTimeout(reloadNow, delay);

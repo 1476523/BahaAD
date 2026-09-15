@@ -247,15 +247,82 @@
       host.appendChild(card);
       cards[b.key] = body;
     });
+    var REFRESH_MS = 120000;
     function load() {
       getJSON("/ui/stats/leaderboard", function (data) {
         BOARDS.forEach(function (b) {
           renderBoard(cards[b.key], data ? data[b.key] : null);
         });
+        document.dispatchEvent(new CustomEvent("bahaad:leaderboard-refreshed"));
       });
     }
     load();
-    setInterval(load, 120000);
+    setInterval(load, REFRESH_MS);
+  }
+
+  // ---- 排行榜頁「即時更新」前的呼吸燈：跟伺服器的同步狀態 --------------
+  // 使用者 2026-09-13：不要獨立顯示，要看得出伺服器連線狀態／下次刷新秒數／
+  // 本機還沒送出的資料筆數，設計比照播放器的網路狀態呼吸燈（同一組 CSS class）。
+  function initSyncStatus() {
+    var el = document.getElementById("stats-net");
+    var tipEl = document.getElementById("stats-net-tip");
+    if (!el || !tipEl) return;
+
+    var LEADERBOARD_REFRESH_MS = 120000; // 跟 initLeaderboard 的輪詢間隔一致
+    var nextRefreshAt = Date.now() + LEADERBOARD_REFRESH_MS;
+    var state = { connected: null, pending: 0, nextRetry: null };
+
+    function render() {
+      var netState = "unknown";
+      if (state.connected === true) netState = state.pending > 0 ? "ok" : "good";
+      else if (state.connected === false) netState = "bad";
+      el.dataset.net = netState;
+
+      var secsLeft = Math.max(0, Math.round((nextRefreshAt - Date.now()) / 1000));
+      var lines = [];
+      lines.push(
+        "伺服器連線狀態：" +
+          (state.connected === null ? "—" : state.connected ? "正常" : "連線失敗（重試中）")
+      );
+      if (state.connected === false && state.nextRetry != null) {
+        lines.push("下次重試：" + Math.max(0, state.nextRetry) + " 秒後");
+      }
+      lines.push("下次刷新：" + secsLeft + " 秒後");
+      lines.push("未上傳資料筆數：" + state.pending + " 筆");
+      tipEl.textContent = lines.join("\n");
+    }
+
+    function loadStatus() {
+      getJSON("/ui/stats/status", function (data) {
+        if (data) {
+          state.connected = data.connected;
+          state.pending = data.pending_count || 0;
+          state.nextRetry = data.next_retry_seconds;
+        }
+        render();
+      });
+    }
+
+    document.addEventListener("bahaad:leaderboard-refreshed", function () {
+      nextRefreshAt = Date.now() + LEADERBOARD_REFRESH_MS;
+      render();
+    });
+
+    loadStatus();
+    setInterval(loadStatus, 30000); // 狀態本身比排行榜輪詢快一點，燈號比較即時
+    setInterval(render, 1000); // 倒數用，不用每秒都打伺服器
+
+    // 滑鼠移上／focus／行動裝置長按顯示提示——跟播放器網路燈同一套互動
+    var holdTimer = null;
+    function show() { tipEl.hidden = false; }
+    function hide() { tipEl.hidden = true; }
+    el.addEventListener("mouseenter", show);
+    el.addEventListener("mouseleave", hide);
+    el.addEventListener("focus", show);
+    el.addEventListener("blur", hide);
+    el.addEventListener("touchstart", function () { holdTimer = setTimeout(show, 350); }, { passive: true });
+    el.addEventListener("touchend", function () { clearTimeout(holdTimer); hide(); });
+    el.addEventListener("touchcancel", function () { clearTimeout(holdTimer); hide(); });
   }
 
   window.BahaStats = { fmt: fmt, ping: ping, initSummary: initSummary };
@@ -264,5 +331,6 @@
     initSummary();
     initAnime();
     initLeaderboard();
+    initSyncStatus();
   });
 })();

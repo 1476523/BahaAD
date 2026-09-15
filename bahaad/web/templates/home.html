@@ -99,6 +99,6 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='schedule_panel.js') }}"></script>
-<script src="{{ url_for('static', filename='home_auto_refresh.js') }}"></script>
+<script src="{{ url_for('static', filename='home_auto_refresh.js') }}" data-refreshing="{{ 'true' if home_refreshing else 'false' }}"></script>
 <script src="{{ url_for('static', filename='home_circular.js') }}"></script>
 {% endblock %}

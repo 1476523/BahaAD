@@ -1,11 +1,12 @@
 // 「重新檢查排程更新」前端流程。見 docs/requirements/web_redesign_round2.md 階段 4。
 //
 // 按鈕（`[data-recheck]`）→ 確認框 → 進度框（輪詢 /browse/recheck/status）→ 結果框
-// （逐項選「下載」／「標記為已下載」）→ 下載進度框 → 完成。
+// （逐項選「下載」／「標記為已下載」）→ 完成。
 //
 // 檢查／下載都在後端背景執行緒（scheduler/recheck.py 的 RecheckCoordinator），這裡
 // 只負責啟動、輪詢狀態、把使用者的逐項選擇送回去。換頁再回來會靠 initFromStatus()
-// 重新接上進行中的檢查。
+// 重新接上進行中的檢查。使用者 2026-09-12：下載列表頁已經看得到進度，下載階段不用
+// 再跳一個進度框重複顯示（單一集／全部一次下載都一樣）。
 (function () {
   "use strict";
 
@@ -88,25 +89,6 @@
     );
   }
 
-  function showDownloadingModal(st) {
-    if (st.submitting) {
-      // 背景執行緒還在逐集送出（每一集一次 get_video()）——數字還沒定案，先顯示準備中
-      renderModal(
-        "<p>準備下載中…</p>" +
-        '<p class="help-text">全部完成後會自動恢復排程。可以離開這一頁，下載會在背景繼續。</p>',
-        '<button type="button" data-act="close">關閉</button>'
-      );
-      return;
-    }
-    var total = st.downloading_total || 0;
-    var doneCount = total - (st.downloading_remaining || 0);
-    renderModal(
-      "<p>下載中… （" + doneCount + " / " + total + "）</p>" +
-      '<p class="help-text">全部完成後會自動恢復排程。可以離開這一頁，下載會在背景繼續。</p>',
-      '<button type="button" data-act="close">關閉</button>'
-    );
-  }
-
   function showResultsModal(found) {
     if (!found || !found.length) {
       return;
@@ -184,8 +166,9 @@
       stopPolling(); // 等使用者操作，不用一直輪詢
       showResultsModal(st.found);
     } else if (state === "downloading") {
+      // 使用者 2026-09-12：下載列表頁已經看得到進度，這裡不用再跳一個進度框重複顯示。
       setButtonsBusy(true, false);
-      showDownloadingModal(st);
+      closeModal();
     } else {
       // idle / error
       stopPolling();

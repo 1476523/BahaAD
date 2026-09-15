@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}訂閱者登入 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card">
+  <h1>訂閱者登入</h1>
+  {% if not available %}
+  <p class="help-text">此功能目前尚未開放。</p>
+  {% else %}
+  {% if error %}<p class="help-text form-error">{{ error }}</p>{% endif %}
+  <p class="help-text">登入後即可在網站上直接管理您的番劇更新通知訂閱。</p>
+  {# 使用者 2026-09-12：Discord 按鈕改跟 Telegram 一樣用中性配色——綠底（.btn-accent）
+     配綠色調色的圖示幾乎看不清楚，兩個登入選項用同一種樣式反而更一致。 #}
+  {% set icon_variant = 'black' if ui_theme == 'light' else 'white' %}
+  {# 使用者 2026-09-15：Telegram 改用官方 Login Widget（網頁內嵌按鈕直接完成登入），
+     不再是「跳出深連結叫 Telegram App 傳 /start」那套——兩個按鈕現在是同一種導轉
+     登入流程，樣式跟互動完全對稱。 #}
+  <div class="login-actions">
+    <a class="btn-neutral" href="{{ url_for('subscriber_auth.discord_start') }}">
+      <img class="theme-icon" src="{{ url_for('static', filename='icons/discord-' + icon_variant + '.png') }}" alt="">
+      使用 Discord 登入
+    </a>
+    <a class="btn-neutral" href="{{ url_for('subscriber_auth.telegram_start') }}">
+      <img class="theme-icon" src="{{ url_for('static', filename='icons/telegram-' + icon_variant + '.png') }}" alt="">
+      使用 Telegram 登入
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

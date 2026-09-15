@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% import "_bell.html" as bell with context %}
 {% import "_cards.html" as cards with context %}
+{% import "_subscriber_bell.html" as subscriber_bell with context %}
 {# 已訂閱且設過「更名」的話，標題（含瀏覽器分頁標題）顯示更名後的名稱；其餘情況顯示
    番劇原始標題。放在所有 block 外面（不是 content block 裡）——title block 排在
    content block 前面，Jinja 的 {% set %} 只在同一個 block 內有效，不拉到外層的話
@@ -29,6 +30,10 @@
     {{ bell.bell_button(detail.video_sn, detail.video_sn in subscribed_sns, anime_title=display_title) }}
     {# 一律渲染、未訂閱時 hidden——訂閱後 subscribe.js 立即顯示，不用整頁重載（第 3 項） #}
     <span class="rename-btn-wrap" data-rename-for="{{ detail.video_sn }}" data-subbed="{{ 'true' if detail.video_sn in subscribed_sns else 'false' }}"{{ '' if detail.video_sn in subscribed_sns else ' hidden' }}>{{ bell.rename_button(detail.video_sn, display_title) }}</span>
+    {% elif subscriber_identity %}
+    {# 訂閱者（第三方登入）自己的通知訂閱切換——跟上面擁有者的鈴鐺是兩套完全獨立的
+       系統，見 _subscriber_bell.html 開頭說明。 #}
+    {{ subscriber_bell.subscriber_follow_button(detail.video_sn, detail.video_sn in subscriber_followed_sns) }}
     {% endif %}
   </div>
 

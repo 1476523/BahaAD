@@ -11,7 +11,8 @@
     overlay.setAttribute("aria-modal", "true");
 
     var card = document.createElement("div");
-    card.className = "auth-card extra-wide-card markdown-doc doc-overlay-card";
+    // has-stats-head：讓「標題固定、只有內文捲動」的版面不必倚賴 :has()（舊版 WebKit）。
+    card.className = "auth-card extra-wide-card markdown-doc doc-overlay-card has-stats-head";
 
     // 即時統計晶片：標題 + 一排數字，置頂固定在政策內文上方（使用者 2026-09-08）。
     var stats = document.createElement("div");
@@ -37,6 +38,15 @@
     // 內容來自本站自家的 mini_markdown（已 html.escape），非使用者輸入。
     body.innerHTML = html;
 
+    // 明確的關閉鈕——手機版浮層鋪滿整個畫面，「點任一處關閉」不夠直覺，而且
+    // iOS Safari 對非互動元素不一定派送 click（使用者 2026-09-10）。
+    var closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "doc-overlay-close";
+    closeBtn.setAttribute("aria-label", "關閉");
+    closeBtn.textContent = "✕";
+
+    card.appendChild(closeBtn);
     card.appendChild(stats);
     card.appendChild(body);
     overlay.appendChild(card);
@@ -72,7 +82,11 @@
         close();
       }
     }
-    // 點視窗任一處（含內容卡片本身）都關閉
+    // 關閉鈕 ＋ 點視窗任一處（含內容卡片本身）都關閉
+    closeBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      close();
+    });
     overlay.addEventListener("click", close);
     document.addEventListener("keydown", onKey);
 

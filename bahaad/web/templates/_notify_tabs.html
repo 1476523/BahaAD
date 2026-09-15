@@ -1,8 +1,12 @@
-{# 通知中心三個分頁的頁籤列，current 傳 'settings' / 'templates' / 'history'。 #}
+{# 通知中心分頁的頁籤列，current 傳 'settings' / 'templates' / 'subscriber_template' / 'history'。
+   「通知設定」「範本編輯」改名「管理通知」「管理通知範本」——這兩個是給 BahaAD 擁有者
+   自己的系統通知。使用者 2026-09-12：「訂閱設定」（安裝實例綁定）不再獨立分頁，併進
+   「管理通知」的 Discord 區塊下方；訂閱者的 Discord/Telegram 通知範本仍是獨立分頁。 #}
 {% macro notify_tabs(current) %}
 <div class="subpage-tabs">
-  {% if current == 'settings' %}<span class="btn-accent is-current">通知設定</span>{% else %}<a class="btn-neutral" href="{{ url_for('notify.index') }}">通知設定</a>{% endif %}
-  {% if current == 'templates' %}<span class="btn-accent is-current">範本編輯</span>{% else %}<a class="btn-neutral" href="{{ url_for('notify.templates_index') }}">範本編輯</a>{% endif %}
+  {% if current == 'settings' %}<span class="btn-accent is-current">管理通知</span>{% else %}<a class="btn-neutral" href="{{ url_for('notify.index') }}">管理通知</a>{% endif %}
+  {% if current == 'templates' %}<span class="btn-accent is-current">管理通知範本</span>{% else %}<a class="btn-neutral" href="{{ url_for('notify.templates_index') }}">管理通知範本</a>{% endif %}
+  {% if current == 'subscriber_template' %}<span class="btn-accent is-current">訂閱通知範本</span>{% else %}<a class="btn-neutral" href="{{ url_for('notify.subscriber_template') }}">訂閱通知範本</a>{% endif %}
   {% if current == 'history' %}<span class="btn-accent is-current">發送歷史</span>{% else %}<a class="btn-neutral" href="{{ url_for('notify.history_index') }}">發送歷史</a>{% endif %}
 </div>
 {% endmacro %}

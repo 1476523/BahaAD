@@ -47,7 +47,9 @@
            bell_sn=(none if public_readonly else anime.video_sn),
            subscribed=True, remove_card=(not public_readonly), show_recheck=(not public_readonly),
            public_title=(anime.raw_title if public_pick else none),
-           public_on=(anime.raw_title not in public_hidden)) }}
+           public_on=(anime.raw_title not in public_hidden),
+           subscriber_follow_sn=(anime.video_sn if (public_readonly and subscriber_identity) else none),
+           subscriber_followed=(anime.video_sn in subscriber_followed_sns)) }}
       {% endfor %}
     </div>
   </div>

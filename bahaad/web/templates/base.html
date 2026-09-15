@@ -35,9 +35,19 @@
         (url_for('newanime.index'), 'track', '新番快訊', request.endpoint and request.endpoint.startswith('newanime.')),
       ] %}
       {% endif %}
+      {# 公開模式移除下載列表（使用者 2026-09-13：下載列表是擁有者本機的下載狀態，
+         不該讓公開模式訪客／訂閱者看到）。 #}
+      {% if subscriber_identity %}
+      {# 訂閱者已登入——側欄文字改成「我的訂閱」，連去訂閱者自己的管理頁而不是登入頁
+         （使用者 2026-09-12），用專用圖示跟管理者登入圖示區分（使用者 2026-09-13）。 #}
       {% set nav_items = nav_items + [
-        (url_for('browse.downloads'), 'downloads', '下載列表', request.endpoint == 'browse.downloads'),
+        (url_for('subscriber_auth.me'), 'my-subscriptions', '我的訂閱', request.endpoint and request.endpoint.startswith('subscriber_auth.')),
       ] %}
+      {% elif subscriber_login_available %}
+      {% set nav_items = nav_items + [
+        (url_for('subscriber_auth.login'), 'login', '訂閱者登入', request.endpoint and request.endpoint.startswith('subscriber_auth.')),
+      ] %}
+      {% endif %}
       {% else %}
       {% set nav_items = [
         (url_for('index'), 'home', '首頁', request.endpoint == 'index'),
@@ -77,11 +87,22 @@
         <img class="theme-icon" data-icon="theme" src="{{ url_for('static', filename='icons/theme-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="切換主題">
       </button>
       {# 登入／登出：同一個位置、同一種樣式（icon-btn，只有圖示）。公開模式放「登入」、
-         登入後放「登出」（使用者 2026-09-04：公開模式的登入鈕要跟登入後的登出鈕一致）。 #}
+         登入後放「登出」（使用者 2026-09-04：公開模式的登入鈕要跟登入後的登出鈕一致）。
+         使用者 2026-09-13：訂閱者（第三方）登入時，這個位置改放訂閱者的登出鈕，不是
+         管理者登入鈕——同一個位置只能有一個功能，要先登出訂閱者身分才會看到管理者
+         登入圖示（訂閱者登入跟管理者登入是完全獨立的兩套身分，不能同時用這個位置）。 #}
       {% if public_readonly %}
+      {% if subscriber_identity %}
+      <form method="post" action="{{ url_for('subscriber_auth.logout') }}" class="sidebar-logout-form">
+        <button type="submit" class="icon-btn sidebar-logout" title="登出（{{ 'Discord' if subscriber_identity.channel == 'discord' else 'Telegram' }}）">
+          <img class="theme-icon" data-icon="logout" src="{{ url_for('static', filename='icons/logout-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="登出">
+        </button>
+      </form>
+      {% else %}
       <a class="icon-btn sidebar-logout" href="{{ url_for('auth.login') }}" title="登入">
         <img class="theme-icon" data-icon="login" src="{{ url_for('static', filename='icons/login-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="登入">
       </a>
+      {% endif %}
       {% else %}
       <a class="icon-btn sidebar-logout" href="{{ url_for('auth.logout') }}" title="登出">
         <img class="theme-icon" data-icon="logout" src="{{ url_for('static', filename='icons/logout-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="登出">
@@ -146,6 +167,10 @@
            搬到這裡跟通知鈴鐺放一起（使用者 2026-09-05）。 #}
         {% if not public_readonly and session.username %}
         <span class="topbar-welcome">歡迎回來 {{ session.username }}</span>
+        {% elif subscriber_identity %}
+        {# 訂閱者（第三方登入）身分顯示——跟上面擁有者「歡迎回來」同一個位置、同一種
+         設計，並標明是 Discord 還是 Telegram 登入（使用者 2026-09-13）。 #}
+        <span class="topbar-welcome">歡迎回來 {{ 'Discord' if subscriber_identity.channel == 'discord' else 'Telegram' }}：{{ subscriber_identity.display_name or subscriber_identity.external_id }}</span>
         {% endif %}
       </div>
       {% block content_top_end %}{% endblock %}
@@ -299,6 +324,11 @@
 <script src="{{ url_for('static', filename='recheck.js') }}"></script>
 <script src="{{ url_for('static', filename='rename.js') }}"></script>
 <script src="{{ url_for('static', filename='update_nag.js') }}"></script>
+{% endif %}
+{% if subscriber_identity %}
+{# 訂閱者（第三方登入）自己的「訂閱通知」切換鈕——跟上面 subscribe.js（擁有者的
+   週期表自動下載訂閱）完全獨立，見 _subscriber_bell.html 開頭說明。 #}
+<script src="{{ url_for('static', filename='subscriber_follow.js') }}"></script>
 {% endif %}
 {% if diagnostics_show_reminder %}
 <script>
