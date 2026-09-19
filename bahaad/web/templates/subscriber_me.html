@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "_cards.html" as cards with context %}
-{% block title %}我的訂閱 - BahaAD{% endblock %}
+{% block title %}我的收藏 - BahaAD{% endblock %}
 
 {# 使用者 2026-09-12：這頁除了登入資訊／登出按鈕外，番劇的顯示要跟「訂閱列表」
    （subscriptions.html）相同——直接共用 `_cards.html` 的 `anime_card` 巨集＋同一套
@@ -61,7 +61,7 @@
   </details>
 
   <div class="page-head">
-    <h1>我的訂閱</h1>
+    <h1>我的收藏</h1>
     {% if follows %}
     <p class="anime-grid-count">共 {{ follows | length }} 部動畫</p>
     {% endif %}
@@ -81,7 +81,7 @@
     </div>
   </div>
   {% else %}
-  <p class="help-text">目前沒有追蹤任何番劇——到番劇詳細頁或訂閱列表頁按「訂閱通知」鈴鐺試試。</p>
+  <p class="help-text">目前沒有收藏任何番劇——到番劇詳細頁或番劇列表頁按「收藏」鈴鐺試試。</p>
   {% endif %}
 </div>
 {% endblock %}

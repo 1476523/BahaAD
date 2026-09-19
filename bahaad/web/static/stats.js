@@ -260,16 +260,17 @@
     setInterval(load, REFRESH_MS);
   }
 
-  // ---- 排行榜頁「即時更新」前的呼吸燈：跟伺服器的同步狀態 --------------
-  // 使用者 2026-09-13：不要獨立顯示，要看得出伺服器連線狀態／下次刷新秒數／
-  // 本機還沒送出的資料筆數，設計比照播放器的網路狀態呼吸燈（同一組 CSS class）。
-  function initSyncStatus() {
-    var el = document.getElementById("stats-net");
-    var tipEl = document.getElementById("stats-net-tip");
-    if (!el || !tipEl) return;
-
-    var LEADERBOARD_REFRESH_MS = 120000; // 跟 initLeaderboard 的輪詢間隔一致
-    var nextRefreshAt = Date.now() + LEADERBOARD_REFRESH_MS;
+  // ---- 跟伺服器的同步狀態呼吸燈（可重複掛載）---------------------------
+  // 使用者 2026-09-13：排行榜「即時更新」前不要只是文字，要看得出伺服器連線狀態／
+  // 下次刷新秒數／本機還沒送出的資料筆數，設計比照播放器的網路狀態呼吸燈（同一組
+  // CSS class）。使用者 2026-09-16：隱私權政策標題旁也要一份——抽成通用掛載函式，
+  // 排行榜（固定在頁面上）跟隱私權浮層（動態開關、可能開好幾次）都能用，各自負責
+  // 何時呼叫 `bumpRefresh()`／`destroy()`。
+  function mountSyncLight(el, tipEl, opts) {
+    if (!el || !tipEl) return null;
+    opts = opts || {};
+    var refreshMs = opts.refreshMs || 120000;
+    var nextRefreshAt = Date.now() + refreshMs;
     var state = { connected: null, pending: 0, nextRetry: null };
 
     function render() {
@@ -303,14 +304,9 @@
       });
     }
 
-    document.addEventListener("bahaad:leaderboard-refreshed", function () {
-      nextRefreshAt = Date.now() + LEADERBOARD_REFRESH_MS;
-      render();
-    });
-
     loadStatus();
-    setInterval(loadStatus, 30000); // 狀態本身比排行榜輪詢快一點，燈號比較即時
-    setInterval(render, 1000); // 倒數用，不用每秒都打伺服器
+    var statusTimer = setInterval(loadStatus, 30000); // 比外層刷新快一點，燈號比較即時
+    var renderTimer = setInterval(render, 1000); // 倒數用，不用每秒都打伺服器
 
     // 滑鼠移上／focus／行動裝置長按顯示提示——跟播放器網路燈同一套互動
     var holdTimer = null;
@@ -323,9 +319,31 @@
     el.addEventListener("touchstart", function () { holdTimer = setTimeout(show, 350); }, { passive: true });
     el.addEventListener("touchend", function () { clearTimeout(holdTimer); hide(); });
     el.addEventListener("touchcancel", function () { clearTimeout(holdTimer); hide(); });
+
+    return {
+      bumpRefresh: function () { nextRefreshAt = Date.now() + refreshMs; render(); },
+      destroy: function () {
+        clearInterval(statusTimer);
+        clearInterval(renderTimer);
+        clearTimeout(holdTimer);
+        el.removeEventListener("mouseenter", show);
+        el.removeEventListener("mouseleave", hide);
+        el.removeEventListener("focus", show);
+        el.removeEventListener("blur", hide);
+      },
+    };
   }
 
-  window.BahaStats = { fmt: fmt, ping: ping, initSummary: initSummary };
+  function initSyncStatus() {
+    var el = document.getElementById("stats-net");
+    var tipEl = document.getElementById("stats-net-tip");
+    var LEADERBOARD_REFRESH_MS = 120000; // 跟 initLeaderboard 的輪詢間隔一致
+    var light = mountSyncLight(el, tipEl, { refreshMs: LEADERBOARD_REFRESH_MS });
+    if (!light) return;
+    document.addEventListener("bahaad:leaderboard-refreshed", light.bumpRefresh);
+  }
+
+  window.BahaStats = { fmt: fmt, ping: ping, initSummary: initSummary, mountSyncLight: mountSyncLight };
 
   document.addEventListener("DOMContentLoaded", function () {
     initSummary();

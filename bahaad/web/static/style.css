@@ -937,10 +937,34 @@ img.theme-icon {
 
 .anime-card-cover {
   display: block;
+  position: relative; /* .anime-card-cover-fallback 絕對定位＋疊層順序的參考 */
   aspect-ratio: 3 / 4;
   border-radius: 0.4rem;
   overflow: hidden;
   background: var(--bg);
+}
+
+/* 封面圖片**確認**載入失敗時墊在底下的提示文字（使用者 2026-09-20）。預設
+   `display: none`——單純「還在背景佇列排隊、還沒抓到」（每次進頁面、封面還沒抓
+   完的那幾秒鐘，正常情況）不算失敗，不該顯示；只有 `img_loader.js` 判斷是真的
+   載入失敗（逐張直接發 GET 確認過，見該檔 `markBlocked()`）才加上 `.is-blocked`
+   顯示出來。DOM 順序上 `<img>` 排在後面，沒有設 z-index 時後面的元素本來就疊在
+   上層，`<img>` 真的載入成功時會蓋過這段文字。 */
+.anime-card-cover-fallback {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--text-muted, #888);
+  background: var(--bg);
+}
+.anime-card-cover-fallback.is-blocked {
+  display: flex;
 }
 
 /* 首頁本季新番／週期表的卡片封面，站方給的是 16:9 的單集截圖（960×540），不是
@@ -1025,6 +1049,13 @@ img.theme-icon {
 }
 
 .anime-card-cover img {
+  /* `position: relative`（不是單純 static）：`.anime-card-cover-fallback` 是
+     `position: absolute`，沒有明講 z-index 時瀏覽器一律把「有 position 的元素」
+     整組疊在「沒有 position 的元素」上面，跟 DOM 先後順序無關——這張圖如果維持
+     static，就算它在 DOM 裡排在 fallback 文字後面，還是會被墊在文字下面，
+     文字永遠蓋住圖片。给它 position: relative 才會跟 fallback 一起算「有 position
+     的元素」，這時才輪到 DOM 順序決定（圖片在後面 → 圖片蓋住文字）。 */
+  position: relative;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -3026,6 +3057,38 @@ button:disabled {
   padding-bottom: 0.3rem;
   border-bottom: 1px solid var(--border);
 }
+/* 「## 」大段落收納顯示（使用者 2026-09-17）——mini_markdown.py 把每個 <h2> 段落
+   轉成 <details>，這裡比照設定頁 .settings-section 同一套摺疊視覺語言。 */
+.markdown-doc details.policy-section {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  background: var(--bg-elevated);
+}
+.markdown-doc details.policy-section > summary {
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  list-style: none;
+}
+.markdown-doc details.policy-section > summary::-webkit-details-marker {
+  display: none;
+}
+.markdown-doc details.policy-section > summary::before {
+  content: "▸ ";
+  color: var(--text-muted);
+}
+.markdown-doc details.policy-section[open] > summary::before {
+  content: "▾ ";
+}
+.markdown-doc details.policy-section > *:not(summary) {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+.markdown-doc details.policy-section > *:last-child {
+  margin-bottom: 1rem;
+}
 .markdown-doc h3 {
   font-size: 1.05rem;
   margin: 1.4rem 0 0.5rem;
@@ -3143,6 +3206,10 @@ button:disabled {
   margin: 0 0 0.7rem;
   padding-right: 2.5rem;      /* 讓開右上角關閉鈕 */
 }
+.privacy-stats-head h2 .player-net {
+  margin-left: 0.6rem;
+  vertical-align: middle;
+}
 .privacy-stats-chips {
   display: flex;
   flex-wrap: wrap;
@@ -3199,6 +3266,36 @@ button:disabled {
   max-height: 74vh;
   display: block;
   background: #000;
+}
+.player-video-wrap {
+  position: relative;
+}
+/* 播放前推廣圖 + 檢舉表單的樣式搬到 static/spotlight/spotlight.css（見該檔開頭
+   說明），這裡不留 `.player-promo*` 規則——那個檔案跟整個 `bahaad/ad_promo/`
+   一樣刻意不進公開 repo。 */
+/* 後半段真實經過時間閘門的等待提示（使用者 2026-09-19，見 anime_detail.html
+   `#player-locked-overlay` 開頭說明）——核心播放保護機制，不是廣告相關，留在
+   公開 repo。疊在影片上，跟 `.player-promo` 同一種疊層做法。 */
+.player-locked {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  padding: 1.5rem;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+}
+.player-locked[hidden] {
+  display: none;
+}
+.player-locked p {
+  margin: 0;
+  max-width: 24rem;
 }
 /* 按鈕全放在影片外的獨立橫條，不浮在影片上（使用者 2026-09-04）。 */
 .player-topbar,

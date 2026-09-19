@@ -64,9 +64,19 @@
     return overlay;
   }
 
+  // 小幫手要先等主程式行程完全結束（Wait-Process 最多 120 秒）才會開始覆蓋安裝
+  // 目錄，正常情況下整個流程就可能耗掉 90 秒以上——SOFT_TIMEOUT_MS 只是「顯示手動
+  // 按鈕安撫使用者」的時間點，不是真的放棄；輪詢繼續跑到 HARD_TIMEOUT_MS 才整個
+  // 停止（使用者 2026-09-15：v0.0.6 更新到 v0.0.7 時卡在「更新可能仍在進行」沒有
+  // 自動刷新——舊版在 90 秒就整個停止輪詢，剛好撞上小幫手還在等主程式結束的正常
+  // 耗時，導致原本會成功的自動重新整理被提前放棄）。
+  var SOFT_TIMEOUT_MS = 90000;
+  var HARD_TIMEOUT_MS = 300000;
+
   function pollForRestart(overlay, wantVersion) {
     var startedAt = Date.now();
     var sawDown = false;
+    var shownSoftTimeout = false;
     var timer = setInterval(function () {
       fetch("/update/version", { headers: { Accept: "application/json" }, cache: "no-store" })
         .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
@@ -80,12 +90,37 @@
         })
         .catch(function () {
           sawDown = true; // 小幫手正在覆蓋安裝目錄，伺服器暫時連不上——預期中
-          if (Date.now() - startedAt > 90000) {
+          var elapsed = Date.now() - startedAt;
+          if (!shownSoftTimeout && elapsed > SOFT_TIMEOUT_MS) {
+            shownSoftTimeout = true;
+            softTimeoutHint(overlay);
+          }
+          if (elapsed > HARD_TIMEOUT_MS) {
             clearInterval(timer);
             timeoutRestart(overlay);
           }
         });
     }, RESTART_POLL_MS);
+  }
+
+  // 過了 SOFT_TIMEOUT_MS 還沒回來：只是安撫使用者、給一顆手動重新載入鈕，輪詢本身
+  // 不會停——大部分情況下伺服器過一陣子還是會自己回來，屆時 finishRestart() 一樣
+  // 會觸發、蓋掉這個提示。
+  function softTimeoutHint(overlay) {
+    var msg = document.getElementById("update-restart-msg");
+    var hint = document.getElementById("update-restart-hint");
+    if (msg) { msg.textContent = "更新花的時間比預期久，仍在等待中……"; }
+    if (hint && !document.getElementById("update-restart-manual-btn")) {
+      hint.textContent = "如果等了很久都沒反應，可以手動重新啟動 BahaAD，或稍後重新載入這個分頁。";
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.id = "update-restart-manual-btn";
+      btn.className = "btn-accent";
+      btn.textContent = "重新載入";
+      btn.style.marginTop = "0.75rem";
+      btn.addEventListener("click", function () { window.location.reload(); });
+      hint.parentNode.appendChild(btn);
+    }
   }
 
   function finishRestart(overlay) {
@@ -103,13 +138,16 @@
     if (msg) { msg.textContent = "更新可能仍在進行"; }
     if (hint) {
       hint.textContent = "如果 BahaAD 沒有自動開啟，請手動重新啟動，或稍後重新載入這個分頁。";
-      var btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "btn-accent";
-      btn.textContent = "重新載入";
-      btn.style.marginTop = "0.75rem";
-      btn.addEventListener("click", function () { window.location.reload(); });
-      hint.parentNode.appendChild(btn);
+      if (!document.getElementById("update-restart-manual-btn")) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.id = "update-restart-manual-btn";
+        btn.className = "btn-accent";
+        btn.textContent = "重新載入";
+        btn.style.marginTop = "0.75rem";
+        btn.addEventListener("click", function () { window.location.reload(); });
+        hint.parentNode.appendChild(btn);
+      }
     }
   }
 

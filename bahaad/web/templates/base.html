@@ -6,6 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}BahaAD{% endblock %}</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% include "ad_promo/_style_link.html" ignore missing %}
+{% include "ad_promo/_card_script.html" ignore missing %}
 <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any">
 {# 阻塞式、要在 <body> 解析前先攔到封面 <img>——限制同時進行的 /cache/img 請求數，
    避免一次 60 張突發被本機過濾軟體（AdGuard 等）重設連線（使用者 2026-09-09）。檔案很小。 #}
@@ -24,10 +26,12 @@
     </div>
     <nav class="sidebar-nav">
       {% if public_readonly %}
-      {# 公開模式：側欄只剩訂閱列表、BahaAD 排行榜、（擁有者有追蹤中的新番才有）新番快訊、下載列表
-         （使用者 2026-09-04／2026-09-08） #}
+      {# 公開模式：側欄只剩番劇列表、BahaAD 排行榜、（擁有者有追蹤中的新番才有）新番快訊、下載列表
+         （使用者 2026-09-04／2026-09-08）。使用者 2026-09-18：這頁除了訂閱項目也會列出
+         已下載但沒訂閱的番劇（見 browse.py _extra_downloaded_for_public()），改名「番劇
+         列表」比較準確，不再只是「訂閱」。 #}
       {% set nav_items = [
-        (url_for('browse.subscriptions'), 'subscriptions', '訂閱列表', request.endpoint == 'browse.subscriptions'),
+        (url_for('browse.subscriptions'), 'subscriptions', '番劇列表', request.endpoint == 'browse.subscriptions'),
         (url_for('stats.leaderboard_page'), 'ranking', 'BahaAD 排行榜', request.endpoint == 'stats.leaderboard_page'),
       ] %}
       {% if newanime_nav_visible %}
@@ -38,14 +42,16 @@
       {# 公開模式移除下載列表（使用者 2026-09-13：下載列表是擁有者本機的下載狀態，
          不該讓公開模式訪客／訂閱者看到）。 #}
       {% if subscriber_identity %}
-      {# 訂閱者已登入——側欄文字改成「我的訂閱」，連去訂閱者自己的管理頁而不是登入頁
-         （使用者 2026-09-12），用專用圖示跟管理者登入圖示區分（使用者 2026-09-13）。 #}
+      {# 會員（訂閱者第三方登入）已登入——側欄文字改成「我的收藏」，連去會員自己的
+         管理頁而不是登入頁（使用者 2026-09-12），用專用圖示跟管理者登入圖示區分
+         （使用者 2026-09-13）。使用者 2026-09-18：「訂閱」改稱「收藏」、「訂閱者」
+         改稱「會員」，跟番劇列表頁的鈴鐺文字一致（見 _subscriber_bell.html）。 #}
       {% set nav_items = nav_items + [
-        (url_for('subscriber_auth.me'), 'my-subscriptions', '我的訂閱', request.endpoint and request.endpoint.startswith('subscriber_auth.')),
+        (url_for('subscriber_auth.me'), 'my-subscriptions', '我的收藏', request.endpoint and request.endpoint.startswith('subscriber_auth.')),
       ] %}
       {% elif subscriber_login_available %}
       {% set nav_items = nav_items + [
-        (url_for('subscriber_auth.login'), 'login', '訂閱者登入', request.endpoint and request.endpoint.startswith('subscriber_auth.')),
+        (url_for('subscriber_auth.login'), 'login', '會員登入', request.endpoint and request.endpoint.startswith('subscriber_auth.')),
       ] %}
       {% endif %}
       {% else %}
@@ -94,7 +100,7 @@
       {% if public_readonly %}
       {% if subscriber_identity %}
       <form method="post" action="{{ url_for('subscriber_auth.logout') }}" class="sidebar-logout-form">
-        <button type="submit" class="icon-btn sidebar-logout" title="登出（{{ 'Discord' if subscriber_identity.channel == 'discord' else 'Telegram' }}）">
+        <button type="submit" class="icon-btn sidebar-logout" title="登出（{{ 'Discord' if subscriber_identity.login_channel == 'discord' else 'Telegram' }}）">
           <img class="theme-icon" data-icon="logout" src="{{ url_for('static', filename='icons/logout-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="登出">
         </button>
       </form>
@@ -169,8 +175,11 @@
         <span class="topbar-welcome">歡迎回來 {{ session.username }}</span>
         {% elif subscriber_identity %}
         {# 訂閱者（第三方登入）身分顯示——跟上面擁有者「歡迎回來」同一個位置、同一種
-         設計，並標明是 Discord 還是 Telegram 登入（使用者 2026-09-13）。 #}
-        <span class="topbar-welcome">歡迎回來 {{ 'Discord' if subscriber_identity.channel == 'discord' else 'Telegram' }}：{{ subscriber_identity.display_name or subscriber_identity.external_id }}</span>
+         設計，並標明是 Discord 還是 Telegram 登入（使用者 2026-09-13）。用
+         `login_*` 系列欄位（這次登入實際用的管道），不要用 `channel`／
+         `display_name`（連結帳號後解析過的「主要身分」，可能跟這次登入的管道不同
+         ——使用者 2026-09-17 回報：連結後用 Telegram 登入卻顯示 Discord 名稱）。 #}
+        <span class="topbar-welcome">歡迎回來 {{ 'Discord' if subscriber_identity.login_channel == 'discord' else 'Telegram' }}：{{ subscriber_identity.login_display_name or subscriber_identity.login_external_id }}</span>
         {% endif %}
       </div>
       {% block content_top_end %}{% endblock %}
@@ -214,7 +223,10 @@
       {# 置中的阻擋式提示（使用者 2026-09-08：要在畫面中間、擋住其他操作，只能按
          「連結／前往 star」或「下次再說」）。沿用 modal.js 的 .modal-overlay 樣式
          ——inset:0 蓋滿、對話框置中在內容區、backdrop 點了不關。 #}
-      <div class="modal-overlay" id="star-reminder-modal">
+      {# id 每次請求都接一段隨機字串（access_gate_star_reminder_nonce）——防止廣告／
+         元件封鎖套件的「封鎖此元素」對固定 id 存永久規則，見 web/__init__.py 的
+         `_inject_access_gate_star_reminder()`。 #}
+      <div class="modal-overlay" id="star-reminder-modal-{{ access_gate_star_reminder_nonce }}">
         <div class="modal-box" style="max-width: 30rem;">
           <div class="modal-heading" data-icon="warning">
             <img src="{{ url_for('static', filename='icons/warning-black.png') }}" alt="">
@@ -229,7 +241,7 @@
             {% endif %}
           </p>
           <div class="modal-actions" style="flex-wrap: wrap;">
-            <button type="button" class="btn-neutral" id="star-reminder-dismiss">下次再說</button>
+            <button type="button" class="btn-neutral" id="star-reminder-dismiss-{{ access_gate_star_reminder_nonce }}">下次再說</button>
             {% if not access_gate_connected %}
             <a class="btn-accent" href="{{ url_for('access_gate.connect') }}">連結帳號</a>
             {% endif %}
@@ -244,18 +256,40 @@
           // 都不關（使用者 2026-09-08：只能按那三顆按鈕）。
           var KEY = "bahaad-star-reminder-snooze-until";
           var SNOOZE_MS = 10 * 60 * 1000;
-          var m = document.getElementById("star-reminder-modal");
+          var m = document.getElementById("star-reminder-modal-{{ access_gate_star_reminder_nonce }}");
           if (!m) return;
           var until = 0;
           try { until = parseInt(localStorage.getItem(KEY), 10) || 0; } catch (e) {}
           if (Date.now() < until) { m.remove(); return; }
           // 擋掉 backdrop 點擊冒泡（點對話框以外的地方不關）
           m.addEventListener("click", function (e) { if (e.target === m) e.stopPropagation(); });
-          var d = document.getElementById("star-reminder-dismiss");
+          var dismissedByUser = false;
+          var d = document.getElementById("star-reminder-dismiss-{{ access_gate_star_reminder_nonce }}");
           if (d) d.addEventListener("click", function () {
             try { localStorage.setItem(KEY, String(Date.now() + SNOOZE_MS)); } catch (e) {}
+            dismissedByUser = true;
             m.remove();
           });
+          // 使用者 2026-09-17：防止廣告／元件封鎖套件或 Tampermonkey 腳本把這個提示
+          // 藏起來、當作沒看過。晚一點（等任何同步套用的隱藏 CSS 規則、DOM 移除都
+          // 生效之後）檢查這個元素是不是還在、還看得見；不是的話回報伺服器，補一個
+          // 瀏覽器端碰不到的系統匣通知（見 access_gate.star_reminder_blocked()）。
+          // 使用者自己按「下次再說」也會讓元素消失，`dismissedByUser` 這個旗標
+          // 排除這種正常情況，不會被誤判成「被封鎖」。
+          setTimeout(function () {
+            if (dismissedByUser) return;
+            var stillThere = document.body.contains(m);
+            var visible = stillThere && (function () {
+              var cs = window.getComputedStyle(m);
+              if (cs.display === "none" || cs.visibility === "hidden") return false;
+              var rect = m.getBoundingClientRect();
+              return rect.width > 0 && rect.height > 0;
+            })();
+            if (visible) return;
+            try {
+              fetch("{{ url_for('access_gate.star_reminder_blocked') }}", { method: "POST" }).catch(function () {});
+            } catch (e) {}
+          }, 400);
         })();
       </script>
       {% endif %}

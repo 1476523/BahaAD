@@ -178,9 +178,30 @@
           <button type="button" class="player-close" aria-label="關閉">✕ 關閉</button>
         </span>
       </div>
-      <video id="episode-player-video" controls playsinline preload="metadata"
-             controlslist="nodownload"></video>
+      <div class="player-video-wrap">
+        <video id="episode-player-video" controls playsinline preload="metadata"
+               controlslist="nodownload"></video>
+        {# 播放前投放推廣圖——整塊覆蓋層移到 ad_promo/_player_overlay.html（見該檔
+           開頭說明），這裡缺檔案時安靜地不輸出，播放器其餘功能照常運作。 #}
+        {% include "ad_promo/_player_overlay.html" ignore missing %}
+        {# 使用者 2026-09-19：後半段真實經過時間閘門（見 web/browse.py
+           play_episode_hls_segment_second_half() 開頭說明）——擋掉 IDM 這類依序
+           快速請求、幾十秒內就把整份播放清單全部片段要完的下載工具，單純「有沒有
+           請求過」的閘門對它沒用，只能靠真實經過時間。使用者一開播放就直接拖曳
+           進度條跳到還沒解鎖的位置時會踩到這個閘門——不能讓播放器單純轉圈給
+           使用者看（會像壞掉），這裡明講原因＋讓使用者自己按「重試」（不自動
+           重試：下載工具沒有真的執行頁面的 JS、按不到這顆鈕，剛好又多一層只有
+           真人瀏覽器才過得去的門檻，見 episode_picker.js 開頭說明）。跟播放前
+           推廣圖是完全不同性質的機制（那個純粹是防呆／確保廣告位元組被抓進資料
+           裡，不需要等真實時間），所以不放進 ad_promo/ 那份，是核心播放保護，本來
+           就该留在公開 repo。 #}
+        <div class="player-locked" id="player-locked-overlay" hidden>
+          <p>內容保護機制<br>請點擊下方繼續按鈕</p>
+          <button type="button" class="btn-accent" id="player-locked-retry-btn">繼續</button>
+        </div>
+      </div>
       <div class="player-controls">
+        {% include "ad_promo/_player_control_buttons.html" ignore missing %}
         <button type="button" data-player-act="prev">‹ 上一話</button>
         <button type="button" data-player-act="back">« 10 秒</button>
         <button type="button" data-player-act="fwd">10 秒 »</button>
@@ -230,6 +251,7 @@
 {% block scripts %}
 <script src="{{ url_for('static', filename='multi_select.js') }}"></script>
 <script src="{{ url_for('static', filename='episode_picker.js') }}"></script>
+{% include "ad_promo/_player_script.html" ignore missing %}
 <script src="{{ url_for('static', filename='load_more.js') }}"></script>
 <script src="{{ url_for('static', filename='ya_panel.js') }}"></script>
 {% endblock %}

@@ -9,6 +9,16 @@
 (function () {
   "use strict";
 
+  // 播放前推廣圖的掛勾——真正的實作在 static/spotlight/spotlight_player.js（整包不進
+  // 公開 repo，見該檔開頭說明），這裡給預設 no-op，讓公開建置（缺那個檔案／沒載入
+  // 那支 script）時播放器其餘功能照常運作、不會因為呼叫不存在的函式掛掉。
+  window.BahaAdPromo = window.BahaAdPromo || {
+    init: function () {},
+    isActive: function () { return false; },
+    onLoad: function () {},
+    onClose: function () {},
+  };
+
   function initGrid(grid) {
     // 手勢邏輯抽到 static/multi_select.js（資料庫整頓頁共用）。Shift 區間與拖曳範圍
     // 都只在同一個 grid（＝同一個集數類別）內生效——一個 grid 一組。
@@ -41,6 +51,11 @@
     var SAVE_EVERY = 5;     // 記憶點寫入節流（秒）
     var NEAR_END = 15;      // 距離結尾這麼近就不記憶（下次從頭）
     var current = { sn: null, label: "" };
+    var closeBtn = overlay.querySelector(".player-close");
+    var lockedOverlay = document.getElementById("player-locked-overlay");
+    var lockedRetryBtn = document.getElementById("player-locked-retry-btn");
+    var retryLockedFn = null; // 這次播放專屬的重試函式，見 showLocked() 呼叫點的說明
+    var currentToken = null; // 這次播放拿到的 HLS token，見「繼續」按鈕的說明
 
     // 看完判定：播到 80% 就算看完（使用者 2026-09-05，原本 95% 太晚，改成 80%）——
     // 跟播放記憶點一樣存 localStorage（只在這個瀏覽器，不同裝置各自記），集數格加
@@ -170,6 +185,20 @@
     function teardownHls() {
       if (hls) { try { hls.destroy(); } catch (e) { /* */ } hls = null; }
     }
+
+    // 播放前投放推廣圖的掛勾（使用者 2026-09-17）——實際排程/顯示/檢舉表單邏輯搬到
+    // static/spotlight/spotlight_player.js（見該檔開頭說明），這裡只在拿到必要的
+    // DOM／狀態參考後呼叫 window.BahaAdPromo.init() 交棒；`sibling()`／`close()`／
+    // `load()` 改呼叫 isActive()／onClose()／onLoad()（見下方），公開建置沒有那支
+    // 檔案時全部是預設 no-op，播放器其餘功能不受影響。
+    window.BahaAdPromo.init({
+      video: video,
+      overlay: overlay,
+      closeBtn: closeBtn,
+      remote: remote,
+      refresh: refresh,
+      setActState: setActState,
+    });
 
     // ---- 網路狀態呼吸燈 -----------------------------------------------------
     var net = (function () {
@@ -345,8 +374,12 @@
       document.head.appendChild(s);
     }
 
-    function afterSourceSet(sn) {
-      var resume = savedPos(sn);
+    // 使用者 2026-09-20：`allowResume=false` 時完全不跳播放記憶點，從頭播——遠端
+    // ／公開模式給匿名訪客用（見 load() 呼叫點）。匿名 session 沒有穩定身分，
+    // 後半段閘門解鎖狀態不會被記住，續看直接跳到後半段大概率立刻撞閘門，體驗
+    // 比從頭開始還差；本機播放／已登入身分的遠端播放不受影響，一律 true。
+    function afterSourceSet(sn, allowResume) {
+      var resume = allowResume === false ? 0 : savedPos(sn);
       video.addEventListener("loadedmetadata", function once() {
         video.removeEventListener("loadedmetadata", once);
         if (resume && (!isFinite(video.duration) || resume < video.duration - NEAR_END)) {
@@ -358,47 +391,131 @@
       refresh();
     }
 
+    // 使用者 2026-09-19：後半段真實經過時間閘門的等待提示——見 anime_detail.html
+    // `#player-locked-overlay` 開頭說明。`hideLocked()` 在每次換集／關閉播放器都要
+    // 呼叫，不然上一集卡住時顯示的提示會殘留到下一集畫面上。
+    function hideLocked() {
+      if (lockedOverlay) lockedOverlay.hidden = true;
+    }
+    function showLocked() {
+      if (lockedOverlay) lockedOverlay.hidden = false;
+    }
+
+    // 背景把這次播放抽到的廣告素材預先抓好（使用者 2026-09-19）——見 browse.py
+    // play_episode_hls_token() 開頭說明：token 核發當下就已經知道廣告活動跟它的
+    // 素材網址（`ad_prefetch`），這裡在播放一開始就把它們要一次，滿足伺服器端
+    // 的「廣告閘門」（`requires_ad`／`is_ad_fetched`），不用等 hls.js 真的播到廣告
+    // 插入點附近才臨時去要——使用者如果一開播放就直接拖曳進度條跳過插入點，這時
+    // 候閘門多半已經滿足，不會卡住。fire-and-forget，失敗也不影響播放本身（頂多
+    // 使用者真的拖到那個位置時才臨時觸發原本的閘門檢查）。
+    function prefetchAd(urls) {
+      (urls || []).forEach(function (u) {
+        fetch(u, { cache: "no-store" }).catch(function () {});
+      });
+    }
+
     function load(sn, label) {
       savePos();
       teardownHls();
+      hideLocked();
+      retryLockedFn = null;
+      currentToken = null;
       current = { sn: String(sn), label: label || "" };
       statsStartWatch(sn);
       caption.textContent = label ? "第 " + label + " 集" : "";
       var mp4 = "/anime/episode/" + sn + "/play";
-      var m3u8 = "/anime/episode/" + sn + "/hls/index.m3u8";
 
       if (!remote) {
+        window.BahaAdPromo.onLoad(sn);
         video.src = mp4;                // 本機／區網：直接串 mp4（moov 已前置）
         video.load();
         afterSourceSet(sn);
         return;
       }
-      // 遠端／公開模式：優先 hls.js（桌面 Chrome/Firefox/Edge 都要它，Chrome 的
-      // canPlayType('...mpegurl') 回 'maybe' 但其實不能播）；hls.js 不支援的環境
-      // （iOS Safari）才退回原生 HLS，都不行才用 mp4。
-      ensureHlsLib(function () {
-        if (window.Hls && window.Hls.isSupported()) {
-          hls = new window.Hls({ maxBufferLength: 30 });
-          hls.on(window.Hls.Events.ERROR, function (evt, data) {
-            if (data && data.fatal) { teardownHls(); video.src = mp4; video.load(); }
+      // 遠端／公開模式：先跟伺服器要一組這一集專用的短效期 token（使用者
+      // 2026-09-20：擋掉 m3u8／片段網址被複製到瀏覽器外的下載工具反覆重複使用，
+      // 見 browse.py play_episode_hls_token() 開頭說明），拿到才組出 m3u8 網址；
+      // 要不到 token（伺服器版本太舊／要求失敗）就直接退回 mp4，至少還能看。
+      fetch("/anime/episode/" + sn + "/hls/token", { method: "POST" })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; })
+        .then(function (data) {
+          if (current.sn !== String(sn)) return; // 這段等待期間使用者已經切集，作廢
+          if (!data || !data.token) {
+            window.BahaAdPromo.onLoad(sn); // 沒有 token 就沒有嵌入式廣告可用，JS 疊加當保底
+            video.src = mp4;
+            video.load();
+            afterSourceSet(sn);
+            return;
+          }
+          // 拿到 token：廣告已經（盡力）嵌進 HLS 串流本身（見 browse.py
+          // play_episode_hls()），這裡不再另外排程 JS 疊加，避免使用者同一次
+          // 播放看到兩次廣告（使用者 2026-09-20）——`{ ssaiActive: true }` 讓
+          // BahaAdPromo 只做重置（換集時清掉舊的排程／畫面）、不真的排新的。
+          window.BahaAdPromo.onLoad(sn, { ssaiActive: true });
+          currentToken = data.token;
+          prefetchAd(data.ad_prefetch);
+          var m3u8 = "/anime/episode/" + sn + "/hls/index.m3u8?token=" + encodeURIComponent(data.token);
+          // 優先 hls.js（桌面 Chrome/Firefox/Edge 都要它，Chrome 的
+          // canPlayType('...mpegurl') 回 'maybe' 但其實不能播）；hls.js 不支援的
+          // 環境（iOS Safari）才退回原生 HLS，都不行才用 mp4。
+          ensureHlsLib(function () {
+            if (current.sn !== String(sn)) return; // 同上
+            if (window.Hls && window.Hls.isSupported()) {
+              // 使用者 2026-09-20 實測回報：撞到後半段閘門後按「重試」，光呼叫
+              // `hls.stopLoad()` 再 `hls.startLoad()` 沒有實際效果（hls.js 內部
+              // 殘留的重試／backoff 狀態沒有真的清乾淨，一直卡住彈出同一個提示）。
+              // 改成「重試」＝完整銷毀重建一個新的 hls.js 實例、重新載入同一份
+              // m3u8（帶同一組 token，還在有效期內）——保證乾淨的狀態，不依賴
+              // stopLoad／startLoad 這對 API 恢復到可用狀態。
+              //
+              // 使用者 2026-09-20：「繼續」現在會先呼叫 /hls/unlock 強制解鎖
+              // （見按鈕點擊處理），解鎖一定成功，不再需要保守地退回「最後成功
+              // 載入的位置」（`lastGoodEnd`）——直接記住撞牆當下使用者原本想看
+              // 的位置（`desiredPos`），解鎖後就跳回那裡，不會退回去、體驗才順。
+              var desiredPos = 0;
+              function startHls() {
+                hls = new window.Hls({ maxBufferLength: 30 });
+                hls.on(window.Hls.Events.ERROR, function (evt, errData) {
+                  if (errData && errData.details === "fragLoadError" &&
+                      errData.response && errData.response.code === 423) {
+                    desiredPos = video.currentTime;
+                    hls.stopLoad();
+                    showLocked();
+                    return;
+                  }
+                  if (errData && errData.fatal) { teardownHls(); video.src = mp4; video.load(); }
+                });
+                hls.loadSource(m3u8);
+                hls.attachMedia(video);
+              }
+              retryLockedFn = function () {
+                var pos = desiredPos;
+                teardownHls();
+                startHls();
+                hls.once(window.Hls.Events.MANIFEST_PARSED, function () {
+                  if (pos > 0) video.currentTime = pos;
+                  video.play().catch(function () {});
+                });
+              };
+              startHls();
+            } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+              video.src = m3u8;             // iOS / Safari 原生
+              video.load();
+            } else {
+              video.src = mp4;
+              video.load();
+            }
+            afterSourceSet(sn, data.has_identity);
           });
-          hls.loadSource(m3u8);
-          hls.attachMedia(video);
-        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-          video.src = m3u8;             // iOS / Safari 原生
-          video.load();
-        } else {
-          video.src = mp4;
-          video.load();
-        }
-        afterSourceSet(sn);
-      });
+        });
     }
     function open(sn, label) {
       overlay.hidden = false;
       load(sn, label);
     }
     function close() {
+      if (window.BahaAdPromo.isActive()) return; // 推廣圖還在顯示，✕ 關閉暫時不生效
       savePos();
       statsStopWatch();
       net.stop();
@@ -408,6 +525,35 @@
       video.removeAttribute("src");
       video.load(); // 真的中斷下載
       current = { sn: null, label: "" };
+      hideLocked();
+      retryLockedFn = null;
+      // 關閉播放器順便作廢任何還沒觸發／還在等待的推廣圖排程，下次打開重新排一次。
+      window.BahaAdPromo.onClose();
+    }
+
+    if (lockedRetryBtn) {
+      // 使用者 2026-09-20：按這顆鈕本身就是防護——只有真的在瀏覽器裡執行 JS、
+      // 按得到這顆按鈕的才過得去這條路，跟「不按繼續、單純自動依序抓取」那條
+      // 路（真實時間閘門）是兩條不同的路，IDM 這類工具永遠不會走到這裡。按下
+      // 去先跟伺服器要求直接解鎖這個 token 的後半段（見 browse.py play_episode_
+      // hls_unlock() 開頭說明），成功了才重試載入。
+      lockedRetryBtn.addEventListener("click", function () {
+        if (!current.sn || !currentToken) { hideLocked(); if (retryLockedFn) retryLockedFn(); return; }
+        var sn = current.sn;
+        var token = currentToken;
+        lockedRetryBtn.disabled = true;
+        fetch(
+          "/anime/episode/" + sn + "/hls/unlock?token=" + encodeURIComponent(token),
+          { method: "POST" },
+        )
+          .catch(function () {})
+          .then(function () {
+            lockedRetryBtn.disabled = false;
+            if (current.sn !== sn) return; // 這段等待期間使用者已經切集，作廢
+            hideLocked();
+            if (retryLockedFn) retryLockedFn();
+          });
+      });
     }
 
     ["waiting", "stalled"].forEach(function (ev) {
@@ -422,6 +568,7 @@
       }
     }
     function sibling(dir) {
+      if (window.BahaAdPromo.isActive()) return; // 推廣圖還在顯示，「上一話」／「下一話」暫時不生效
       var list = downloadedList();
       var i = indexOfSn(list, current.sn);
       if (i < 0) return;

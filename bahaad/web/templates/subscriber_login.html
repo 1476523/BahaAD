@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}訂閱者登入 - BahaAD{% endblock %}
+{% block title %}會員登入 - BahaAD{% endblock %}
 {% block content %}
 <div class="auth-card">
-  <h1>訂閱者登入</h1>
+  <h1>會員登入</h1>
   {% if not available %}
   <p class="help-text">此功能目前尚未開放。</p>
   {% else %}
   {% if error %}<p class="help-text form-error">{{ error }}</p>{% endif %}
-  <p class="help-text">登入後即可在網站上直接管理您的番劇更新通知訂閱。</p>
+  <p class="help-text">登入後即可在網站上直接管理您收藏的番劇更新通知。</p>
   {# 使用者 2026-09-12：Discord 按鈕改跟 Telegram 一樣用中性配色——綠底（.btn-accent）
      配綠色調色的圖示幾乎看不清楚，兩個登入選項用同一種樣式反而更一致。 #}
   {% set icon_variant = 'black' if ui_theme == 'light' else 'white' %}

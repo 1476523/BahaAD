@@ -32,11 +32,30 @@
     return i === -1 ? null : s.slice(i + "/cache/img/".length).split("?")[0].split("#")[0];
   }
 
+  // 使用者 2026-09-20：封面失敗時墊在底下的提示文字（見 style.css
+  // `.anime-card-cover-fallback`）預設是隱藏的（`display:none`），只有**確認真的
+  // 載入失敗**（見 markBlocked()）才顯示——單純「還在背景佇列排隊、還沒抓到」
+  // （`map[h]` 回 null，之後幾輪重試多半就抓到了）不算失敗，不該被當成「廣告
+  // 封鎖圖」，不然每次進頁面、封面還沒抓完那幾秒鐘就會整頁誤報。
+  function fallbackEl(img) {
+    var prev = img.previousElementSibling;
+    return (prev && prev.classList && prev.classList.contains("anime-card-cover-fallback")) ? prev : null;
+  }
+
+  function markBlocked(imgs) {
+    for (var i = 0; i < imgs.length; i++) {
+      var fb = fallbackEl(imgs[i]);
+      if (fb) fb.classList.add("is-blocked");
+    }
+  }
+
   function setImg(img, dataUri) {
     img.removeAttribute("data-cache-src");
     // data: URI 沒有網路請求可延遲，`loading=lazy` 反而會讓 Chrome 拖著不 decode——拿掉
     img.removeAttribute("loading");
     img.src = dataUri;
+    var fb = fallbackEl(img);
+    if (fb) fb.classList.remove("is-blocked");
   }
 
   function collect(root) {
@@ -52,7 +71,11 @@
       if (img.__il) { continue; }
       img.__il = true;
       var h = hashOf(img);
-      if (!h) { img.src = img.getAttribute("data-cache-src"); continue; }
+      if (!h) {
+        img.onerror = function () { markBlocked([this]); };
+        img.src = img.getAttribute("data-cache-src");
+        continue;
+      }
       // 這張圖之前就抓過了（局部刷新／下載列表每 2 秒重繪）→ 直接套記憶體裡的，不再打 batch
       if (resolved[h]) { setImg(img, resolved[h]); continue; }
       img.__ilHash = h;
@@ -150,7 +173,12 @@
           delete byHash[hash];
           finish();
         };
-        probe.onerror = finish;
+        probe.onerror = function () {
+          // 這是逐張直接對 /cache/img/<hash> 發 GET、確認真的載入失敗（不是還在
+          // 排隊）——這裡才是真的該顯示「廣告封鎖圖」的時機點。
+          markBlocked(imgs);
+          finish();
+        };
         probe.src = "/cache/img/" + hash;
       })(h, list);
     }

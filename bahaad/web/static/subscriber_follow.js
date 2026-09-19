@@ -19,10 +19,10 @@ document.addEventListener("click", function (event) {
       var nowFollowed = !wasFollowed;
       btn.dataset.followed = nowFollowed ? "true" : "false";
       btn.classList.toggle("subscribed", nowFollowed);
-      btn.title = nowFollowed ? "取消通知訂閱" : "訂閱通知（番劇更新時收到 Discord/Telegram 通知）";
-      // 「我的訂閱」列表（data-remove-card-on-unfollow="true"）取消訂閱後直接把整張
-      // 卡片移除，比照 subscribe.js 對 data-remove-card-on-unsub 的做法；訂閱列表頁
-      // （擁有者排程清單）的卡片不會有這個屬性，取消通知不影響該頁卡片顯示。
+      btn.title = nowFollowed ? "取消收藏" : "收藏（番劇更新時收到 Discord/Telegram 通知）";
+      // 「我的收藏」列表（data-remove-card-on-unfollow="true"）取消收藏後直接把整張
+      // 卡片移除，比照 subscribe.js 對 data-remove-card-on-unsub 的做法；番劇列表頁
+      // （擁有者排程清單）的卡片不會有這個屬性，取消收藏不影響該頁卡片顯示。
       if (!nowFollowed && btn.dataset.removeCardOnUnfollow === "true") {
         var card = btn.closest(".anime-card");
         if (card) card.remove();

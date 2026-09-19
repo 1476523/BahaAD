@@ -15,11 +15,18 @@
     card.className = "auth-card extra-wide-card markdown-doc doc-overlay-card has-stats-head";
 
     // 即時統計晶片：標題 + 一排數字，置頂固定在政策內文上方（使用者 2026-09-08）。
+    // 標題旁的呼吸燈跟排行榜同一套設計（使用者 2026-09-16）：連線狀態／下次刷新
+    // 秒數／本機還沒送出的資料筆數，共用 stats.js 的 mountSyncLight()。
     var stats = document.createElement("div");
     stats.className = "privacy-stats-head";
     stats.setAttribute("data-stats-summary", "");
     stats.innerHTML =
-      '<h2>隱私權政策</h2>' +
+      '<h2>隱私權政策' +
+      '<span class="player-net" id="privacy-stats-net" data-net="unknown" tabindex="0" role="button" aria-label="與伺服器同步狀態">' +
+      '  <span class="player-net-dot"></span>' +
+      '  <span class="player-net-tip" id="privacy-stats-net-tip" hidden></span>' +
+      '</span>' +
+      '</h2>' +
       '<div class="privacy-stats-chips">' +
       '  <span class="pv-chip"><span class="pv-chip-label">總下載次數</span>' +
       '    <span class="pv-chip-num" data-stats-field="downloads_total">—</span></span>' +
@@ -52,7 +59,15 @@
     overlay.appendChild(card);
 
     // 晶片數字：開浮層當下抓一次，浮層開著時每 45 秒刷新（關掉就停）。
+    var STATS_REFRESH_MS = 45000;
     var timer = null;
+    var netLight = window.BahaStats && window.BahaStats.mountSyncLight
+      ? window.BahaStats.mountSyncLight(
+          stats.querySelector("#privacy-stats-net"),
+          stats.querySelector("#privacy-stats-net-tip"),
+          { refreshMs: STATS_REFRESH_MS }
+        )
+      : null;
     function loadStats() {
       fetch("/ui/stats/summary", { headers: { Accept: "application/json" } })
         .then(function (r) { return r.ok ? r.json() : null; })
@@ -66,14 +81,16 @@
                 ? "—"
                 : Number(v).toLocaleString("en-US");
           });
+          if (netLight) netLight.bumpRefresh();
         })
         .catch(function () {});
     }
     loadStats();
-    timer = window.setInterval(loadStats, 45000);
+    timer = window.setInterval(loadStats, STATS_REFRESH_MS);
 
     function close() {
       if (timer) window.clearInterval(timer);
+      if (netLight) netLight.destroy();
       overlay.remove();
       document.removeEventListener("keydown", onKey);
     }
@@ -82,12 +99,18 @@
         close();
       }
     }
-    // 關閉鈕 ＋ 點視窗任一處（含內容卡片本身）都關閉
+    // 關閉鈕 ＋ 點背景（卡片以外的區域）關閉。使用者 2026-09-17 回報：隱私權政策
+    // 各大段落改成收合／展開（<details>）之後，點標題展開會被這裡誤判成「點卡片
+    // 本身」而把整個浮層關掉，完全打不開任何段落——原本「點卡片本身也關閉」的
+    // 設計現在會跟卡片內任何互動元素（展開／連結／表格）衝突，改成只有點擊
+    // backdrop（e.target === overlay，卡片以外）才關閉，卡片內部點擊一律不觸發。
     closeBtn.addEventListener("click", function (e) {
       e.stopPropagation();
       close();
     });
-    overlay.addEventListener("click", close);
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay) close();
+    });
     document.addEventListener("keydown", onKey);
 
     document.body.appendChild(overlay);

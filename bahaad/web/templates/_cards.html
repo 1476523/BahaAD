@@ -27,7 +27,15 @@
     {% if cover %}
     {# `data-cache-src`（不是 src）——瀏覽器不會一進頁就對 /cache/img 發 60 張突發
        請求（本機過濾軟體如 AdGuard 擋不住會 RST，使用者 2026-09-09）。`img_loader.js`
-       排佇列、一次最多幾張地把 src 補上。 #}
+       排佇列、一次最多幾張地把 src 補上。
+
+       使用者 2026-09-20：`.anime-card-cover-fallback` 一律先渲染在 <img> 後面（見
+       style.css，靠疊層順序墊在下面）——圖片真的載入成功才會蓋過去；本機廣告
+       封鎖軟體把 /cache/img 或 /cache/img-batch 整支擋掉時（見
+       bahaad/ad_promo/campaigns.py cache_hash_for() 開頭說明：推廣卡片的圖片刻意
+       走同一支端點），這段提示文字就會露出來，讓訪客知道原因並自己解決，不是
+       單純的破圖圖示。 #}
+    <span class="anime-card-cover-fallback">請關閉廣告屏蔽</span>
     <img data-cache-src="{{ cover | cached_img }}" alt="" loading="lazy">
     {% endif %}
   </a>
