@@ -9,9 +9,8 @@
 (function () {
   "use strict";
 
-  // 播放前推廣圖的掛勾——真正的實作在 static/spotlight/spotlight_player.js（整包不進
-  // 公開 repo，見該檔開頭說明），這裡給預設 no-op，讓公開建置（缺那個檔案／沒載入
-  // 那支 script）時播放器其餘功能照常運作、不會因為呼叫不存在的函式掛掉。
+  // 選擇性子系統的掛勾——這裡給預設 no-op，讓公開建置（缺對應檔案／沒載入對應
+  // script）時播放器其餘功能照常運作、不會因為呼叫不存在的函式掛掉。
   window.BahaAdPromo = window.BahaAdPromo || {
     init: function () {},
     isActive: function () { return false; },
@@ -186,11 +185,10 @@
       if (hls) { try { hls.destroy(); } catch (e) { /* */ } hls = null; }
     }
 
-    // 播放前投放推廣圖的掛勾（使用者 2026-09-17）——實際排程/顯示/檢舉表單邏輯搬到
-    // static/spotlight/spotlight_player.js（見該檔開頭說明），這裡只在拿到必要的
-    // DOM／狀態參考後呼叫 window.BahaAdPromo.init() 交棒；`sibling()`／`close()`／
-    // `load()` 改呼叫 isActive()／onClose()／onLoad()（見下方），公開建置沒有那支
-    // 檔案時全部是預設 no-op，播放器其餘功能不受影響。
+    // 選擇性子系統的掛勾——這裡只在拿到必要的 DOM／狀態參考後呼叫
+    // window.BahaAdPromo.init() 交棒；`sibling()`／`close()`／`load()` 改呼叫
+    // isActive()／onClose()／onLoad()（見下方），公開建置時全部是預設 no-op，
+    // 播放器其餘功能不受影響。
     window.BahaAdPromo.init({
       video: video,
       overlay: overlay,
@@ -375,9 +373,8 @@
     }
 
     // 使用者 2026-09-20：`allowResume=false` 時完全不跳播放記憶點，從頭播——遠端
-    // ／公開模式給匿名訪客用（見 load() 呼叫點）。匿名 session 沒有穩定身分，
-    // 後半段閘門解鎖狀態不會被記住，續看直接跳到後半段大概率立刻撞閘門，體驗
-    // 比從頭開始還差；本機播放／已登入身分的遠端播放不受影響，一律 true。
+    // ／公開模式給匿名訪客用（見 load() 呼叫點），體驗比從頭開始還差；本機播放／
+    // 已登入身分的遠端播放不受影響，一律 true。
     function afterSourceSet(sn, allowResume) {
       var resume = allowResume === false ? 0 : savedPos(sn);
       video.addEventListener("loadedmetadata", function once() {
@@ -391,9 +388,9 @@
       refresh();
     }
 
-    // 使用者 2026-09-19：後半段真實經過時間閘門的等待提示——見 anime_detail.html
-    // `#player-locked-overlay` 開頭說明。`hideLocked()` 在每次換集／關閉播放器都要
-    // 呼叫，不然上一集卡住時顯示的提示會殘留到下一集畫面上。
+    // 防護提示——見 anime_detail.html `#player-locked-overlay`。`hideLocked()`
+    // 在每次換集／關閉播放器都要呼叫，不然上一集卡住時顯示的提示會殘留到下一
+    // 集畫面上。
     function hideLocked() {
       if (lockedOverlay) lockedOverlay.hidden = true;
     }
@@ -401,13 +398,8 @@
       if (lockedOverlay) lockedOverlay.hidden = false;
     }
 
-    // 背景把這次播放抽到的廣告素材預先抓好（使用者 2026-09-19）——見 browse.py
-    // play_episode_hls_token() 開頭說明：token 核發當下就已經知道廣告活動跟它的
-    // 素材網址（`ad_prefetch`），這裡在播放一開始就把它們要一次，滿足伺服器端
-    // 的「廣告閘門」（`requires_ad`／`is_ad_fetched`），不用等 hls.js 真的播到廣告
-    // 插入點附近才臨時去要——使用者如果一開播放就直接拖曳進度條跳過插入點，這時
-    // 候閘門多半已經滿足，不會卡住。fire-and-forget，失敗也不影響播放本身（頂多
-    // 使用者真的拖到那個位置時才臨時觸發原本的閘門檢查）。
+    // 背景把 token 回傳的素材網址預先抓好——播放一開始就要一次，不用等播到附近
+    // 才臨時去要。fire-and-forget，失敗也不影響播放本身。
     function prefetchAd(urls) {
       (urls || []).forEach(function (u) {
         fetch(u, { cache: "no-store" }).catch(function () {});
@@ -432,26 +424,21 @@
         afterSourceSet(sn);
         return;
       }
-      // 遠端／公開模式：先跟伺服器要一組這一集專用的短效期 token（使用者
-      // 2026-09-20：擋掉 m3u8／片段網址被複製到瀏覽器外的下載工具反覆重複使用，
-      // 見 browse.py play_episode_hls_token() 開頭說明），拿到才組出 m3u8 網址；
-      // 要不到 token（伺服器版本太舊／要求失敗）就直接退回 mp4，至少還能看。
+      // 遠端／公開模式：先跟伺服器要一組這一集專用的短效期 token，拿到才組出
+      // m3u8 網址；要不到 token（伺服器版本太舊／要求失敗）就直接退回 mp4，
+      // 至少還能看。
       fetch("/anime/episode/" + sn + "/hls/token", { method: "POST" })
         .then(function (r) { return r.ok ? r.json() : null; })
         .catch(function () { return null; })
         .then(function (data) {
           if (current.sn !== String(sn)) return; // 這段等待期間使用者已經切集，作廢
           if (!data || !data.token) {
-            window.BahaAdPromo.onLoad(sn); // 沒有 token 就沒有嵌入式廣告可用，JS 疊加當保底
+            window.BahaAdPromo.onLoad(sn);
             video.src = mp4;
             video.load();
             afterSourceSet(sn);
             return;
           }
-          // 拿到 token：廣告已經（盡力）嵌進 HLS 串流本身（見 browse.py
-          // play_episode_hls()），這裡不再另外排程 JS 疊加，避免使用者同一次
-          // 播放看到兩次廣告（使用者 2026-09-20）——`{ ssaiActive: true }` 讓
-          // BahaAdPromo 只做重置（換集時清掉舊的排程／畫面）、不真的排新的。
           window.BahaAdPromo.onLoad(sn, { ssaiActive: true });
           currentToken = data.token;
           prefetchAd(data.ad_prefetch);
@@ -462,17 +449,13 @@
           ensureHlsLib(function () {
             if (current.sn !== String(sn)) return; // 同上
             if (window.Hls && window.Hls.isSupported()) {
-              // 使用者 2026-09-20 實測回報：撞到後半段閘門後按「重試」，光呼叫
-              // `hls.stopLoad()` 再 `hls.startLoad()` 沒有實際效果（hls.js 內部
-              // 殘留的重試／backoff 狀態沒有真的清乾淨，一直卡住彈出同一個提示）。
-              // 改成「重試」＝完整銷毀重建一個新的 hls.js 實例、重新載入同一份
-              // m3u8（帶同一組 token，還在有效期內）——保證乾淨的狀態，不依賴
-              // stopLoad／startLoad 這對 API 恢復到可用狀態。
-              //
-              // 使用者 2026-09-20：「繼續」現在會先呼叫 /hls/unlock 強制解鎖
-              // （見按鈕點擊處理），解鎖一定成功，不再需要保守地退回「最後成功
-              // 載入的位置」（`lastGoodEnd`）——直接記住撞牆當下使用者原本想看
-              // 的位置（`desiredPos`），解鎖後就跳回那裡，不會退回去、體驗才順。
+              // 使用者 2026-09-20 實測回報：「重試」光呼叫 `hls.stopLoad()` 再
+              // `hls.startLoad()` 沒有實際效果（hls.js 內部殘留的重試／backoff
+              // 狀態沒有真的清乾淨，一直卡住彈出同一個提示）。改成「重試」＝完整
+              // 銷毀重建一個新的 hls.js 實例、重新載入同一份 m3u8（帶同一組
+              // token，還在有效期內）——保證乾淨的狀態，不依賴 stopLoad／
+              // startLoad 這對 API 恢復到可用狀態。直接記住撞牆當下使用者原本
+              // 想看的位置（`desiredPos`），成功後跳回那裡，體驗才順。
               var desiredPos = 0;
               function startHls() {
                 hls = new window.Hls({ maxBufferLength: 30 });
@@ -532,11 +515,7 @@
     }
 
     if (lockedRetryBtn) {
-      // 使用者 2026-09-20：按這顆鈕本身就是防護——只有真的在瀏覽器裡執行 JS、
-      // 按得到這顆按鈕的才過得去這條路，跟「不按繼續、單純自動依序抓取」那條
-      // 路（真實時間閘門）是兩條不同的路，IDM 這類工具永遠不會走到這裡。按下
-      // 去先跟伺服器要求直接解鎖這個 token 的後半段（見 browse.py play_episode_
-      // hls_unlock() 開頭說明），成功了才重試載入。
+      // 按下去先跟伺服器要求解鎖，成功了才重試載入。
       lockedRetryBtn.addEventListener("click", function () {
         if (!current.sn || !currentToken) { hideLocked(); if (retryLockedFn) retryLockedFn(); return; }
         var sn = current.sn;

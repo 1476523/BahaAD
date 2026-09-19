@@ -46,11 +46,9 @@
   </div>
 
   {% if subscribed %}
-  {# 推廣卡片（使用者 2026-09-17／2026-09-18／2026-09-19）：`ad_promo/_card.html`
-     整包不進公開 repo，公開建置缺這個檔案時 include ignore missing 安靜地不輸出，
-     這頁其餘部分照常渲染。`promo_slots`（見 browse.py `subscriptions()` /
-     `bahaad/ad_promo/routes.py` `promo_card_slot()`）是 `{loop.index: {標題/連結/
-     封面圖/nonce}}`——每 12 部番劇一組各自獨立抽一個生效中的廣告活動。 #}
+  {# 選擇性子系統的卡片——缺檔案時 include ignore missing 安靜地不輸出，這頁
+     其餘部分照常渲染。`promo_slots` 是 `{loop.index: {...}}`，見 browse.py
+     `subscriptions()`。 #}
   <div id="subs-scroll">
     <div class="anime-grid">
       {% for anime in subscribed %}

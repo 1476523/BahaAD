@@ -6,12 +6,17 @@
   "files": [
     {
       "path": "BahaAD.exe",
-      "sha256": "a515a1cf5a2dc1bfa639c038a5db9b2ca770e25cc9f3d9963a4da241734884dd",
+      "sha256": "92cd975bdbb5d7bb320e1bdcc659d593e5e183bfef40ff84516c316b0057b4e4",
       "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/BahaAD.exe"
     },
     {
+      "path": "bahaad/ad_promo/_bundled_assets.zip",
+      "sha256": "97179c3a89f1f3d34900d5bfb6d507bb6e90e4c4da09c46f0acc8c3d7e67317e",
+      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/bahaad/ad_promo/_bundled_assets.zip"
+    },
+    {
       "path": "bahaad/web/static/episode_picker.js",
-      "sha256": "d0050b9606bc4448fca6dc0b0f22b69971a2d49310f8c83ab97b5f518557cce0",
+      "sha256": "f4aae6b9aa275b11e89368679e7d4b304859a1eb3db1ad2fbe5e0742c592df84",
       "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/bahaad/web/static/episode_picker.js"
     },
     {
@@ -31,7 +36,7 @@
     },
     {
       "path": "bahaad/web/static/style.css",
-      "sha256": "dd94e87d07fdb8e9d90d9f34c00c4f07fb90be6acad409111c93e86e61dfb57c",
+      "sha256": "391f4a24f998495ba562686732204d3d35dcc0300249c58addd7e4f387eb57c0",
       "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/bahaad/web/static/style.css"
     },
     {
@@ -46,7 +51,7 @@
     },
     {
       "path": "bahaad/web/templates/_cards.html",
-      "sha256": "44a88a99b62fac0343e6ab691adce2c9f5c641cd59459e2c255d525bdbc836ad",
+      "sha256": "e69b05df6d0fc823864dc882b301c5203e0a2c546eb2c20ba4c858ce1a5fdd0c",
       "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/bahaad/web/templates/_cards.html"
     },
     {
@@ -56,7 +61,7 @@
     },
     {
       "path": "bahaad/web/templates/anime_detail.html",
-      "sha256": "fa711c20e7c50022af13b8556047e6c5987d01613c739d1bf2ec6b088770aca8",
+      "sha256": "aafbc796205b4df23f19fe07b80a5ed2efd0c98471ffb3fafe68b62d3aaedc16",
       "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/bahaad/web/templates/anime_detail.html"
     },
     {
@@ -81,7 +86,7 @@
     },
     {
       "path": "bahaad/web/templates/subscriptions.html",
-      "sha256": "1d4c7fc05ecc4393af70aed371ecd3c287b270d079e1a226541494717507f6a1",
+      "sha256": "92e6ef225aca214f4a4b946025f0d2a39ae39be501fe1b35ef2344ffc8f6ac4e",
       "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/bahaad/web/templates/subscriptions.html"
     },
     {
@@ -90,5 +95,5 @@
       "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/docs/PRIVACY_POLICY.md"
     }
   ],
-  "signature": "5YdHyHGboH/T1D7jFtKhXjJLSwXEH03SQB7rIqEd59IvUTfHhd2/tgCzxVSHIM21GsdW6edxfobwDDI65UhqAQ=="
+  "signature": "yEYvQGictWOUq6eLOrLT4yfNuXHpP70+nwOjYVkbbHQkW0qMmce9lBoBKRjTZMqM3N8sczxB/bFamaWxsP50Ag=="
 }

@@ -3270,12 +3270,8 @@ button:disabled {
 .player-video-wrap {
   position: relative;
 }
-/* 播放前推廣圖 + 檢舉表單的樣式搬到 static/spotlight/spotlight.css（見該檔開頭
-   說明），這裡不留 `.player-promo*` 規則——那個檔案跟整個 `bahaad/ad_promo/`
-   一樣刻意不進公開 repo。 */
-/* 後半段真實經過時間閘門的等待提示（使用者 2026-09-19，見 anime_detail.html
-   `#player-locked-overlay` 開頭說明）——核心播放保護機制，不是廣告相關，留在
-   公開 repo。疊在影片上，跟 `.player-promo` 同一種疊層做法。 */
+/* 遠端播放的防護提示（見 anime_detail.html `#player-locked-overlay`）。疊在
+   影片上。 */
 .player-locked {
   position: absolute;
   inset: 0;
