@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}首次設定 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card">
+  <h1>建立帳號密碼</h1>
+  <p class="warning">
+    這組密碼是 BahaAD 網頁介面唯一的存取保護，<strong>遺忘後無法還原</strong>。
+    忘記時可以在登入頁的「忘記密碼」重設密碼與各項憑證（動畫瘋登入、通知設定等），
+    訂閱清單與設定會保留。請務必妥善保管。
+  </p>
+
+  <h2>錯誤自動回報</h2>
+  <p>BahaAD 內建的「錯誤自動回報」功能，在程式發生任何錯誤（含未預期的例外）時，會回報以下固定欄位——不多不少：</p>
+  <table class="entry-table">
+    <tr><th>欄位</th><th>說明</th></tr>
+    <tr><td>錯誤代碼</td><td>內建代碼表裡的一個代碼，代表發生錯誤的操作類型，不是原始例外訊息或程式堆疊</td></tr>
+    <tr><td>操作類型</td><td>例如「下載影片」「套用更新」「未分類」，用來判斷問題出在哪個功能區塊</td></tr>
+    <tr><td>例外類型名稱</td><td>程式的例外類別名（例如 <code>FileNotFoundError</code>），是類別的「名字」不是訊息文字，本身不含您的資料</td></tr>
+    <tr><td>錯誤發生的模組</td><td>程式碼裡的模組名稱（例如 <code>bahaad.app_shell</code>），告訴我們錯誤在哪一段程式，不含您的資料</td></tr>
+    <tr><td>網路量測值</td><td>延遲、下載速率，用來判斷是不是網路狀況造成的問題</td></tr>
+    <tr><td>連線狀態分類</td><td>逾時／斷線／DNS 失敗等固定分類，不含實際連線對象的位址</td></tr>
+    <tr><td>檔案完整性比對結果</td><td>只有「相符/不相符」的結果，不會回報檔案內容本身</td></tr>
+    <tr><td>路徑資訊（已去識別化）</td><td>相對於程式安裝目錄的相對路徑＋磁碟機代號/剩餘空間，不含使用者名稱</td></tr>
+    <tr><td>動畫瘋身分</td><td>只有「會員 / 遊客 / 未知」三種，用來判斷付費番劇下載失敗是登入態掉了還是本來就沒登入；不含帳號、Cookie</td></tr>
+  </table>
+  <p class="help-text">
+    <strong>不會</strong>回報：帳號密碼、Cookie、您追蹤/下載的番劇清單內容、檔案內容本身、完整的例外堆疊或原始錯誤訊息文字、含有使用者名稱的原始檔案路徑。
+    <strong>預設開啟</strong>，之後可以隨時到設定頁關閉；關閉後立即停止回報。
+    <button type="button" class="link-inline-btn" id="privacy-policy-open"
+            data-privacy-url="{{ url_for('settings.privacy_policy') }}">隱私權政策</button>。
+  </p>
+
+  <form method="post">
+    <label>帳號
+      <input type="text" name="username" required autocomplete="username">
+    </label>
+    <label>密碼
+      <input type="password" name="password" required autocomplete="new-password">
+    </label>
+    <label>確認密碼
+      <input type="password" name="confirm_password" required autocomplete="new-password">
+    </label>
+    <label>下載位置
+      <input type="text" name="download_dir" value="{{ default_download_dir }}">
+    </label>
+    <p class="help-text">番劇下載後存放的資料夾。之後可以隨時到設定頁更改。</p>
+    <button type="submit" class="btn-accent">建立</button>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='privacy_policy.js') }}"></script>
+{% endblock %}

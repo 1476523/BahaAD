@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% import "_gossip_tabs.html" as tabs with context %}
+{% block title %}官方公告設定 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card extra-wide-card">
+  <h1>官方公告</h1>
+  {{ tabs.gossip_tabs('settings') }}
+
+  <p class="help-text">
+    定期偵測動畫瘋首頁的異動公告（暫停／延後／加更／下架），比對到你追蹤中的番劇；
+    可選自動建立不影響排程清單的臨時排程覆蓋。
+  </p>
+  <form method="post" action="{{ url_for('gossip.save_settings') }}" data-ajax>
+    <label class="checkbox-label">
+      <input type="checkbox" name="gossip_monitor" {{ 'checked' if gossip_monitor else '' }}>
+      開啟官方公告偵測（預設開啟）
+    </label>
+    <label>官方公告檢查週期（分鐘）
+      <input type="number" name="gossip_check_interval_minutes"
+             value="{{ gossip_check_interval_minutes }}" min="1">
+    </label>
+    <p class="help-text">多久掃一次動畫瘋首頁的異動公告（預設 1 分鐘，最少 1 分鐘）。程式每次跟動畫瘋互動時本來也會順帶檢查一次。</p>
+    <label class="checkbox-label">
+      <input type="checkbox" name="gossip_dynamic_schedule" {{ 'checked' if gossip_dynamic_schedule else '' }}>
+      機動調整時間：偵測到異動時自動套用建議處置（預設開啟；關掉仍會收到通知，只是不自動改排程）
+    </label>
+    <label>公告紀錄／覆蓋保留天數
+      <input type="number" name="gossip_retention_days" value="{{ gossip_retention_days }}" min="1">
+    </label>
+    <div class="gossip-settings-actions">
+      <button type="submit" class="btn-accent">儲存</button>
+      <button type="submit" class="btn-neutral" formaction="{{ url_for('gossip.recheck') }}" formnovalidate>重新檢查</button>
+    </div>
+  </form>
+  <p class="help-text">
+    「重新檢查」：立刻重抓一次動畫瘋首頁的公告、重跑分類與機動調整。你在操作處置頁
+    手動確認過的項目不會被覆蓋。
+  </p>
+</div>
+{% endblock %}

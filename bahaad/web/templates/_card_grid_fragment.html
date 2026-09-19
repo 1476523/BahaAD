@@ -1,0 +1,6 @@
+{# 番劇卡片格片段——`/browse/trending/api` 下滑載入時回傳這段 HTML，前端 append 進
+   `#trending-grid`。跟 server-render 走同一個 `_cards.html` macro，版型一致。 #}
+{% import "_cards.html" as cards with context %}
+{# show_bell 預設 True（近期熱播下滑載入／搜尋・篩選載入更多）；番劇詳細頁的
+   「相關動畫載入更多」傳 show_bell=False。 #}
+{% for item in items %}{{ cards.theme_card(item, show_bell=(show_bell if show_bell is defined else True)) }}{% endfor %}

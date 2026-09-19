@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% import "_cards.html" as cards with context %}
+{% block title %}我的收藏 - BahaAD{% endblock %}
+
+{# 使用者 2026-09-12：這頁除了登入資訊／登出按鈕外，番劇的顯示要跟「訂閱列表」
+   （subscriptions.html）相同——直接共用 `_cards.html` 的 `anime_card` 巨集＋同一套
+   卡片資料組法（`anime_cards_for_sns`，見 subscriber_auth.py 的 `me()`），不再手刻
+   一份簡化版卡片。
+   使用者 2026-09-13：登入身分顯示＋登出動作搬到 base.html 頂欄／側欄（跟擁有者
+   「歡迎回來」＋登出圖示同一套設計），這頁不再重複顯示，也不再有獨立的登出按鈕。 #}
+{% block shell_class %}pinned-scroll{% endblock %}
+
+{% block content %}
+{% set linked_channels = linked | map(attribute='channel') | list %}
+<div id="subs-page">
+  {% if 'telegram' in linked_channels %}
+  {# 使用者 2026-09-16：Telegram Login Widget 登入不會讓 Bot 跟訂閱者開啟對話，
+     Bot 沒辦法對「從沒傳過訊息給它」的使用者發送第一則訊息——還是要訂閱者自己
+     傳一次 /start 給 Bot，之後的通知才發得出去。永久顯示（沒有追蹤有沒有做過
+     這步的狀態，多看到一次沒有壞處）。 #}
+  <div class="warning">
+    {% if telegram_bot_username %}
+    別忘了在 Telegram 傳送 <code>/start</code> 給
+    <a href="https://t.me/{{ telegram_bot_username }}" target="_blank" rel="noopener">@{{ telegram_bot_username }}</a>
+    ——只有主動傳過訊息給 Bot，之後的番劇更新通知才發得出去（Telegram 平台限制，Bot 不能主動對沒傳過訊息的人發訊息）。
+    {% else %}
+    別忘了在 Telegram 傳送 <code>/start</code> 給官方 Bot——只有主動傳過訊息給 Bot，之後的番劇更新通知才發得出去（Telegram 平台限制）。
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {# 使用者 2026-09-16：Discord／Telegram 帳號可以連結成同一個人，訂閱清單互通，
+     通知管道可以隨時切換。已連結（linked 超過 1 筆）就顯示每個管道的通知開關；
+     還有可以連結的管道（linkable_channel）就顯示連結按鈕。 #}
+  <details class="settings-section" id="account-link-section">
+    <summary>帳號連結</summary>
+    {% if linked | length > 1 %}
+    <p class="help-text">已連結的帳號，勾選要接收通知的管道（至少要留一個）：</p>
+    <form id="notify-channels-form" method="post" action="{{ url_for('subscriber_auth.notify_channels') }}" data-ajax>
+      {% for acc in linked %}
+      <label class="checkbox-label">
+        <input type="checkbox" name="channels" value="{{ acc.channel }}"
+               {{ 'checked' if acc.channel in notify_channels_enabled else '' }}>
+        {{ 'Discord' if acc.channel == 'discord' else 'Telegram' }}：{{ acc.display_name or acc.external_id }}
+      </label>
+      {% endfor %}
+      <button type="submit" class="btn-accent btn-sm">儲存通知設定</button>
+    </form>
+    {% else %}
+    <p class="help-text">目前只有 {{ 'Discord' if identity.channel == 'discord' else 'Telegram' }} 這一個登入管道。</p>
+    {% endif %}
+    {% if linkable_channel %}
+    <p class="help-text">
+      連結 {{ 'Discord' if linkable_channel == 'discord' else 'Telegram' }} 帳號，訂閱清單跟通知就能互通：
+    </p>
+    <a class="btn-neutral link-btn"
+       href="{{ url_for('subscriber_auth.' ~ linkable_channel ~ '_start', link=1) }}">
+      連結 {{ 'Discord' if linkable_channel == 'discord' else 'Telegram' }} 帳號
+    </a>
+    {% endif %}
+  </details>
+
+  <div class="page-head">
+    <h1>我的收藏</h1>
+    {% if follows %}
+    <p class="anime-grid-count">共 {{ follows | length }} 部動畫</p>
+    {% endif %}
+  </div>
+
+  {% if follows %}
+  <div id="subs-scroll">
+    <div class="anime-grid">
+      {% for anime in follows %}
+      {{ cards.anime_card(
+           url_for('browse.anime_detail', video_sn=anime.video_sn),
+           anime.title,
+           ("尚無快取" if anime.no_cache else "共 " ~ anime.episode_count ~ " 集"),
+           cover=anime.cover_url,
+           subscriber_follow_sn=anime.video_sn, subscriber_followed=True, subscriber_remove_card=True) }}
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <p class="help-text">目前沒有收藏任何番劇——到番劇詳細頁或番劇列表頁按「收藏」鈴鐺試試。</p>
+  {% endif %}
+</div>
+{% endblock %}
