@@ -881,6 +881,59 @@ img.theme-icon {
   }
 }
 
+/* 即將下架（使用者 2026-09-23）：依月份分組，每組一欄、左右並排，中間一條分隔線，
+   標題置中顯示在自己那欄上方。`grid-auto-flow: column` + `grid-auto-columns` 不用
+   事先知道欄數（通常 2 欄，但月份交界時可能只有 1 欄或出現第 3 欄）就能平分寬度。 */
+.expiring-columns {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+}
+
+.expiring-column {
+  min-width: 0;
+  padding: 0 1.5rem;
+  border-right: 1px solid var(--border);
+}
+
+.expiring-column:last-child {
+  border-right: none;
+  padding-right: 0;
+}
+
+.expiring-column:first-child {
+  padding-left: 0;
+}
+
+.expiring-column-title {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+@media (max-width: 40rem) {
+  /* 使用者 2026-09-23：手機要維持左右都顯示（不堆疊成單欄直排），每欄內的卡片壓縮
+     成一行一部；欄數 × 最小欄寬放不下視窗寬度就整組水平捲動——捲軸隱藏（整站慣例是
+     保留水平捲軸，這裡跟 #newanime-scroll 一樣是刻意的例外，捲動體驗改用滑動手勢）。 */
+  .expiring-columns {
+    grid-auto-columns: minmax(11rem, 1fr);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .expiring-columns::-webkit-scrollbar {
+    display: none;
+  }
+  .expiring-column {
+    padding: 0 0.75rem;
+  }
+  .expiring-grid.anime-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* 電視模式（使用者 2026-09-21）：固定約 10 欄，不用 auto-fill 自動算——電視是
    手動選的模式，不用跟著實際量到的寬度浮動，選擇器比上面兩個 @media 更高
    （html[data-layout-mode] 屬性選擇器），不管視窗多寬都優先套用。 */
@@ -2635,6 +2688,26 @@ a.leaderboard-name:hover {
   align-items: center;
   gap: 0.4rem 0.5rem;
   flex-wrap: wrap;
+}
+
+/* 訂閱者「發送測試訊息」驗證碼輸入列——刻意不叫 `.verify-code-row`，那個 class
+   名稱已經是首次設定／忘記密碼頁「驗證碼輸入框＋發送驗證碼鈕」那組的（見上面
+   `.verify-code-row` 定義），撞名的話那組的 `display:flex` 會蓋掉這裡的
+   `[hidden]`，讓這列在 JS 拿掉 hidden 前就一直看得到。
+   `.gamer-account-row` 的 `display:flex` 跟 UA `[hidden]` 特異度一樣又排後面，
+   不明寫 `[hidden]` 覆寫的話一樣會有這個問題（同一套坑，比照上面
+   `#episode-play-btn[hidden]` 的寫法）。 */
+.subscriber-verify-row[hidden] {
+  display: none;
+}
+
+.subscriber-verify-row {
+  margin: 0.35rem 0 0.7rem;
+}
+
+.subscriber-verify-input {
+  width: 9rem;
+  flex: 0 0 auto;
 }
 
 .gamer-account-name {

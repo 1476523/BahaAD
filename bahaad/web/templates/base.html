@@ -79,6 +79,7 @@
         (url_for('index'), 'home', '首頁', request.endpoint == 'index'),
         (url_for('browse.trending'), 'trending', '近期熱播', request.endpoint == 'browse.trending'),
         (url_for('browse.latest'), 'latest', '最新上架', request.endpoint == 'browse.latest'),
+        (url_for('browse.expiring'), 'expiring', '即將下架', request.endpoint == 'browse.expiring'),
         (url_for('browse.search'), 'search', '搜尋番劇', request.endpoint == 'browse.search'),
         (url_for('gossip.history_index'), 'announcement', '官方公告', request.endpoint and request.endpoint.startswith('gossip.')),
       ] %}

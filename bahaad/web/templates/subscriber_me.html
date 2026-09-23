@@ -16,9 +16,9 @@
   {% if telegram_start_reminder %}
   {# 使用者 2026-09-16：Telegram Login Widget 登入不會讓 Bot 跟訂閱者開啟對話，
      Bot 沒辦法對「從沒傳過訊息給它」的使用者發送第一則訊息——還是要訂閱者自己
-     傳一次 /start 給 Bot，之後的通知才發得出去。使用者 2026-09-21：改成真的
-     成功送出過一次通知就不再顯示（見 subscriber_auth.py `me()` 的
-     `telegram_start_reminder` 計算），不再是永久顯示。 #}
+     傳一次 /start 給 Bot，之後的通知才發得出去。使用者 2026-09-23：改成要真的
+     核對過「發送測試訊息」附帶的驗證碼才不再顯示（見 subscriber_auth.py `me()`
+     的 `telegram_start_reminder` 計算），不是單看送出成功與否。 #}
   <div class="warning">
     {% if telegram_bot_username %}
     別忘了在 Telegram 傳送 <code>/start</code> 給
@@ -27,16 +27,44 @@
     {% else %}
     別忘了在 Telegram 傳送 <code>/start</code> 給官方 Bot——只有主動傳過訊息給 Bot，之後的番劇更新通知才發得出去（Telegram 平台限制）。
     {% endif %}
+    傳過之後可以到下面「帳號連結」按「發送測試訊息」，輸入收到的驗證碼完成確認。
   </div>
   {% endif %}
 
   {# 使用者 2026-09-16：Discord／Telegram 帳號可以連結成同一個人，訂閱清單互通，
-     通知管道可以隨時切換。已連結（linked 超過 1 筆）就顯示每個管道的通知開關；
-     還有可以連結的管道（linkable_channel）就顯示連結按鈕。 #}
+     通知管道可以隨時切換。使用者 2026-09-23：每個已連結的管道都加上「發送測試
+     訊息」鈕——送出後帶一組隨機驗證碼，訂閱者要把 Telegram／Discord 收到的碼
+     貼回下面隱藏的輸入框核對，成功才算真的確認收到（不是單看中繼 API 回應
+     「送出成功」），核對成功前顯示「尚未驗證」徽章。「移除連結」鈕（除了自己這個
+     登入用的主要身分——`linked` 一定以它排第一個，見 store/subscribers.py
+     `linked_identities_for()`，拆自己沒有意義）會一併清掉驗證狀態，重新連結後
+     要重新驗證一次。 #}
   <details class="settings-section" id="account-link-section">
     <summary>帳號連結</summary>
+    <div class="gamer-account-block">
+      {% for acc in linked %}
+      <div class="gamer-account-row">
+        <strong class="gamer-account-name">
+          {{ 'Discord' if acc.channel == 'discord' else 'Telegram' }}：{{ acc.display_name or acc.external_id }}
+        </strong>
+        {% if not acc.verified_at %}<span class="badge">尚未驗證</span>{% endif %}
+        <button type="button" class="btn-neutral btn-sm test-message-btn" data-channel="{{ acc.channel }}">發送測試訊息</button>
+        {% if not loop.first %}
+        <form method="post" action="{{ url_for('subscriber_auth.link_remove') }}" class="inline-form">
+          <input type="hidden" name="channel" value="{{ acc.channel }}">
+          <button type="submit" class="btn-neutral btn-sm">移除連結</button>
+        </form>
+        {% endif %}
+      </div>
+      <div class="gamer-account-row subscriber-verify-row" data-channel="{{ acc.channel }}" hidden>
+        <input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6"
+               placeholder="輸入收到的 6 位數驗證碼" class="subscriber-verify-input">
+        <button type="button" class="btn-accent btn-sm verify-code-confirm-btn" data-channel="{{ acc.channel }}">確認驗證碼</button>
+      </div>
+      {% endfor %}
+    </div>
     {% if linked | length > 1 %}
-    <p class="help-text">已連結的帳號，勾選要接收通知的管道（至少要留一個）：</p>
+    <p class="help-text">勾選要接收通知的管道（至少要留一個）：</p>
     <form id="notify-channels-form" method="post" action="{{ url_for('subscriber_auth.notify_channels') }}" data-ajax>
       {% for acc in linked %}
       <label class="checkbox-label">
@@ -47,8 +75,6 @@
       {% endfor %}
       <button type="submit" class="btn-accent btn-sm">儲存通知設定</button>
     </form>
-    {% else %}
-    <p class="help-text">目前只有 {{ 'Discord' if identity.channel == 'discord' else 'Telegram' }} 這一個登入管道。</p>
     {% endif %}
     {% if linkable_channel %}
     <p class="help-text">
@@ -85,4 +111,8 @@
   <p class="help-text">目前沒有收藏任何番劇——到番劇詳細頁或番劇列表頁按「收藏」鈴鐺試試。</p>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='subscriber_me.js') }}"></script>
 {% endblock %}
