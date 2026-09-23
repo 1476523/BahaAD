@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-Hant" data-theme="{{ ui_theme }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>排程清單</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+{# 訂閱列表頁右側面板用的無殼版本（round 7 第 4 項）——只有排程清單本體，塞進 iframe #}
+<body class="schedule-embed-body">
+<div id="modal-root"></div>
+<div class="schedule-embed">
+  <p class="help-text">
+    在搜尋番劇／首頁的卡片點鈴鐺加入追蹤，再按一次鈴鐺取消訂閱；這裡調整分類、
+    番劇顯示／資料夾名稱、自訂檢查時段。
+  </p>
+  {% include "_schedule_list.html" %}
+</div>
+<script src="{{ url_for('static', filename='modal.js') }}"></script>
+<script src="{{ url_for('static', filename='schedule_list.js') }}"></script>
+</body>
+</html>
