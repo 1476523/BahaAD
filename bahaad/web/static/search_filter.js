@@ -38,8 +38,6 @@
   });
 
   var panelFlag = document.getElementById("search-filter-panel-flag");
-  // 跟 style.css 的手機 @media 條件一致——只認觸控裝置，桌機拉窄不算（使用者 2026-09-10）
-  var MOBILE_MQ = window.matchMedia("(max-width: 48rem) and (pointer: coarse)");
 
   // 改動任一項 → debounce 後自動送出。debounce 讓「連點 3 個屬性」只導頁一次。
   var submitTimer = null;
@@ -49,8 +47,10 @@
     }
     submitTimer = setTimeout(function () {
       // 手機：面板是全螢幕蓋在結果上的——送出前先收起，重載後直接看到篩選結果，
-      // 不用手動關（使用者 2026-09-10）。要再調整篩選就再點一次切換鈕。
-      if (MOBILE_MQ.matches) {
+      // 不用手動關（使用者 2026-09-10）。要再調整篩選就再點一次切換鈕。是不是手機
+      // 問 window.BahaADLayout.isMobile()（shell.js，考慮了手動覆寫，使用者
+      // 2026-09-21），不是直接看媒體查詢。
+      if (window.BahaADLayout.isMobile()) {
         setOpen(false);
       }
       // 帶上面板目前的開合狀態，讓它跨整頁重載維持（round5 項目 7）
@@ -139,7 +139,7 @@
 
   // 這次在看篩選結果 → 桌面預設展開（方便繼續微調）；手機不自動展開——面板全螢幕會
   // 蓋住剛篩出來的結果，讓使用者先看結果，要調整再點切換鈕（使用者 2026-09-10）。
-  if (panel.dataset.filterActive === "true" && !MOBILE_MQ.matches) {
+  if (panel.dataset.filterActive === "true" && !window.BahaADLayout.isMobile()) {
     setOpen(true);
   }
 })();

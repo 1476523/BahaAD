@@ -1,11 +1,31 @@
 <!doctype html>
 <html lang="zh-Hant" data-theme="{{ ui_theme }}" data-public-readonly="{{ 'true' if public_readonly else 'false' }}"
-      data-idle-timeout-min="{{ idle_timeout_minutes|default(0) }}">
+      data-idle-timeout-min="{{ idle_timeout_minutes|default(0) }}" data-layout-mode="{{ ui_layout_mode }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}BahaAD{% endblock %}</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{# 排版模式（手機／電視／電腦，使用者 2026-09-21）——阻塞式、要在 <body> 解析
+   （進而畫出側欄等會依排版模式變化的元素）之前就把 data-layout-active 設好，
+   不然會先用錯的排版畫一次、等 shell.js 載入才跳成對的（閃一下）。`data-layout-
+   mode` 是伺服器端就算好的手動覆寫值（"auto" 時退回真的量測 (pointer: coarse)
+   ＋螢幕寬度，"mobile"/"tv"/"desktop" 直接覆蓋，不管實際量測結果），跟
+   style.css 的 `[data-layout-active]`、shell.js 的 `BahaADLayout` 是同一套。 #}
+<script>
+(function () {
+  var mode = document.documentElement.dataset.layoutMode || "desktop";
+  var active;
+  if (mode === "mobile") { active = "mobile"; }
+  else if (mode === "tv" || mode === "desktop") { active = "desktop"; }
+  else {
+    try {
+      active = window.matchMedia("(max-width: 48rem) and (pointer: coarse)").matches ? "mobile" : "desktop";
+    } catch (e) { active = "desktop"; }
+  }
+  document.documentElement.dataset.layoutActive = active;
+})();
+</script>
 {% include "ad_promo/_style_link.html" ignore missing %}
 {% include "ad_promo/_card_script.html" ignore missing %}
 <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any">
@@ -87,6 +107,17 @@
        右上角（主題在登出左側、同一水平線）；收合時排進 flex 流、緊接在「設定」上方
        （主題在登出正上方、同一垂直線）。登出只有圖示、不放「登出」二字。 #}
     <div class="sidebar-actions">
+      {# 排版模式手動覆寫（使用者 2026-09-21）：手機／電視／電腦三態循環，放在主題
+         切換左邊（展開態橫排）／上面（收合態直排，見 .sidebar-actions 的
+         flex-direction 切換）——DOM 順序在 #theme-toggle 之前就會自動排到那個
+         位置，不用另外加版面規則。智慧電視等裝置可能被 `(pointer: coarse)` 誤判
+         成手機，讓使用者自己蓋掉自動判斷；預設（"auto"）不顯示任何特殊狀態，
+         就是目前的自動判斷結果。 #}
+      {% set _layout_icon = {'mobile': 'mobile-mode', 'tv': 'tv-mode'}.get(ui_layout_mode, 'desktop-mode') %}
+      <button type="button" id="layout-mode-toggle" class="icon-btn icon-btn--accent" title="切換排版模式（手機／電視／電腦）">
+        <img class="theme-icon" data-icon="layout-mode" id="layout-mode-icon"
+             src="{{ url_for('static', filename='icons/' + _layout_icon + '-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="切換排版模式">
+      </button>
       {# 主題切換：公開模式（未登入唯讀）也給——不寫擁有者偏好，改存訪客自己的
          localStorage（shell.js），純前端（使用者 2026-09-04）。 #}
       <button type="button" id="theme-toggle" class="icon-btn icon-btn--accent" title="切換主題">

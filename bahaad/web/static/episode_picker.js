@@ -496,12 +496,21 @@
     function open(sn, label) {
       overlay.hidden = false;
       load(sn, label);
+      // 電視模式直接進全螢幕（使用者 2026-09-21）——遙控器操作沒有滑鼠可以去點
+      // 播放器控制列以外的地方，全螢幕比較貼近電視的使用情境。呼叫端是點擊事件
+      // 的同步呼叫鏈，滿足瀏覽器全螢幕 API 要求的「使用者互動觸發」條件。
+      if (document.documentElement.dataset.layoutMode === "tv" && overlay.requestFullscreen) {
+        overlay.requestFullscreen().catch(function () {});
+      }
     }
     function close() {
       if (window.BahaAdPromo.isActive()) return; // 推廣圖還在顯示，✕ 關閉暫時不生效
       savePos();
       statsStopWatch();
       net.stop();
+      if (document.fullscreenElement === overlay && document.exitFullscreen) {
+        document.exitFullscreen().catch(function () {});
+      }
       overlay.hidden = true;
       video.pause();
       teardownHls();

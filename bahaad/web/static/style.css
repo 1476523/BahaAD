@@ -848,7 +848,11 @@ img.theme-icon {
 
 .anime-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  /* 使用者 2026-09-21：螢幕夠寬時（>90rem，見下面的 @media 反過來限制較窄螢幕）
+     不要卡死在 6 欄——auto-fill 讓瀏覽器自己依可用寬度塞進更多欄，卡片維持
+     跟原本 6 欄時差不多的寬度（11rem ≈ 90rem 視窗扣掉側欄/邊距/間距後除以 6）。
+     比 90rem 窄的螢幕交給下面兩個 @media 的固定欄數（4／2），維持原本版面。 */
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   gap: 1rem;
 }
 
@@ -875,6 +879,13 @@ img.theme-icon {
   .anime-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+/* 電視模式（使用者 2026-09-21）：固定約 10 欄，不用 auto-fill 自動算——電視是
+   手動選的模式，不用跟著實際量到的寬度浮動，選擇器比上面兩個 @media 更高
+   （html[data-layout-mode] 屬性選擇器），不管視窗多寬都優先套用。 */
+html[data-layout-mode="tv"] .anime-grid {
+  grid-template-columns: repeat(10, 1fr);
 }
 
 /* 每張番劇卡片有自己的背景框，跟頁面底色區分開（使用者 2026-08-28 回饋，比照動畫瘋
@@ -2247,7 +2258,8 @@ a.leaderboard-name:hover {
 
 .task-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  /* 跟 .anime-grid 同一個道理（使用者 2026-09-21）：寬螢幕不要卡死在 6 欄。 */
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   gap: 1rem;
   max-height: calc(2 * 16rem);
   overflow-y: auto;
@@ -4040,9 +4052,14 @@ tr.cleanup-row .cleanup-checkbox {
    使用者 2026-09-09：240px 側欄在 375px 螢幕只留 135px 給內容。
    **只認真的觸控裝置**（`pointer: coarse`）——把桌機視窗拉窄不算手機，那時維持
    「側欄收合成 72px 窄條」的桌面行為（使用者 2026-09-10：不要跟非手機的窄邊顯示搞混）。
-   `search_filter.js` / `shell.js` 的 `MOBILE_MQ` 要跟這裡的條件一致。
-   ============================================================================ */
-@media (max-width: 48rem) and (pointer: coarse) {
+
+   使用者 2026-09-21：改成看 `html[data-layout-active="mobile"]`，不再直接用
+   `@media (pointer: coarse)`——純 CSS 媒體查詢沒辦法讓使用者手動覆寫（智慧電視
+   的遙控器操作、某些電視瀏覽器回報的邏輯寬度，都可能讓這個媒體查詢誤判成手機）。
+   `data-layout-active` 是 base.html 開頭那段阻塞式 script／shell.js
+   `BahaADLayout` 算好的最終結果："auto" 模式下就是這個媒體查詢的量測結果，手動
+   選「手機」/「電視」/「電腦」時直接覆蓋，不看實際量測。 */
+html[data-layout-active="mobile"] {
   /* modal／toast 置中：手機沒有固定佔位的側欄／右側面板 */
   #shell,
   #shell.sidebar-collapsed,

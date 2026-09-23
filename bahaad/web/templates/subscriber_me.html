@@ -13,11 +13,12 @@
 {% block content %}
 {% set linked_channels = linked | map(attribute='channel') | list %}
 <div id="subs-page">
-  {% if 'telegram' in linked_channels %}
+  {% if telegram_start_reminder %}
   {# 使用者 2026-09-16：Telegram Login Widget 登入不會讓 Bot 跟訂閱者開啟對話，
      Bot 沒辦法對「從沒傳過訊息給它」的使用者發送第一則訊息——還是要訂閱者自己
-     傳一次 /start 給 Bot，之後的通知才發得出去。永久顯示（沒有追蹤有沒有做過
-     這步的狀態，多看到一次沒有壞處）。 #}
+     傳一次 /start 給 Bot，之後的通知才發得出去。使用者 2026-09-21：改成真的
+     成功送出過一次通知就不再顯示（見 subscriber_auth.py `me()` 的
+     `telegram_start_reminder` 計算），不再是永久顯示。 #}
   <div class="warning">
     {% if telegram_bot_username %}
     別忘了在 Telegram 傳送 <code>/start</code> 給
