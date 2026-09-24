@@ -1,118 +1,13 @@
 {
-  "version": "0.1.3",
+  "version": "0.1.4",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "「即將下架」分欄改版（每欄標題精簡置頂、左右獨立捲動）；版本號／隱私權政策改固定在畫面角落顯示",
+  "notes": "修正套用更新後卡在「仍在等待中」的問題；修正版本號／隱私權政策固定橫條的間距顯示",
   "files": [
     {
       "path": "BahaAD.exe",
-      "sha256": "2307997b064c4fb5feb34cb5c680e0e1890eb080de43485e7de66f57418a6bb6",
+      "sha256": "5b7b94d404fc98e525317c61fd1e45cbb66645ddb56233a43d0f0d366582acf1",
       "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/BahaAD.exe"
-    },
-    {
-      "path": "PIL/_avif.pyd",
-      "sha256": "2e3e5cce3aea38c603680ca3da5d161fad123ce23a803bb692a56aff608989be",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/PIL/_avif.pyd"
-    },
-    {
-      "path": "PIL/_imaging.pyd",
-      "sha256": "88756e8e0e3f6180e518da25d379597c861e2d20d716ef001894789b515c1777",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/PIL/_imaging.pyd"
-    },
-    {
-      "path": "PIL/_imagingcms.pyd",
-      "sha256": "7ecb50b954d13d72b7a0ff565872332443cdbc83a36e58a56b2b949a56f32549",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/PIL/_imagingcms.pyd"
-    },
-    {
-      "path": "PIL/_imagingft.pyd",
-      "sha256": "e94673a471a0b6fd5e92e8b6cdbdfe16e2e91bcf5689e9e4c9b391ab43788d85",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/PIL/_imagingft.pyd"
-    },
-    {
-      "path": "PIL/_imagingmath.pyd",
-      "sha256": "9d5bbea6a877a48ed7995a0640ecb0a5567d9fad544a4a1fbf9f22d507029b57",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/PIL/_imagingmath.pyd"
-    },
-    {
-      "path": "PIL/_webp.pyd",
-      "sha256": "9918faf8d90faa86e03e48479c6a62383be71da759254afded18591a406a92fe",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/PIL/_webp.pyd"
-    },
-    {
-      "path": "_asyncio.pyd",
-      "sha256": "6941e2aeed3aad1a4658774ecb60309170066a040c2118a5efd16458ac3bed00",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/_asyncio.pyd"
-    },
-    {
-      "path": "_bz2.pyd",
-      "sha256": "261545bd24f15a783fc0c82568b766a4ab569dde14507a81701cccf5293e6e54",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/_bz2.pyd"
-    },
-    {
-      "path": "_cffi_backend.pyd",
-      "sha256": "21b7160d4a6da9590794fdb38718982060b5c92d56fb0e441fc8b62ee789be8d",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/_cffi_backend.pyd"
-    },
-    {
-      "path": "_ctypes.pyd",
-      "sha256": "9d6dccb4cd84a44a107f9b06b91c0a44e85766d9bf4debb6abbde8fda7494c2c",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/_ctypes.pyd"
-    },
-    {
-      "path": "_decimal.pyd",
-      "sha256": "1e6a5707163d3c103e0eb4695eefedbea4b855fb227c61cc265b168970d6c6f0",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/_decimal.pyd"
-    },
-    {
-      "path": "_hashlib.pyd",
-      "sha256": "79a26289aef0d92545a082507c7021f10e219621d137cb726c4d0fbbfd4b46ae",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/_hashlib.pyd"
-    },
-    {
-      "path": "_lzma.pyd",
-      "sha256": "ee224aacf5cf9c9974a1b842aac8d89d5d9b7eeebbf4d76619ae0ce4da8ecd96",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/_lzma.pyd"
-    },
-    {
-      "path": "_multiprocessing.pyd",
-      "sha256": "db19972cf033b598f5826f8219bc2608412b84061d294f5972b43c2ab95f7af5",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/_multiprocessing.pyd"
-    },
-    {
-      "path": "_overlapped.pyd",
-      "sha256": "9db08b5449e18088754ce57e315657d00b46575e0151cd379efef8847488a606",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/_overlapped.pyd"
-    },
-    {
-      "path": "_queue.pyd",
-      "sha256": "4404c2569443ffb54e7cfffdca8ddf58c9a609175305970728ec12bc1c147b43",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/_queue.pyd"
-    },
-    {
-      "path": "_socket.pyd",
-      "sha256": "ccbd0f83df3784da08147b8e8765e28c978de28b5c0eddcfba5567b59d43fef9",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/_socket.pyd"
-    },
-    {
-      "path": "_sqlite3.pyd",
-      "sha256": "4c5fa9341a76ac525fd36e2cb23260934ad9b9f6825725ff139b26c8dc72436d",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/_sqlite3.pyd"
-    },
-    {
-      "path": "_ssl.pyd",
-      "sha256": "8d2f51fa1dc929073a2ad8d1c7c0c911e8f695870dcf4dda2846f4b75a7f77fb",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/_ssl.pyd"
-    },
-    {
-      "path": "_uuid.pyd",
-      "sha256": "b93832742a2348d6659fd62e8a8aff061594693fc537da74c7d2d1cdf83a8475",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/_uuid.pyd"
-    },
-    {
-      "path": "_wmi.pyd",
-      "sha256": "db45362354fd4965329cb14bd974e60b26525045d09fb4fdfb1674a93b79d60c",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/_wmi.pyd"
     },
     {
       "path": "bahaad/ad_promo/_bundled_assets.zip",
@@ -706,7 +601,7 @@
     },
     {
       "path": "bahaad/web/static/style.css",
-      "sha256": "a8ae0e55a2a257038a9363660aec7adb6b08bfdff217cc7cc13c15868ee7525b",
+      "sha256": "4d4c348f6c23ce23245158b7c915eedae3a2994f06b95d86182a3a3079e5bb32",
       "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/bahaad/web/static/style.css"
     },
     {
@@ -741,7 +636,7 @@
     },
     {
       "path": "bahaad/web/static/update_nag.js",
-      "sha256": "3e790f71b4e023684378f2067ac80318939ad82c17278c43ca06e68fb4ab7196",
+      "sha256": "bca56c2bd8b8a47f390afe1843b63fa0074da46fc152496afd469dabada7cc12",
       "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/bahaad/web/static/update_nag.js"
     },
     {
@@ -1010,100 +905,10 @@
       "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/bahaad/web/templates/trending.html"
     },
     {
-      "path": "certifi/cacert.pem",
-      "sha256": "9cc2a774b5198dcff14d9be1e66091f538975d867ce029a96bce15a55dfd730f",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/certifi/cacert.pem"
-    },
-    {
-      "path": "charset_normalizer/cd.pyd",
-      "sha256": "0f9c845f8b98698a8c24300bffe222b95725987e97227b056426b47176377467",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/charset_normalizer/cd.pyd"
-    },
-    {
-      "path": "charset_normalizer/md.pyd",
-      "sha256": "d8947105972e3e54655b76341c654e6660e535f25e370e5597e5c7d21fa71021",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/charset_normalizer/md.pyd"
-    },
-    {
-      "path": "cryptography/hazmat/bindings/_rust.pyd",
-      "sha256": "05fefb14b1cb1c90bcccce87e82d205f5f2396977bf911243972790ba2376849",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/cryptography/hazmat/bindings/_rust.pyd"
-    },
-    {
-      "path": "curl_cffi.libs/libcurl-impersonate-70adc4d9b16b25ba6b7778922d84043b.dll",
-      "sha256": "70adc4d9b16b25ba6b7778922d84043b479dc168caf5f43837f48d4294aae751",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/curl_cffi.libs/libcurl-impersonate-70adc4d9b16b25ba6b7778922d84043b.dll"
-    },
-    {
-      "path": "curl_cffi/_wrapper.pyd",
-      "sha256": "ef43028450aa95552119499aeea4aa0aa2799721693f6bf61acc80ea6388ffe0",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/curl_cffi/_wrapper.pyd"
-    },
-    {
       "path": "docs/PRIVACY_POLICY.md",
       "sha256": "130b8227415bd9e7b6e71c46f01a9a0b115008a050e00acc6150125a34ee8568",
       "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/docs/PRIVACY_POLICY.md"
-    },
-    {
-      "path": "libcrypto-3.dll",
-      "sha256": "09499e186cf0e434ffa17ad153aa9a66d6048c54a2c03b823e2a06c49d9affe4",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/libcrypto-3.dll"
-    },
-    {
-      "path": "libffi-8.dll",
-      "sha256": "eff52743773eb550fcc6ce3efc37c85724502233b6b002a35496d828bd7b280a",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/libffi-8.dll"
-    },
-    {
-      "path": "libssl-3.dll",
-      "sha256": "28c395290279fa4f4f54a57b85cd66d853895f925fefb8f6fdebc0d8b1cdd07c",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/libssl-3.dll"
-    },
-    {
-      "path": "markupsafe/_speedups.pyd",
-      "sha256": "a4404b6f8e4bab2e782b373507a30ab7b7130c8887f62bf0e4e4a9b65d0add30",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/markupsafe/_speedups.pyd"
-    },
-    {
-      "path": "pyexpat.pyd",
-      "sha256": "b9c9c5a9f52af559a7eb4e8ddfd60558185bfc7794f32840bed1747d1ec9026a",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/pyexpat.pyd"
-    },
-    {
-      "path": "python3.dll",
-      "sha256": "76e7fd69a01081726308317d6e502721c2ba6792b48880dc1ef649c755788db7",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/python3.dll"
-    },
-    {
-      "path": "python313.dll",
-      "sha256": "e820bf024efd2b56bb2b82791e6b6ddc7303f070f8e72cba7637482a8a906238",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/python313.dll"
-    },
-    {
-      "path": "select.pyd",
-      "sha256": "024f955349fe46cf1bb2c22c6b57fcf38cf5755d46166fbf63e7e5b92433b111",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/select.pyd"
-    },
-    {
-      "path": "sqlite3.dll",
-      "sha256": "66afefcabb3c5ffcc32b5886ced4f773ea400e0d1218cfb1e1f26912a19d29aa",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/sqlite3.dll"
-    },
-    {
-      "path": "unicodedata.pyd",
-      "sha256": "111e0fdfeef9887c04f6ebf1972ce1ccbec55b226012e4a288c2d4a0b17b216b",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/unicodedata.pyd"
-    },
-    {
-      "path": "vcruntime140.dll",
-      "sha256": "d1f4225df2cd877dbf130d5668a021dce3f94118455ff5ec952061c30afc9ce7",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/vcruntime140.dll"
-    },
-    {
-      "path": "vcruntime140_1.dll",
-      "sha256": "a7146c08f89fe5b04541ab507cdb59ff7b44534d4ba3c668a426c6450a03434e",
-      "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/vcruntime140_1.dll"
     }
   ],
-  "signature": "MOF21Wv/c34aP0goF3xe32QXTNtGUZnEDkpE4rz3jZEBW/CAQ8dngZz4Y6e7c8fQctDLm5G+5gOX4Dz7JojdCA=="
+  "signature": "eqfm1QEJgwY+4fCuSym7xib8jOXnX9FkWEhguYxkgCcRu2dnLcS2iCFwRubad/mmpl3+zOe7Hy7uxQ0n4JseCg=="
 }

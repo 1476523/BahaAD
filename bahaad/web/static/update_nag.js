@@ -66,10 +66,18 @@
 
   // 小幫手要先等主程式行程完全結束（Wait-Process 最多 120 秒）才會開始覆蓋安裝
   // 目錄，正常情況下整個流程就可能耗掉 90 秒以上——SOFT_TIMEOUT_MS 只是「顯示手動
-  // 按鈕安撫使用者」的時間點，不是真的放棄；輪詢繼續跑到 HARD_TIMEOUT_MS 才整個
-  // 停止（使用者 2026-09-15：v0.0.6 更新到 v0.0.7 時卡在「更新可能仍在進行」沒有
-  // 自動刷新——舊版在 90 秒就整個停止輪詢，剛好撞上小幫手還在等主程式結束的正常
-  // 耗時，導致原本會成功的自動重新整理被提前放棄）。
+  // 按鈕安撫使用者」的時間點，不是真的放棄（使用者 2026-09-15：v0.0.6 更新到 v0.0.7
+  // 時卡在「更新可能仍在進行」沒有自動刷新——舊版在 90 秒就整個停止輪詢，剛好撞上
+  // 小幫手還在等主程式結束的正常耗時，導致原本會成功的自動重新整理被提前放棄）。
+  //
+  // 使用者 2026-09-24 續：HARD_TIMEOUT_MS 那時只是把「整個停止輪詢」的門檻從 90 秒
+  // 推到 300 秒，同一種 bug 只是換個時間點還是會重犯——這台機器（防毒掃新 exe／
+  // 硬碟速度）實測真實耗時常態性超過 5 分鐘，一樣卡在「更新可能仍在進行」要手動
+  // 按重新整理。既然背景更新本身沒有這種時間上限（小幫手／新行程會一直跑到真的
+  // 完成或真的失敗），前端也不該替它設一個「過了就放棄偵測」的假上限——改成
+  // HARD_TIMEOUT_MS 只是「多顯示一次『可能還在跑』的說明文字＋手動按鈕」的時間點，
+  // 輪詢本身永不主動停止，讓自動偵測完全靠伺服器真的回來這件事觸發，不會因為前端
+  // 自己放棄而需要使用者手動介入。
   var SOFT_TIMEOUT_MS = 90000;
   var HARD_TIMEOUT_MS = 300000;
 
@@ -77,6 +85,7 @@
     var startedAt = Date.now();
     var sawDown = false;
     var shownSoftTimeout = false;
+    var shownHardTimeout = false;
     var timer = setInterval(function () {
       fetch("/update/version", { headers: { Accept: "application/json" }, cache: "no-store" })
         .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
@@ -95,9 +104,9 @@
             shownSoftTimeout = true;
             softTimeoutHint(overlay);
           }
-          if (elapsed > HARD_TIMEOUT_MS) {
-            clearInterval(timer);
-            timeoutRestart(overlay);
+          if (!shownHardTimeout && elapsed > HARD_TIMEOUT_MS) {
+            shownHardTimeout = true;
+            timeoutRestart(overlay); // 只換文字＋補按鈕，輪詢繼續跑，不 clearInterval
           }
         });
     }, RESTART_POLL_MS);

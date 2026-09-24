@@ -155,8 +155,9 @@ select:focus {
   --overlay-right: 0px;
   /* 使用者 2026-09-24：`#app-footer-bar`（版本號／隱私權政策）改成 `position:fixed`
      釘在視窗底部後，捲動到底的卡片會貼著它甚至被蓋住——捲動容器要預留這個高度當
-     底部留白，不能只讓固定橫條純粹浮在最上層完全不佔版位。 */
-  --app-footer-clearance: 3.5rem;
+     底部留白，不能只讓固定橫條純粹浮在最上層完全不佔版位。這個值要跟著
+     `#app-footer-bar` 目前的 `height`（2.25rem）走，抓略高於它一點點即可。 */
+  --app-footer-clearance: 2.5rem;
 }
 
 #shell.sidebar-collapsed {
@@ -310,12 +311,18 @@ img.theme-icon {
   left: var(--overlay-left, 0px);
   right: var(--overlay-right, 0px);
   bottom: 0;
+  /* 使用者 2026-09-24：兩顆膠囊原本用 `align-items:flex-end` + 底部 padding 貼著
+     視窗底邊擺，靠 padding 撐出來的留白讓版本號那塊幾乎貼死最底線（只剩 2px）。
+     改成固定高度的橫條＋`align-items:center`，兩顆膠囊在這條橫條裡上下置中，
+     視窗底邊到橫條頂／底的留白均等，不會有一邊幾乎貼死的觀感。確認置中效果沒問題
+     後使用者又覺得 3rem 太高，縮到剛好比膠囊本身（約 1.6rem）多一點點的 2.25rem。 */
+  height: 2.25rem;
   z-index: 15;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   gap: 0.5rem;
-  padding: 0 0.75rem 0.5rem;
+  padding: 0 1rem;
   pointer-events: none;
   transition: left 0.15s ease, right 0.15s ease;
 }
@@ -713,6 +720,15 @@ img.theme-icon {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  /* 使用者 2026-09-24（F12 抓到）：這類頁面的底部留白其實是「兩份」疊在一起——
+     `#page-content` 基本規則的 `padding: 1rem 1.5rem 2rem`（不分頁面類型都套用）
+     底部 2rem，加上裡面各個 `-scroll`／`.expiring-column-scroll` 容器自己為了閃過
+     `#app-footer-bar` 補的 `margin-bottom: var(--app-footer-clearance)`——兩份都在
+     算「離視窗底邊多遠」，疊起來比實際需要的空間多快一倍。這類頁面本來就是
+     `overflow:hidden` 的固定高度直欄，內容捲動完全交給裡面那層 `-scroll` 容器，
+     `#page-content` 自己的底部留白在這裡沒有意義，歸零讓「離橫條多遠」只由
+     `--app-footer-clearance` 這唯一一個地方決定。 */
+  padding-bottom: 0;
 }
 
 #shell.home-circular #home-page,
@@ -747,7 +763,14 @@ img.theme-icon {
   overflow-y: auto;
   /* 環狀捲動時捲軸滑塊會一直跳，藏起來——仍可滾輪／觸控捲動（比照 #schedule-panel-scroll）。 */
   scrollbar-width: none;
-  padding-bottom: var(--app-footer-clearance);
+  /* 使用者 2026-09-24 回報：即使補了 padding-bottom，固定橫條還是貼著卡片——這類
+     `flex:1;overflow-y:auto` 容器本身的高度就是撐滿到視窗底邊（`#shell.pinned-scroll`
+     整條 100vh 鎖死），padding-bottom 只在「捲到最後一列」那個瞬間才看得到留白，
+     其餘任何捲動位置（含完全沒捲動、卡片剛好滿版）容器底邊都貼著視窗底邊，跟
+     `position:fixed` 的橫條在同一個螢幕位置，一樣會蓋住。改成 margin-bottom——
+     這會真的把容器自己的版位往上讓出這塊高度，不管捲到哪裡容器底邊都停在橫條
+     上方，才是真正、隨時有效的留白。 */
+  margin-bottom: var(--app-footer-clearance);
 }
 
 #newanime-scroll::-webkit-scrollbar {
@@ -806,7 +829,9 @@ img.theme-icon {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding-bottom: var(--app-footer-clearance);
+  /* margin-bottom 不是 padding-bottom——見 #newanime-scroll 的完整說明，容器自己
+     的版位要真的縮短，固定橫條才不會在任何捲動位置都蓋住最下面一排。 */
+  margin-bottom: var(--app-footer-clearance);
 }
 
 /* 日誌／發送歷史／官方公告／資料庫整頓：資料多、要換頁，希望頭尾固定、只有清單捲動
@@ -963,7 +988,8 @@ img.theme-icon {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding-bottom: var(--app-footer-clearance);
+  /* margin-bottom 不是 padding-bottom——見 #newanime-scroll 的完整說明。 */
+  margin-bottom: var(--app-footer-clearance);
 }
 
 @media (max-width: 40rem) {
@@ -4254,6 +4280,7 @@ html[data-layout-active="mobile"] {
   #shell.pinned-scroll #page-content {
     padding-left: 0.9rem;
     padding-right: 0.9rem;
+    padding-bottom: 0;
   }
   /* 標題與右側計數／說明改上下排（窄畫面擠在一行會把標題折到斷字） */
   .page-head {
