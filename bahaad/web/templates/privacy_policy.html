@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}隱私權說明 - BahaAD{% endblock %}
+{% block content %}
+{# docs/PRIVACY_POLICY.md 每次請求即時讀取、轉 HTML（見 settings.privacy_policy）。 #}
+<div class="auth-card extra-wide-card markdown-doc">
+  {{ policy_html | safe }}
+</div>
+{% endblock %}

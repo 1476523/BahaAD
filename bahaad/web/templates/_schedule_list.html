@@ -1,0 +1,61 @@
+{# 排程清單的列表本體——schedule.html（整頁）與 schedule_embed.html（訂閱列表頁的
+   右側面板 iframe，round 7 第 4 項）共用。捲動 + 編輯展開的 JS 在各自的模板裡。 #}
+{% if entries %}
+<ul class="schedule-list">
+  {% for entry in entries %}
+  {# 版面（使用者 2026-09-03）：第 1~2 行番劇名（有更名就直接顯示更名，不另外標
+     「資料夾：」也不顯示 sn），第 3 行「月份歸類 · 更新時間」＋最右側「編輯」鈕，
+     若有公告臨時時間異動再多一行黃字。 #}
+  <li class="schedule-item" data-sn="{{ entry.sn }}">
+    <div class="schedule-item-head">
+      <div class="schedule-item-name">{{ entry.rename or titles.get(entry.sn) or ('sn ' ~ entry.sn) }}</div>
+      <div class="schedule-item-meta">
+        <span class="schedule-item-meta-text">
+          {%- set season = entry.tag or ((auto_seasons | default({}, true)).get(entry.sn) ~ '（自動）' if (auto_seasons | default({}, true)).get(entry.sn) else '') -%}
+          {%- if season %}{{ season }} · {% endif -%}
+          {%- if entry.schedule_weekday -%}
+            星期{{ weekday_names[entry.schedule_weekday] }} {{ "%02d"|format(entry.schedule_hour) }}:{{ "%02d"|format(entry.schedule_minute) }}
+          {%- else -%}跟隨全域週期{%- endif -%}
+        </span>
+        <button type="button" class="schedule-edit-toggle">編輯</button>
+      </div>
+      {% if (gossip_notes | default({}, true)).get(entry.sn) %}
+      <p class="schedule-item-gossip">臨時異動：{{ gossip_notes[entry.sn] }}</p>
+      {% endif %}
+    </div>
+
+    <form method="post" action="{{ url_for('schedule.save_entry') }}" class="schedule-item-edit" hidden novalidate>
+      <input type="hidden" name="sn" value="{{ entry.sn }}">
+      {% if embed %}<input type="hidden" name="embed" value="1">{% endif %}
+      <label>分類／季別資料夾（留空＝自動依首播季度歸類；可用 <code>/</code> 分多層）
+        <input type="text" name="tag" value="{{ entry.tag or '' }}"
+               placeholder="{{ (auto_seasons | default({}, true)).get(entry.sn) or '留空＝自動依首播季度歸類' }}">
+      </label>
+      <label>番劇顯示／下載資料夾名稱（留空＝番劇原始標題）
+        <input type="text" name="rename" value="{{ entry.rename or '' }}">
+      </label>
+      <fieldset class="schedule-time-fields">
+        <legend>自訂檢查時段（留空＝跟隨全域週期）</legend>
+        <select name="schedule_weekday">
+          <option value="">星期</option>
+          {% for value, label in weekday_labels %}
+          <option value="{{ value }}" {{ 'selected' if entry.schedule_weekday == value else '' }}>星期{{ label }}</option>
+          {% endfor %}
+        </select>
+        <input type="number" name="schedule_hour" min="0" max="23" placeholder="時"
+               value="{{ entry.schedule_hour if entry.schedule_hour is not none else '' }}">
+        <span>:</span>
+        <input type="number" name="schedule_minute" min="0" max="59" placeholder="分"
+               value="{{ entry.schedule_minute if entry.schedule_minute is not none else '' }}">
+      </fieldset>
+      <div class="schedule-edit-actions">
+        <button type="submit" class="btn-accent">儲存</button>
+        <button type="button" class="schedule-edit-cancel">取消</button>
+      </div>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="help-text">目前沒有追蹤任何項目——在搜尋番劇或首頁的卡片點鈴鐺加入。</p>
+{% endif %}
