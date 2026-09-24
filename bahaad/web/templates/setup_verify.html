@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}驗證身分 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card">
+  <h1>驗證身分</h1>
+  <p>
+    建立帳號密碼前要先證明操作的人真的<strong>坐在這台電腦前面</strong>——避免公開模式或
+    透過外部網址連進來的陌生人搶先設定，奪走這台 BahaAD 的擁有權。
+  </p>
+  <p class="help-text">
+    按下「發送驗證碼」，BahaAD 會在<strong>這台電腦</strong>的系統匣跳出一則 6 位數驗證碼
+    通知（不會出現在網頁上），輸入後按「驗證並繼續」。
+  </p>
+  {% if lockout_message %}
+  <p class="warning">{{ lockout_message }}</p>
+  {% endif %}
+  {# 驗證碼錯誤／過期的提示走 flash → base.html 既有的 showAlert() 彈窗，這裡不重複顯示 #}
+  <form method="post" action="{{ url_for('auth.setup_verify') }}">
+    <div class="verify-code-row">
+      <input type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" name="verify_code"
+             placeholder="6 位數驗證碼" autocomplete="off" required>
+      <button type="button" class="btn-neutral" data-send-code-purpose="setup">發送驗證碼</button>
+    </div>
+    <button type="submit" class="btn-accent">驗證並繼續</button>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='verify_code.js') }}"></script>
+{% endblock %}
