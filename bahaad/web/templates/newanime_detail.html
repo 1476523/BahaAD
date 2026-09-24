@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% import "_bell.html" as bell with context %}
+{% block title %}{{ item.display_name }} - 新番快訊 - BahaAD{% endblock %}
+
+{% block content_top_end %}
+{% if youranimes and youranimes.has_right_column %}
+<button type="button" id="ya-panel-toggle" class="icon-btn icon-btn--accent" title="展開／收合製作資訊">
+  <img class="theme-icon" data-icon="panel-expand" id="ya-panel-toggle-icon"
+       src="{{ url_for('static', filename='icons/panel-expand-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="">
+</button>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="anime-detail-page">
+  <p><a class="btn-plain" href="{{ url_for('newanime.index') }}">← 回新番快訊</a></p>
+
+  <div class="anime-detail-title-row">
+    <h1 class="anime-detail-title">{{ item.display_name }}</h1>
+    {% if item.is_vip %}<span class="newanime-badge newanime-badge--vip">會員</span>{% endif %}
+    {% if item.region_locked %}<span class="newanime-badge newanime-badge--region">僅台灣播出</span>{% endif %}
+    {% if not item.is_post_air and not public_readonly %}
+    <form method="post" action="{{ url_for('newanime.untrack' if item.tracked else 'newanime.track', virtual_sn=item.virtual_sn) }}">
+      <input type="hidden" name="back" value="detail">
+      <button type="submit" class="bell-btn icon-btn{{ ' subscribed' if item.tracked else '' }}"
+              title="{{ '取消追蹤' if item.tracked else '追蹤（正式上架後自動轉訂閱）' }}">
+        <img class="theme-icon" data-icon="track"
+             src="{{ url_for('static', filename='icons/track-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}"
+             alt="{{ '取消追蹤' if item.tracked else '追蹤' }}">
+      </button>
+    </form>
+    {# 更名＝跟一般番劇詳細頁一樣的「更名圖示」toggle（rename.js），改的是這部的顯示名，
+       追蹤的番正式上架轉訂閱後會沿用當下載資料夾名。 #}
+    {{ bell.rename_button(item.virtual_sn, item.display_name,
+         rename_url=url_for('newanime.rename', virtual_sn=item.virtual_sn)) }}
+    {% endif %}
+  </div>
+
+  {% if item.post_air_note %}
+  <p class="help-text">{{ item.post_air_note }}</p>
+  {% endif %}
+
+  <div class="anime-detail-top">
+    <div class="anime-detail-left">
+      {% if item.cover_url %}
+      <img class="anime-detail-cover" src="{{ item.cover_url }}" alt="">
+      {% else %}
+      <div class="anime-detail-cover newanime-cover-fallback">{{ item.display_name }}</div>
+      {% endif %}
+      <div class="anime-detail-rating">
+        <div class="help-text">追蹤人數</div>
+        <div class="rating-count">{{ item.subscribe_count }}</div>
+      </div>
+      {# 即時匿名使用統計：所有 BahaAD 使用者的收藏人數（新番還沒播出，不顯示觀看次數）。
+         key＝虛構 sn，正式上架轉訂閱時 newanime/convert.py 會把收藏搬到真首集 sn。 #}
+      <div class="anime-detail-stats" data-stats-anime data-first-sn="{{ item.virtual_sn }}">
+        <div class="anime-detail-stat">
+          <span class="anime-detail-stat-label">收藏人數</span>
+          <span class="anime-detail-stat-num" data-stats-metric="favorite">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="anime-detail-info">
+      <div class="anime-detail-meta-row">
+        <div><span class="help-text">首播日期</span><br>{{ item.air_date }}</div>
+        <div><span class="help-text">更新時間</span><br>{{ item.update_label }}</div>
+        <div><span class="help-text">導演監督</span><br>{{ item.director }}</div>
+        <div><span class="help-text">製作廠商</span><br>{{ item.studio }}</div>
+      </div>
+      <div class="anime-detail-genres">
+        {% if item.tags %}
+        {% for tag in item.tags %}<span class="genre-tag">{{ tag }}</span>{% endfor %}
+        {% else %}
+        <span class="genre-tag">{{ '待確認' }}</span>
+        {% endif %}
+      </div>
+      {% if youranimes and youranimes.synopsis %}
+      <p class="anime-detail-description">{{ youranimes.synopsis }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if youranimes and youranimes.has_right_column %}
+  <aside id="ya-panel" class="collapsed">
+    <h2 class="ya-panel-heading">製作資訊</h2>
+    <div id="ya-panel-scroll">
+      {% include "_youranimes_panel.html" %}
+    </div>
+  </aside>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='ya_panel.js') }}"></script>
+{% endblock %}
