@@ -592,10 +592,15 @@
   </div>
 
 </div>
+{# 更改下載目錄時自動遷移既有檔案（docs/requirements/download_dir_migration.md）：
+   頁面載入（含重新整理）當下有沒有一輪遷移正在跑，讓 download_dir_migration.js
+   決定要不要立刻顯示進度畫面，不用等第一次輪詢才知道。 #}
+<script type="application/json" id="migration-status-data">{{ (migration_status or {}) | tojson }}</script>
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='settings.js') }}"></script>
 <script src="{{ url_for('static', filename='quality_picker.js') }}"></script>
+<script src="{{ url_for('static', filename='download_dir_migration.js') }}"></script>
 <script>
 // 後端本來就不會拒絕超過上限的值（DownloadPool/SegmentDownloader 建構時才會夾住），
 // 這裡的前端檢查是為了避免使用者以為自己設定了比實際上限更大的並發數而困惑。
