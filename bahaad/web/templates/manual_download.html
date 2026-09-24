@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}手動下載 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card wide-card">
+  <h1>手動下載／單集補抓</h1>
+
+  <label>番劇 sn <input type="text" id="field-sn"></label>
+  <p><button type="button" id="query-btn">查詢集數</button></p>
+
+  <div id="episode-list"></div>
+
+  <label>重新命名（留空使用番劇原始標題） <input type="text" id="field-rename"></label>
+  <p><button type="button" id="submit-btn" class="btn-accent" disabled>下載勾選的集數</button></p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+var episodeListEl = document.getElementById("episode-list");
+var submitBtn = document.getElementById("submit-btn");
+
+document.getElementById("query-btn").addEventListener("click", function () {
+  var sn = document.getElementById("field-sn").value;
+  episodeListEl.textContent = "查詢中...";
+  submitBtn.disabled = true;
+  var formData = new FormData();
+  formData.append("sn", sn);
+  fetch("{{ url_for('manual_download.episodes') }}", { method: "POST", body: formData })
+    .then(function (response) { return response.json(); })
+    .then(function (data) {
+      episodeListEl.textContent = "";
+      if (!data.ok) {
+        showAlert("查詢失敗：" + data.error);
+        return;
+      }
+      if (!data.episodes.length) {
+        episodeListEl.textContent = "這部作品目前查不到任何集數。";
+        return;
+      }
+      var list = document.createElement("ul");
+      data.episodes.forEach(function (ep) {
+        var li = document.createElement("li");
+        var label = document.createElement("label");
+        var checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = ep.video_sn;
+        checkbox.className = "episode-checkbox";
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(
+          " 第" + ep.episode + "集（" + ep.anime_title + "，video_sn=" + ep.video_sn + "）"
+        ));
+        li.appendChild(label);
+        list.appendChild(li);
+      });
+      episodeListEl.appendChild(list);
+      submitBtn.disabled = false;
+    })
+    .catch(function () {
+      episodeListEl.textContent = "";
+      showAlert("查詢失敗，請稍後再試。");
+    });
+});
+
+submitBtn.addEventListener("click", function () {
+  var checked = Array.prototype.slice.call(document.querySelectorAll(".episode-checkbox:checked"));
+  if (!checked.length) {
+    showAlert("請至少勾選一集。");
+    return;
+  }
+  var formData = new FormData();
+  checked.forEach(function (checkbox) { formData.append("video_sn", checkbox.value); });
+  var rename = document.getElementById("field-rename").value;
+  if (rename) {
+    formData.append("rename", rename);
+  }
+  fetch("{{ url_for('manual_download.submit') }}", { method: "POST", body: formData })
+    .then(function (response) { return response.json(); })
+    .then(function (data) {
+      var labels = {
+        submitted: "已加入下載佇列",
+        already_downloaded: "已下載過，略過",
+        already_active: "已經在下載中，略過",
+        invalid: "格式不正確",
+        error: "查詢失敗"
+      };
+      data.results.forEach(function (item, index) {
+        window.setTimeout(function () {
+          var text = "sn " + item.video_sn + "：" + (labels[item.status] || item.status);
+          if (item.error) {
+            text += "（" + item.error + "）";
+          }
+          showToast(text);
+        }, index * 400);
+      });
+    })
+    .catch(function () {
+      showAlert("送出失敗，請稍後再試。");
+    });
+});
+</script>
+{% endblock %}

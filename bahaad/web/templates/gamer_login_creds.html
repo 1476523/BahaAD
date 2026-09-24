@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}動畫瘋帳號密碼 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card">
+  <h1>動畫瘋帳號密碼</h1>
+  <p class="help-text">
+    帳號、密碼、以及登入後取得的 Cookie 都會用 Windows DPAPI 加密後才儲存在本機
+    <code>bahaad.db</code>，只有這台電腦、這個 Windows 使用者帳戶能解開。密碼只用來在登入
+    視窗裡自動代填，BahaAD 不會把它送到任何地方。
+  </p>
+
+  <form method="post" action="{{ url_for('gamer_login.creds') }}">
+    <input type="hidden" name="next" value="{{ next_key }}">
+    <label>動畫瘋帳號
+      <input type="text" name="account" required autocomplete="username">
+    </label>
+    <label>密碼
+      <input type="password" name="password" required autocomplete="current-password">
+    </label>
+    <label>兩步驟驗證密鑰（選填）
+      <input type="text" name="totp_secret" autocomplete="off"
+             placeholder="有開兩步驟驗證才需要填，貼上時夾帶的空白會自動去除">
+    </label>
+    <p class="help-text">
+      這是設定兩步驟驗證時給的那串 Base32 密鑰（不是每 30 秒變一次的 6 位數字）。填了之後
+      登入視窗會自動幫你算出當下的驗證碼代填。
+    </p>
+    <button type="submit" class="btn-accent">儲存並登入</button>
+  </form>
+</div>
+{% endblock %}
