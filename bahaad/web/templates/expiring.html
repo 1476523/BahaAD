@@ -5,7 +5,12 @@
 {# 使用者 2026-09-23：首頁「N月份／N月上旬授權到期節目」區塊搬過來獨立成頁，依月份
    分組——每組一欄，左右並排、中間一條分隔線，各自的標題置中顯示在自己那欄的上方。
    資料由 `browse.expiring()` 純讀快取準備好（不在這裡打網路），所以不用像近期熱播／
-   最新上架那樣先出殼再非同步拿內容。 #}
+   最新上架那樣先出殼再非同步拿內容。
+
+   使用者 2026-09-24 續：(1) 標題文字不再重複「即將下架」（頁面 h1 已經講了），只留
+   「N月份（共 N 部）」；(2) 每欄各自獨立捲動、標題置頂固定在自己那欄最上面——不再是
+   全頁共用一條捲軸把兩欄一起往下捲，`#expiring-scroll` 這層 wrapper 因此拿掉，改成
+   `.expiring-column-scroll` 包住每欄自己的卡片格（見 style.css 的完整說明）。#}
 {% block shell_class %}pinned-scroll{% endblock %}
 
 {% block content %}
@@ -13,25 +18,21 @@
   <div class="page-head">
     <h1>即將下架</h1>
   </div>
-  {# 使用者 2026-09-24 回報：頁面內容超過視窗高度時沒辦法向下捲動——`#expiring-page`
-     少掛進 `#shell.pinned-scroll` 那組「標題固定＋內容區塊捲動」的白名單（比照
-     `#leaderboard-page`／`#leaderboard-scroll` 的寫法，見 style.css），這裡補上
-     `#expiring-scroll` 這層。 #}
-  <div id="expiring-scroll">
-    {% if columns %}
-    <div class="expiring-columns">
-      {% for column in columns %}
-      <div class="expiring-column">
-        <h2 class="expiring-column-title">即將下架 {{ column.label }}（共 {{ column.cards | length }} 部）</h2>
+  {% if columns %}
+  <div class="expiring-columns">
+    {% for column in columns %}
+    <div class="expiring-column">
+      <h2 class="expiring-column-title">{{ column.label }}（共 {{ column.cards | length }} 部）</h2>
+      <div class="expiring-column-scroll">
         <div class="anime-grid expiring-grid">
           {% for item in column.cards %}{{ cards.theme_card(item, show_bell=False) }}{% endfor %}
         </div>
       </div>
-      {% endfor %}
     </div>
-    {% else %}
-    <p class="help-text">目前沒有即將下架的作品資訊。</p>
-    {% endif %}
+    {% endfor %}
   </div>
+  {% else %}
+  <p class="help-text">目前沒有即將下架的作品資訊。</p>
+  {% endif %}
 </div>
 {% endblock %}

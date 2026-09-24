@@ -154,21 +154,6 @@
       <span class="nav-label">設定</span>
     </a>
     {% endif %}
-    {# 版本號 + BETA 標記（設定下方）。主版本為 0 就顯示 BETA（is_beta()，見
-       bahaad/_version.py），1.0.0 起自己消失。BETA 用 CSS 徽章（染色、放大都好控制，
-       比圖檔清楚，使用者 2026-08-28）。 #}
-    <p class="sidebar-version">
-      <span class="nav-label">v{{ app_version }}</span>
-      {% if app_is_beta %}<span class="beta-badge">BETA</span>{% endif %}
-      {# 「隱私權政策」按鈕：從設定頁移到這裡（使用者 2026-09-08）——版本號／BETA 徽章
-         的右側，公開模式與非公開模式都有。側欄收合時整個 .sidebar-version 只剩置中的
-         圖示化版本號，這顆按鈕跟著 .nav-label 一起被 CSS 藏起來。 #}
-      <button type="button" class="sidebar-privacy-btn nav-label" id="privacy-policy-open"
-              data-privacy-url="{{ url_for('settings.privacy_policy') }}">隱私權政策</button>
-    </p>
-    {# 打包版的 build 識別碼另起一小行（接在版本號後面會把上一行擠到換行，使用者
-       2026-09-09）。開發模式沒有這個值。側欄收合時跟 .nav-label 一起藏起來。 #}
-    {% if app_build_tag %}<p class="sidebar-build nav-label">{{ app_build_tag }}</p>{% endif %}
   </aside>
   <div id="content-pane">
     <div class="content-top">
@@ -359,6 +344,21 @@
   {# modal/toast 掛在 #shell 內：CSS 從 #shell 的 --overlay-left/right 自訂屬性算出「內容區」
      的範圍（側欄收合、右側面板開啟都會改這兩個值），提示才會置中在內容區而不是整個視窗 #}
   <div id="modal-root"></div>
+  {# 版本號／隱私權政策——使用者 2026-09-24：原本擠在側欄「設定」下方一小行，側欄收合
+     時整個跟著消失；改成釘在視窗左下角／右下角的固定橫條，不隨頁面內容捲動，版本號用
+     #shell 既有的 --overlay-left 自動避開側欄（收合／展開都跟著移，不會再被藏起來），
+     隱私權政策用 --overlay-right 自動避開右側浮動面板（`#schedule-panel`／`#ya-panel`／
+     `#subs-schedule-panel` 開啟時都會讓開，見 style.css `#shell.schedule-open` 等規則）。 #}
+  <div id="app-footer-bar">
+    <p class="app-footer-version">
+      <a href="https://github.com/1476523/BahaAD" target="_blank" rel="noopener">BahaAD</a>
+      v{{ app_version }}
+      {% if app_is_beta %}<span class="beta-badge">BETA</span>{% endif %}
+      {% if app_build_tag %}<span class="app-footer-build">{{ app_build_tag }}</span>{% endif %}
+    </p>
+    <button type="button" class="app-footer-privacy" id="privacy-policy-open"
+            data-privacy-url="{{ url_for('settings.privacy_policy') }}">隱私權政策</button>
+  </div>
 </div>
 {% else %}
 <div id="modal-root"></div>

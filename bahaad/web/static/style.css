@@ -153,6 +153,10 @@ select:focus {
      側欄收合／右側面板開啟時下面兩條 override 會改這兩個值。 */
   --overlay-left: 15rem;
   --overlay-right: 0px;
+  /* 使用者 2026-09-24：`#app-footer-bar`（版本號／隱私權政策）改成 `position:fixed`
+     釘在視窗底部後，捲動到底的卡片會貼著它甚至被蓋住——捲動容器要預留這個高度當
+     底部留白，不能只讓固定橫條純粹浮在最上層完全不佔版位。 */
+  --app-footer-clearance: 3.5rem;
 }
 
 #shell.sidebar-collapsed {
@@ -162,6 +166,12 @@ select:focus {
 #shell.schedule-open,
 #shell.ya-panel-open {
   --overlay-right: 23rem; /* 右側面板 width(20rem) + right(1.5rem) + 間距 */
+}
+
+/* 訂閱列表頁的排程清單面板（#subs-schedule-panel）比上面兩個寬（min(34rem, 46vw)），
+   跟自己切換鈕的偏移量算法一致（使用者 2026-09-24 要求 #app-footer-bar 也要避開）。 */
+#shell.subs-schedule-open {
+  --overlay-right: calc(1.5rem + min(34rem, 46vw) + 0.4rem);
 }
 
 #sidebar {
@@ -276,16 +286,6 @@ img.theme-icon {
   margin-top: auto;
 }
 
-/* 版本號 + BETA 標記，「設定」下方（使用者 2026-08-28）。 */
-.sidebar-version {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0.5rem 0.9rem 0.35rem;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
 /* BETA 徽章：橘色染色、白字（放大縮小、換色都好調）。 */
 .beta-badge {
   display: inline-block;
@@ -299,41 +299,65 @@ img.theme-icon {
   line-height: 1;
 }
 
-/* 打包版 build 識別碼——版本號行下方一小行，淡色 */
-.sidebar-build {
-  margin: -0.15rem 0.9rem 0.35rem;
-  font-size: 0.68rem;
-  line-height: 1;
+/* 版本號／隱私權政策——使用者 2026-09-24：從側欄「設定」下方（收合時整個消失）搬成
+   釘在視窗左下角／右下角的固定橫條，`position:fixed` 不隨頁面內容捲動。`left`／`right`
+   直接讀 `#shell` 既有的 `--overlay-left`／`--overlay-right`（見「側欄殼層」那節），側欄
+   收合展開、右側浮動面板開關都會自動跟著讓開，不用另外寫一套追蹤邏輯；手機版兩個變數
+   都強制回 0（同一節），這條橫條自然變成滿版寬度。左右兩塊各自套淡色底，蓋在卡片縮圖
+   上也看得清楚，不需要整條橫幅都畫底色擋住下面內容。 */
+#app-footer-bar {
+  position: fixed;
+  left: var(--overlay-left, 0px);
+  right: var(--overlay-right, 0px);
+  bottom: 0;
+  z-index: 15;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 0.5rem;
+  padding: 0 0.75rem 0.5rem;
+  pointer-events: none;
+  transition: left 0.15s ease, right 0.15s ease;
+}
+
+.app-footer-version,
+.app-footer-privacy {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.4rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  font-size: 0.78rem;
   color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.app-footer-version a {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.app-footer-version a:hover {
+  text-decoration: underline;
+}
+
+.app-footer-build {
   opacity: 0.75;
 }
 
-#shell.sidebar-collapsed .sidebar-version {
-  justify-content: center;
-  margin-left: 0;
-  margin-right: 0;
-}
-
-#shell.sidebar-collapsed .sidebar-version .nav-label,
-#shell.sidebar-collapsed .sidebar-build {
-  display: none;
-}
-
-/* 「隱私權政策」按鈕：版本號／BETA 徽章右側（使用者 2026-09-08，從設定頁移來）。
-   低調的底線文字鈕；靠 .nav-label 一起在側欄收合時消失。 */
-.sidebar-privacy-btn {
-  margin-left: auto;
-  padding: 0;
-  border: 0;
-  background: none;
+.app-footer-privacy {
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
   color: var(--text-muted);
-  font-size: 0.76rem;
   text-decoration: underline;
   text-underline-offset: 2px;
-  white-space: nowrap;
   cursor: pointer;
 }
-.sidebar-privacy-btn:hover {
+.app-footer-privacy:hover {
   color: var(--text);
 }
 
@@ -579,6 +603,13 @@ img.theme-icon {
   flex: 1;
 }
 
+/* 一般文件流頁面（沒掛 .pinned-scroll／.home-circular，整頁本身捲動，比照設定頁／
+   番劇詳細頁／官方公告等）：底部留白也要蓋過 #app-footer-bar 的高度，捲到最底不會被
+   固定橫條擋住最後一段內容（使用者 2026-09-24）。 */
+#shell:not(.pinned-scroll):not(.home-circular) #page-content {
+  padding-bottom: var(--app-footer-clearance);
+}
+
 /* ---- 搜尋番劇：頂部搜尋框 ---- */
 
 .search-bar {
@@ -716,6 +747,7 @@ img.theme-icon {
   overflow-y: auto;
   /* 環狀捲動時捲軸滑塊會一直跳，藏起來——仍可滾輪／觸控捲動（比照 #schedule-panel-scroll）。 */
   scrollbar-width: none;
+  padding-bottom: var(--app-footer-clearance);
 }
 
 #newanime-scroll::-webkit-scrollbar {
@@ -769,12 +801,12 @@ img.theme-icon {
 #search-scroll,
 #subs-scroll,
 #leaderboard-scroll,
-#expiring-scroll,
 #downloads-scroll,
 #newanime-list-scroll {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  padding-bottom: var(--app-footer-clearance);
 }
 
 /* 日誌／發送歷史／官方公告／資料庫整頓：資料多、要換頁，希望頭尾固定、只有清單捲動
@@ -885,15 +917,25 @@ img.theme-icon {
 
 /* 即將下架（使用者 2026-09-23）：依月份分組，每組一欄、左右並排，中間一條分隔線，
    標題置中顯示在自己那欄上方。`grid-auto-flow: column` + `grid-auto-columns` 不用
-   事先知道欄數（通常 2 欄，但月份交界時可能只有 1 欄或出現第 3 欄）就能平分寬度。 */
+   事先知道欄數（通常 2 欄，但月份交界時可能只有 1 欄或出現第 3 欄）就能平分寬度。
+   使用者 2026-09-24 續：改成每欄各自獨立捲動（不是全頁共用一條捲軸一起捲），標題
+   置頂固定在自己那欄的最上面——`.expiring-columns` 本身不捲（撐滿 `#expiring-page`
+   剩下的高度），欄位內部再拆成「不捲的標題」＋「會捲的 `.expiring-column-scroll`」，
+   跟 `#shell.pinned-scroll` 整頁那套「標題固定＋內容捲動」同一個手法，只是換成套用在
+   每一欄自己身上，所以 `#expiring-scroll` 這層 wrapper 不再需要。 */
 .expiring-columns {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
 }
 
 .expiring-column {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  min-height: 0;
   padding: 0 1.5rem;
   border-right: 1px solid var(--border);
 }
@@ -908,12 +950,20 @@ img.theme-icon {
 }
 
 .expiring-column-title {
+  flex: 0 0 auto;
   text-align: center;
   font-size: 1rem;
   font-weight: 600;
   margin: 0 0 1rem;
   padding-bottom: 0.6rem;
   border-bottom: 1px solid var(--border);
+}
+
+.expiring-column-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: var(--app-footer-clearance);
 }
 
 @media (max-width: 40rem) {
@@ -4178,10 +4228,7 @@ html[data-layout-active="mobile"] {
     padding: 1rem 0.75rem;
   }
   #shell.sidebar-collapsed .nav-label,
-  #shell.sidebar-collapsed .brand-name,
-  #shell.sidebar-collapsed .sidebar-version .nav-label,
-  #shell.sidebar-collapsed .sidebar-build,
-  #shell.sidebar-collapsed .sidebar-privacy-btn {
+  #shell.sidebar-collapsed .brand-name {
     display: revert;
   }
   #shell.sidebar-collapsed .sidebar-top {
