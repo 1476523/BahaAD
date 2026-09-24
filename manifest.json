@@ -1,6 +1,6 @@
 {
   "version": "0.1.2",
-  "minimum_required_version": "0.1.2",
+  "minimum_required_version": "0.0.1",
   "mandatory": false,
   "notes": "修正「即將下架」頁無法向下捲動；每日新番彙整機動調整異動改顯示原時間更改為新時間",
   "files": [
@@ -20,5 +20,5 @@
       "url": "https://raw.githubusercontent.com/1476523/BahaAD/updates/bahaad/web/templates/expiring.html"
     }
   ],
-  "signature": "6mvOjsMG5pCyxa2QmSCouRh2L1qPKncat6YH1NjdVeC0LIr87XwB6v0hOLfly83Tyk1PRNc5MQlPUghBCJp1Cw=="
+  "signature": "SolnLEfQV/xxZL6mzVb72mxO8syzeeiaSZtVKFCXvgFhTvHv2cRDnLpdAqNx8rS+ctdbBjtFq8XVLACIrPg0Cg=="
 }
