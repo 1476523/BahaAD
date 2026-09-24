@@ -1776,14 +1776,16 @@ a.genre-tag--link:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 
-/* BahaAD 排行榜——側欄「訂閱列表」下方的專屬頁（使用者 2026-09-08）。 */
+/* BahaAD 排行榜——側欄「訂閱列表」下方的專屬頁（使用者 2026-09-08）。
+   使用者 2026-09-24：電腦／電視模式不該固定卡在 2 欄，要依實際螢幕寬度調整
+   每行顯示幾個榜——改用 auto-fit（跟 .anime-grid 同樣的手法），寬螢幕一行可以
+   塞下 4 個榜（目前總共就 4 個：訂閱數／收藏數／總觀看／看完），沒有這麼寬就
+   自動收成 2 欄、1 欄，不再留一大片空白。刻意不放 TV 模式專屬覆寫（不像
+   .anime-grid 那樣固定欄數）——這裡使用者明確要求電視模式也要跟著螢幕寬度變化。 */
 .leaderboard-boards {
   display: grid;
-  /* 固定 2 欄：上排＝訂閱數／收藏數，下排＝總觀看／看完（使用者 2026-09-09）。
-     寬畫面加個上限，卡片不會拉到太寬；窄畫面（手機）收成 1 欄。 */
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
   gap: 1rem;
-  max-width: 54rem;
   padding-bottom: 1rem;
 }
 @media (max-width: 40rem) {
