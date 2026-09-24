@@ -13,19 +13,25 @@
   <div class="page-head">
     <h1>即將下架</h1>
   </div>
-  {% if columns %}
-  <div class="expiring-columns">
-    {% for column in columns %}
-    <div class="expiring-column">
-      <h2 class="expiring-column-title">即將下架 {{ column.label }}（共 {{ column.cards | length }} 部）</h2>
-      <div class="anime-grid expiring-grid">
-        {% for item in column.cards %}{{ cards.theme_card(item, show_bell=False) }}{% endfor %}
+  {# 使用者 2026-09-24 回報：頁面內容超過視窗高度時沒辦法向下捲動——`#expiring-page`
+     少掛進 `#shell.pinned-scroll` 那組「標題固定＋內容區塊捲動」的白名單（比照
+     `#leaderboard-page`／`#leaderboard-scroll` 的寫法，見 style.css），這裡補上
+     `#expiring-scroll` 這層。 #}
+  <div id="expiring-scroll">
+    {% if columns %}
+    <div class="expiring-columns">
+      {% for column in columns %}
+      <div class="expiring-column">
+        <h2 class="expiring-column-title">即將下架 {{ column.label }}（共 {{ column.cards | length }} 部）</h2>
+        <div class="anime-grid expiring-grid">
+          {% for item in column.cards %}{{ cards.theme_card(item, show_bell=False) }}{% endfor %}
+        </div>
       </div>
+      {% endfor %}
     </div>
-    {% endfor %}
+    {% else %}
+    <p class="help-text">目前沒有即將下架的作品資訊。</p>
+    {% endif %}
   </div>
-  {% else %}
-  <p class="help-text">目前沒有即將下架的作品資訊。</p>
-  {% endif %}
 </div>
 {% endblock %}

@@ -756,6 +756,7 @@ img.theme-icon {
 #shell.pinned-scroll #search-page,
 #shell.pinned-scroll #subs-page,
 #shell.pinned-scroll #leaderboard-page,
+#shell.pinned-scroll #expiring-page,
 #shell.pinned-scroll #downloads-page {
   flex: 1;
   min-height: 0;
@@ -768,6 +769,7 @@ img.theme-icon {
 #search-scroll,
 #subs-scroll,
 #leaderboard-scroll,
+#expiring-scroll,
 #downloads-scroll,
 #newanime-list-scroll {
   flex: 1;
