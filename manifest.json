@@ -1,10 +1,10 @@
 {
-  "version": "0.2.2",
+  "version": "0.2.3",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "更新下載機制改版：整包下載＋支援時多線程分段加速，改善龜速/不穩定網路下的更新體驗。",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.2/BahaAD-0.2.2-win64.zip",
-  "zip_sha256": "ad82f1a6c1682dbdc8244916e34fb723d8f9e005afd5c5e7dc14f1201b08a0a4",
-  "zip_size": 39543479,
-  "signature": "szSpJAY22AqmDfbYTlqBp+QE9o/2U+yYU83P19swp1iLhmS0HAmHfjuHkDoClzZaKrqEuK8J2NmT7Jlbn3pADw=="
+  "notes": "修正番劇詳細頁漏 18 禁集數、機動調整公告頓號並列多作品誤判成暫停更新，並加上投放功能實驗性修正。",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.3/BahaAD-0.2.3-win64.zip",
+  "zip_sha256": "e795e60c898b77332fba4f625fd103969f8821ccf79f20813552934b78956ff4",
+  "zip_size": 39544685,
+  "signature": "RlR0ZTlzDu6AarUx4ma7nfmps3JLaC9rYEaUDSEJ9fsTJW/MwID4shIryiiExkoUaqQ7qvEwjXQOjiGlULuOBw=="
 }
