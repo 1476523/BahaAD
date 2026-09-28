@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% import "_notify_tabs.html" as tabs with context %}
+{% block title %}訂閱通知範本 - BahaAD{% endblock %}
+
+{% macro template_block(category) %}
+{# 沒有 data-test-url——訂閱通知範本不提供「模板測試（實際發一次）」，因為擁有者
+   自己不是訂閱者，沒有「發給自己測試」這個對象；見 notify_templates.js 的判斷。 #}
+<details class="notify-template-block settings-section" data-category="{{ category }}"
+         data-preview-url="{{ url_for('notify.preview_subscriber_template', category=category) }}">
+  <summary>{{ subscriber_category_labels[category] }}<span class="help-text" id="subscriber-customized-badge-{{ category }}">{{ '（已自訂）' if not templates[category].is_default else '' }}</span></summary>
+
+  <div class="notify-toolbar">
+    {% for insert, name, _hint in telegram_html_tags %}
+    <button type="button" class="notify-tool-btn" data-insert="{{ insert }}" title="{{ name }}（{{ _hint }}）">{{ name }}</button>
+    {% endfor %}
+  </div>
+
+  <div class="notify-chips">
+    <span class="help-text">插入 token：</span>
+    {% for token, description, usage in placeholder_reference %}
+    <button type="button" class="notify-chip" data-token="{{ token }}" title="{{ token }}｜{{ usage }}">{{ description }}</button>
+    {% endfor %}
+  </div>
+
+  <form method="post" action="{{ url_for('notify.save_subscriber_template', category=category) }}" class="notify-template-form" data-ajax>
+    <textarea name="template" id="subscriber-template-{{ category }}" class="text-editor notify-template-textarea" rows="4">{{ templates[category].template }}</textarea>
+    <label class="help-text notify-discord-label">Discord 版本（自動轉換，唯讀）</label>
+    <pre class="notify-discord-preview"></pre>
+    <div class="form-actions">
+      <button type="submit" class="btn-accent">儲存</button>
+      <button type="button" class="btn-neutral notify-preview-btn">模擬預覽</button>
+      <button type="submit" class="btn-neutral" formaction="{{ url_for('notify.reset_subscriber_template', category=category) }}" formnovalidate>還原預設值</button>
+    </div>
+  </form>
+</details>
+{% endmacro %}
+
+{% macro token_ref_block(group_label, rows) %}
+<details class="notify-token-ref settings-section">
+  <summary>{{ group_label }}<span class="help-text">（{{ rows | length }}）</span></summary>
+  <div class="table-scroll">
+    <table class="entry-table">
+      <tr><th>Token</th><th>說明</th><th>適用</th></tr>
+      {% for token, description, usage in rows %}
+      <tr><td><code>{{ token }}</code></td><td>{{ description }}</td><td>{{ usage }}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</details>
+{% endmacro %}
+
+{% block content %}
+<div class="auth-card extra-wide-card">
+  <h1>通知中心</h1>
+  {{ tabs.notify_tabs('subscriber_template') }}
+
+  {% if not prereqs_met %}
+  <p class="help-text">
+    此功能目前尚未開放。請先到<a href="{{ url_for('settings.index') }}">設定頁</a>
+    開啟「公開模式」並填寫「域名設定」。
+  </p>
+  {% else %}
+  <p class="help-text notify-templates-intro">
+    這裡的範本是發給<strong>訂閱者</strong>的訊息，內容一律用「你」稱呼收件人，跟上面
+    「管理通知範本」（發給您自己）是完全不同的一群收件人。範本支援 Telegram HTML
+    標籤子集（<code>&lt;b&gt;</code> 等），送 Discord 時自動轉成 markdown。「更新通知」
+    插入 <code>@episode_cover@</code>（這一集的封面）或 <code>@anime_cover@</code>
+    （整部番劇的封面）就會附上圖片，兩個都插入時兩張圖一起附上。目前只有
+    「更新通知」接了真正的推播；其餘類別可以先編輯、預覽，實際發送會在下一輪接上。
+  </p>
+
+  <div class="settings-cols">
+    <div>
+      {% for category in categories_left %}{{ template_block(category) }}{% endfor %}
+    </div>
+    <div>
+      {% for category in categories_right %}{{ template_block(category) }}{% endfor %}
+    </div>
+  </div>
+
+  <h2>範本 token 參考</h2>
+  <div class="settings-cols">
+    <div>
+      {% for group_label, rows in placeholder_reference_groups_left %}{{ token_ref_block(group_label, rows) }}{% endfor %}
+    </div>
+    <div>
+      {% for group_label, rows in placeholder_reference_groups_right %}{{ token_ref_block(group_label, rows) }}{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+{# 使用者 2026-09-12：改成擴充版的十類別編輯（比照管理通知範本），直接共用
+   notify_templates.js（讀 data-preview-url/data-test-url，不用另外寫一份）。 #}
+<script src="{{ url_for('static', filename='notify_templates.js') }}"></script>
+{% endblock %}
