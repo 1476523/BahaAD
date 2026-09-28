@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}資料庫整頓 - BahaAD{% endblock %}
+{# 使用者 2026-09-08：清單可能很長 → 標題固定、只有內文捲動。 #}
+{% block shell_class %}pinned-scroll{% endblock %}
+{% block content %}
+<div class="auth-card extra-wide-card paged-card">
+  <div class="paged-card__head"><h1>資料庫整頓</h1></div>
+  <div class="paged-card__body">
+
+  {% if orphans %}
+  <p class="help-text">
+    以下番劇在資料庫裡還有紀錄（官方公告／未完成的手動任務／被標記為已下載的集數），
+    但目前追蹤清單已經沒在追蹤了。勾選要清除的項目——<strong>只影響資料庫紀錄，不會
+    刪除已經下載好的檔案</strong>。
+  </p>
+
+  <form method="post" action="{{ url_for('settings.db_cleanup') }}">
+    <p class="help-text">
+      左鍵點選一列＝單選、Ctrl+左鍵＝個別加選、Shift+左鍵＝區間選、按住拖曳＝連續選。
+    </p>
+    <p>
+      <label class="checkbox-label">
+        <input type="checkbox" id="cleanup-select-all"> 全選
+      </label>
+    </p>
+
+    <table class="entry-table" id="cleanup-table">
+      <thead>
+        <tr><th></th><th>番劇</th><th>紀錄</th></tr>
+      </thead>
+      <tbody>
+        {% for item in orphans %}
+        <tr class="cleanup-row">
+          <td><input type="checkbox" name="sn" value="{{ item.sn }}" class="cleanup-checkbox"></td>
+          <td>{{ item.title or ("sn " ~ item.sn) }}</td>
+          <td>
+            共 {{ item.total }} 筆
+            <span class="help-text">
+              （{% if item.counts.gossip_events %}公告事件 {{ item.counts.gossip_events }}／{% endif %}{% if item.counts.gossip_pending %}機動調整 {{ item.counts.gossip_pending }}／{% endif %}{% if item.counts.manual_tasks %}手動任務 {{ item.counts.manual_tasks }}／{% endif %}{% if item.counts.skipped_episodes %}已標記集數 {{ item.counts.skipped_episodes }}{% endif %}）
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <button type="submit" class="btn-accent">清除已勾選</button>
+  </form>
+  {% else %}
+  <p class="help-text">沒有孤兒紀錄——每部有資料庫紀錄的番劇都還在追蹤清單裡。</p>
+  {% endif %}
+
+  <h2 class="db-cleanup-subhead">刪除歷史</h2>
+  <p class="help-text">
+    曾經下載完成、但檔案後來被移除（手動刪檔／搬走）的集數。BahaAD 保留這些紀錄，
+    讓番劇頁的集數選取器把它們標成<span class="removed-swatch">紫框</span>；下次排程檢查
+    會重新下載。以下可以手動清除這些紀錄。
+  </p>
+  {% if removed_history %}
+  <table class="entry-table" id="removed-history-table">
+    <thead>
+      <tr><th>番劇</th><th>集 sn</th><th>下載於</th><th>移除於</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for item in removed_history %}
+      <tr>
+        <td>{{ item.anime_title }}</td>
+        <td>{{ item.video_sn }}</td>
+        <td class="help-text">{{ item.downloaded_at }}</td>
+        <td class="help-text">{{ item.removed_at }}</td>
+        <td>
+          <form method="post" action="{{ url_for('settings.db_cleanup') }}">
+            <input type="hidden" name="action" value="clear_removed_history">
+            <input type="hidden" name="video_sn" value="{{ item.video_sn }}">
+            <button type="submit" class="btn-neutral">清除</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <form method="post" action="{{ url_for('settings.db_cleanup') }}">
+    <input type="hidden" name="action" value="clear_removed_history">
+    <button type="submit" class="btn-accent">清除全部刪除歷史</button>
+  </form>
+  {% else %}
+  <p class="help-text">目前沒有刪除歷史。</p>
+  {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='multi_select.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var tbody = document.querySelector("#cleanup-table tbody");
+  if (tbody && window.initMultiSelect) {
+    // 比照番劇詳細頁的集數選取器（web_redesign_round5.md 項目 13）
+    window.initMultiSelect(tbody, {
+      itemSelector: "tr.cleanup-row",
+      selectedClass: "selected",
+      toggleLoneClick: true,
+    });
+  }
+
+  var all = document.getElementById("cleanup-select-all");
+  if (all) {
+    all.addEventListener("change", function () {
+      document.querySelectorAll("tr.cleanup-row").forEach(function (row) {
+        var cb = row.querySelector(".cleanup-checkbox");
+        if (cb) {
+          cb.checked = all.checked;
+        }
+        row.classList.toggle("selected", all.checked);
+      });
+    });
+  }
+});
+</script>
+{% endblock %}
