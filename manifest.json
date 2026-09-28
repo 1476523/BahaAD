@@ -1,10 +1,10 @@
 {
-  "version": "0.2.6",
+  "version": "0.2.7",
   "minimum_required_version": "0.0.1",
-  "mandatory": true,
-  "notes": "修正完全沒裝過 ffmpeg 的電腦，啟動 BahaAD 完全沒反應的問題。",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.6/BahaAD-0.2.6-win64.zip",
-  "zip_sha256": "1bc9f32bf3169d89fb624ff0d8b5e269b37b58c21d34e079e7e79699a988a19d",
-  "zip_size": 39568798,
-  "signature": "lMPQ+w9Uo7dbIJ83esnSzofrkgRUeeNQrOmg/GziFDmgbqMHJLqutrKaMNxaRol7+OSc5cPjnyIU7u8MpCHQBg=="
+  "mandatory": false,
+  "notes": "修正季別剛首播時下載沒有進季別資料夾、更名過的番劇被誤判完結兩個問題，並新增 youranimes 完結確認關卡。",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.7/BahaAD-0.2.7-win64.zip",
+  "zip_sha256": "243d8cbb7470472a47a9a0f198036c881337bf04cae9bd3ec87938bb1b3a5167",
+  "zip_size": 39585569,
+  "signature": "cYhfU1aJ3Ml+G46mfI/ZCz88fJmZkE4VTpLxoNCD6/r4WJHeD8kU4OqPnSXQHGdfQugS9XOwUh/As9nmlmIHDQ=="
 }
