@@ -1,10 +1,10 @@
 {
-  "version": "0.2.3",
+  "version": "0.2.4",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "修正番劇詳細頁漏 18 禁集數、機動調整公告頓號並列多作品誤判成暫停更新，並加上投放功能實驗性修正。",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.3/BahaAD-0.2.3-win64.zip",
-  "zip_sha256": "e795e60c898b77332fba4f625fd103969f8821ccf79f20813552934b78956ff4",
-  "zip_size": 39544685,
-  "signature": "RlR0ZTlzDu6AarUx4ma7nfmps3JLaC9rYEaUDSEJ9fsTJW/MwID4shIryiiExkoUaqQ7qvEwjXQOjiGlULuOBw=="
+  "notes": "番劇完結自動偵測改版：判定速度加快，檢查間隔改成10分鐘，多部同時完結會合併成一則通知。",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.4/BahaAD-0.2.4-win64.zip",
+  "zip_sha256": "7e134060a9105f897627a9231bf9b602cabd95b12e3e755c6c01f5bb77fe8b82",
+  "zip_size": 39549204,
+  "signature": "6nQjoTh1DIOZYKucLxoVzhcgeqi0ZBg8znNmc1zufBAbo9d0O9vNEoLU7w6bFahsENwHtSQwv5Pq31g6M3wnBQ=="
 }
