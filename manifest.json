@@ -1,10 +1,10 @@
 {
-  "version": "0.2.4",
+  "version": "0.2.5",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "番劇完結自動偵測改版：判定速度加快，檢查間隔改成10分鐘，多部同時完結會合併成一則通知。",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.4/BahaAD-0.2.4-win64.zip",
-  "zip_sha256": "7e134060a9105f897627a9231bf9b602cabd95b12e3e755c6c01f5bb77fe8b82",
-  "zip_size": 39549204,
-  "signature": "6nQjoTh1DIOZYKucLxoVzhcgeqi0ZBg8znNmc1zufBAbo9d0O9vNEoLU7w6bFahsENwHtSQwv5Pq31g6M3wnBQ=="
+  "notes": "修正季別剛首播、只有一集時集數按鈕誤顯示整個番劇標題的問題。",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.5/BahaAD-0.2.5-win64.zip",
+  "zip_sha256": "bd5ddf1d0619a6a2e3cb6a94cef81e25166687adf37d771991f8520ea6fe079f",
+  "zip_size": 39549794,
+  "signature": "DbRsRmgN0PbP2f4xVcIe1iVwIzYmwMd7Pu1OaaOnCMrFt+XtlIxRMO+2nbWXk63BkysO8qJRWtUwM049hql8CA=="
 }
