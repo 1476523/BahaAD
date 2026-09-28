@@ -1,10 +1,10 @@
 {
-  "version": "0.2.5",
+  "version": "0.2.6",
   "minimum_required_version": "0.0.1",
-  "mandatory": false,
-  "notes": "修正季別剛首播、只有一集時集數按鈕誤顯示整個番劇標題的問題。",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.5/BahaAD-0.2.5-win64.zip",
-  "zip_sha256": "bd5ddf1d0619a6a2e3cb6a94cef81e25166687adf37d771991f8520ea6fe079f",
-  "zip_size": 39549794,
-  "signature": "DbRsRmgN0PbP2f4xVcIe1iVwIzYmwMd7Pu1OaaOnCMrFt+XtlIxRMO+2nbWXk63BkysO8qJRWtUwM049hql8CA=="
+  "mandatory": true,
+  "notes": "修正完全沒裝過 ffmpeg 的電腦，啟動 BahaAD 完全沒反應的問題。",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.6/BahaAD-0.2.6-win64.zip",
+  "zip_sha256": "1bc9f32bf3169d89fb624ff0d8b5e269b37b58c21d34e079e7e79699a988a19d",
+  "zip_size": 39568798,
+  "signature": "lMPQ+w9Uo7dbIJ83esnSzofrkgRUeeNQrOmg/GziFDmgbqMHJLqutrKaMNxaRol7+OSc5cPjnyIU7u8MpCHQBg=="
 }
