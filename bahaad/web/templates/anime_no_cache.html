@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}無法顯示 - BahaAD{% endblock %}
+{% block content %}
+<h1>無法顯示</h1>
+<p class="help-text">{{ message }}</p>
+{# 公開模式下側欄底部已經有「登入」入口，這裡不再放按鈕（使用者 2026-09-04）。 #}
+{% if not public_readonly %}
+<p><a class="btn-accent link-btn" href="{{ url_for('auth.login') }}">登入 BahaAD</a></p>
+{% endif %}
+{% endblock %}

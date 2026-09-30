@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}動畫瘋登入 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card">
+  <h1>要現在登入動畫瘋嗎？</h1>
+  <p>
+    BahaAD 需要你的動畫瘋登入狀態才能下載付費番劇。現在登入的話，會開一個獨立的無痕
+    瀏覽器視窗、自動幫你填好帳號密碼，你只要完成人機驗證（CAPTCHA）並按下登入即可。
+  </p>
+  <p class="help-text">
+    也可以現在跳過，之後再到「設定 › 動畫瘋登入」登入——不影響瀏覽番劇、加入追蹤等功能。
+  </p>
+
+  <div class="reset-fields">
+    <a href="{{ url_for('gamer_login.creds', next='index') }}"><button type="button" class="btn-accent">現在登入</button></a>
+    <form method="post" action="{{ url_for('gamer_login.setup_skip') }}">
+      <button type="submit" class="btn-neutral" id="setup-gamer-skip">稍後再說</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 5 秒沒動作就自動「稍後再說」——走跟按鈕一樣的 setup_skip（才有「可到設定登入
+// 動畫瘋」的提示，.0 改進.txt 第 2 項），不是自己 window.location 跳首頁。
+// 按下按鈕時也立刻停掉倒數＋不再閃數字（第 1 項：按了要馬上反應、直接送出）。
+(function () {
+  "use strict";
+  var skip = document.getElementById("setup-gamer-skip");
+  var form = skip && skip.closest("form");
+  if (!skip || !form) { return; }
+  var base = skip.textContent;
+  var left = 5;
+  var timer = null;
+  var submitting = false;
+
+  function stopCountdown() {
+    if (timer) { clearInterval(timer); timer = null; }
+    skip.textContent = base;
+  }
+
+  function goSkip() {
+    if (submitting) { return; }
+    submitting = true;
+    stopCountdown();
+    (form.requestSubmit ? form.requestSubmit() : form.submit());
+  }
+
+  function tick() {
+    left -= 1;
+    if (left <= 0) { goSkip(); return; }
+    skip.textContent = base + "（" + left + "）";
+  }
+
+  skip.textContent = base + "（" + left + "）";
+  timer = setInterval(tick, 1000);
+
+  // 按下「稍後再說」：停倒數、直接送出（form 的預設 submit 會走 setup_skip → 首頁）
+  form.addEventListener("submit", stopCountdown);
+  // 點頁面其他地方 / 打字：只是取消倒數，不送出
+  ["keydown", "touchstart"].forEach(function (evt) {
+    document.addEventListener(evt, stopCountdown, { once: true, capture: true });
+  });
+  document.addEventListener("click", function (e) {
+    if (!form.contains(e.target)) { stopCountdown(); }
+  }, { once: true, capture: true });
+  window.addEventListener("pagehide", stopCountdown);
+})();
+</script>
+{% endblock %}
