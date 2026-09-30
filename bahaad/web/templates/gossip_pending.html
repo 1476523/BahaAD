@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% import "_gossip_tabs.html" as tabs with context %}
+{% block title %}機動調整 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card extra-wide-card">
+  <h1>官方公告</h1>
+  {{ tabs.gossip_tabs('pending') }}
+  <p class="help-text">目前生效中的臨時排程覆蓋——官方公告偵測產生的，不會動到你自己的排程清單。</p>
+
+  {% if rows %}
+  <table class="entry-table">
+    <thead>
+      <tr><th>作品 sn</th><th>異動</th><th>生效日</th><th>時間</th><th>期望集數</th><th>已找到</th></tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.sn }}</td>
+        <td>{{ type_labels.get(row.type, row.type) }}</td>
+        <td>{{ row.check_date }}</td>
+        <td>
+          {% if row.check_time %}{{ row.check_time }}
+          {% elif row.check_time_start %}{{ row.check_time_start }} ~ {{ row.check_time_end }}
+          {% else %}—{% endif %}
+        </td>
+        <td>{{ row.expect_episode_count }}</td>
+        <td>{{ row.found_episode_count }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="help-text">目前沒有生效中的機動調整。</p>
+  {% endif %}
+
+</div>
+{% endblock %}
