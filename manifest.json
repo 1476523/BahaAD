@@ -1,10 +1,10 @@
 {
-  "version": "0.2.8",
+  "version": "0.2.9",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "新番偵測新增提早探測機制，能更早發現下一季有哪些番劇，公告出現後仍以公告資料為準。",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.8/BahaAD-0.2.8-win64.zip",
-  "zip_sha256": "4a58a342723c256ff52da3b35e86c8423d609156ace9d6119c51feb09bde79b9",
-  "zip_size": 39597376,
-  "signature": "Ate4zSzN+5mIy+3ipIVMdnjW6rA0yjco8Fu+T1jIPwaH65rj9bMVGsqy2R0UZ1iHpwKux/DqKshaIQbGwKpcCw=="
+  "notes": "修正新番快訊提早探測到的番劇卡片常常沒有封面圖的問題。",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.9/BahaAD-0.2.9-win64.zip",
+  "zip_sha256": "77133124abfddc34edac6aab304f144e1ea1d803e49c677867e5cd321a635ed1",
+  "zip_size": 39602202,
+  "signature": "E2aVq6G+fG2/d4FBA/aECd2uokQTjZptMcnpc0MWEhdN/nifQOFpRr6wxNWmJ2o2qy7ul/BkRwRY1mOYQSmoBg=="
 }
