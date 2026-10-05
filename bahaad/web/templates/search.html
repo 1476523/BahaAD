@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% import "_cards.html" as cards with context %}
+{% block title %}搜尋番劇 - BahaAD{% endblock %}
+{# 面板開著時，#shell 加 filter-open（切換鈕才會 fixed 在面板左緣）——server-render
+   就給對，避免 JS 事後 setOpen() 造成 collapsed→open 閃一下（round5 項目 7）。
+   使用者 2026-09-05：pinned-scroll 讓搜尋框＋標題固定在上方，只有卡片格捲動。 #}
+{% block shell_class %}pinned-scroll{{ ' filter-open' if panel_open else '' }}{% endblock %}
+
+{# 篩選面板切換鈕填進 base.html 的 .content-top，跟「收合側欄」鈕同一水平線（比照
+   首頁週期表側板，見 web_redesign_round3.md 階段 7-2）。search.html 預設面板收合，
+   所以初始圖示是 panel-expand。 #}
+{% block content_top_end %}
+<button type="button" id="search-filter-toggle" class="icon-btn icon-btn--accent" title="展開／收合篩選">
+  <img class="theme-icon" data-icon="panel-expand" id="search-filter-toggle-icon"
+       src="{{ url_for('static', filename='icons/panel-expand-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="">
+</button>
+{% endblock %}
+
+{% block content %}
+<div id="search-page">
+  <form method="get" action="{{ url_for('browse.search') }}" class="search-bar" role="search">
+    <input type="search" name="q" value="{{ query }}"
+           placeholder="番劇名稱關鍵字、番劇 sn，或直接貼上動畫瘋網址" aria-label="搜尋番劇"
+           {% if not query %}autofocus{% endif %}>
+    <button type="submit" class="icon-btn icon-btn--accent" title="搜尋">
+      <img class="theme-icon" data-icon="search"
+           src="{{ url_for('static', filename='icons/search-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}"
+           alt="搜尋">
+    </button>
+  </form>
+
+  {% if browse_error %}
+  <p class="warning">
+    {% if browse_error == 'browse_http_unavailable' %}
+    目前無法連線動畫瘋查詢，請稍後再試一次。
+    {% else %}
+    搜尋失敗，稍後再試一次。（{{ browse_error }}）
+    {% endif %}
+  </p>
+  {% elif results is none %}
+  {# 還沒輸入關鍵字、也沒選篩選——只顯示搜尋框 #}
+  {% elif not results %}
+  <h2>搜尋結果</h2>
+  <p class="help-text">沒有搜尋到動畫</p>
+  {% elif filter_mode %}
+  {# 篩選搜尋（animeList.php）：每頁 28，第 1 頁 server-render，「點擊載入更多」抓下一頁 #}
+  <h2>篩選結果</h2>
+  <div id="search-scroll">
+    <div class="anime-grid" id="search-grid">
+      {# 使用者 2026-09-05：搜尋番劇拿掉鈴鐺（見 web/browse.py _trending_page 的說明）。 #}
+      {% for item in results %}{{ cards.theme_card(item, show_bell=False) }}{% endfor %}
+    </div>
+    <div class="load-more" id="search-load-more"
+         data-target="#search-grid"
+         data-endpoint="{{ url_for('browse.search_filter_api') }}?{{ filter_query }}"
+         data-next-offset="2"
+         data-has-next="{{ 'true' if filter_has_next else 'false' }}"
+         data-done-text="已經沒有更多動畫"
+         {% if not filter_has_next %}hidden{% endif %}>
+      <button type="button">
+        <img class="theme-icon" data-icon="refresh"
+             src="{{ url_for('static', filename='icons/refresh-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="">
+        <span>點擊載入更多動畫</span>
+      </button>
+    </div>
+  </div>
+  {% else %}
+  <h2>搜尋結果</h2>
+  {% if truncated %}
+  <p class="anime-grid-count">結果太多，只顯示前 {{ results | length }} 筆——請把關鍵字打完整一點。</p>
+  {% endif %}
+  <div id="search-scroll">
+    <div class="anime-grid" id="search-grid">
+      {% for item in results %}{{ cards.theme_card(item, show_bell=False, hidden=(loop.index0 >= page_size)) }}{% endfor %}
+    </div>
+    {% if results | length > page_size %}
+    {# search.php 一次回全部，前 page_size 筆已顯示、其餘先藏起來，「點擊載入更多」逐批
+       顯示（load_more.js，reveal 模式，不再打網路）。 #}
+    <div class="load-more" id="search-load-more"
+         data-target="#search-grid"
+         data-step="{{ page_size }}"
+         data-has-next="true"
+         data-done-text="已經沒有更多動畫">
+      <button type="button">
+        <img class="theme-icon" data-icon="refresh"
+             src="{{ url_for('static', filename='icons/refresh-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="">
+        <span>點擊載入更多動畫</span>
+      </button>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{# ---- 右側可開/收的篩選面板（屬性／類型／對象），比照首頁週期表側板 ---- #}
+<aside id="search-filter-panel" class="{{ '' if panel_open else 'collapsed' }}" data-max-tags="{{ max_tags }}"
+       data-filter-active="{{ 'true' if panel_open else 'false' }}">
+  <h2 class="schedule-panel-title">篩選番劇</h2>
+  <form method="get" action="{{ url_for('browse.search') }}" id="search-filter-form">
+    {# 篩選變動自動送出時，search_filter.js 把這格設成 1，讓面板跨整頁重載維持開著 #}
+    <input type="hidden" name="_panel" id="search-filter-panel-flag" value="{{ '1' if panel_open else '' }}">
+    <div class="filter-group" id="filter-tags">
+      <h3>屬性 <span class="filter-count" id="filter-tag-count">（{{ sel_tags | length }}/{{ max_tags }}）</span></h3>
+      {# 依字數分組：中文二字（每行 6 個）／三字／四字／英文，各自一行起頭。「全部」＝
+         不限屬性，跟其他屬性互斥，預設不選（選了才觸發搜尋）。見階段 7-2 使用者回饋。 #}
+      <div class="filter-chips filter-chips--attrs">
+        {% for key, tags in attr_tag_groups %}
+        <div class="filter-chip-row filter-chip-row--{{ key }}">
+          {% if key == 'len2' %}
+          <label class="filter-chip filter-chip--all">
+            <input type="checkbox" name="tags" value="全部" {% if sel_all_tags %}checked{% endif %}>
+            <span>全部</span>
+          </label>
+          {% endif %}
+          {% for t in tags %}
+          <label class="filter-chip">
+            <input type="checkbox" name="tags" value="{{ t }}" {% if t in sel_tags %}checked{% endif %}>
+            <span>{{ t }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="filter-group">
+      <h3>類型</h3>
+      <div class="filter-chips">
+        <label class="filter-chip"><input type="radio" name="category" value="" {% if not sel_category %}checked{% endif %}><span>全部</span></label>
+        {% for c in all_categories %}
+        <label class="filter-chip"><input type="radio" name="category" value="{{ c }}" {% if c == sel_category %}checked{% endif %}><span>{{ c }}</span></label>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="filter-group">
+      <h3>對象</h3>
+      <div class="filter-chips">
+        <label class="filter-chip"><input type="radio" name="target" value="" {% if not sel_target %}checked{% endif %}><span>全部</span></label>
+        {% for tg in all_targets %}
+        <label class="filter-chip"><input type="radio" name="target" value="{{ tg }}" {% if tg == sel_target %}checked{% endif %}><span>{{ tg }}</span></label>
+        {% endfor %}
+      </div>
+    </div>
+    {# 沒有「套用篩選」鈕——改動任一項就自動搜尋（search_filter.js），比照動畫瘋。 #}
+    <div class="filter-actions">
+      <a href="{{ url_for('browse.search') }}" class="btn-plain">清除全部篩選</a>
+    </div>
+  </form>
+</aside>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='load_more.js') }}"></script>
+<script src="{{ url_for('static', filename='search_filter.js') }}"></script>
+{% endblock %}
