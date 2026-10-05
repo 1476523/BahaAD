@@ -1,10 +1,10 @@
 {
-  "version": "0.2.10",
+  "version": "0.2.11",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "修正新番快訊追蹤轉換、排序與跨季播出，下載按下後立即顯示進行中",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.10/BahaAD-0.2.10-win64.zip",
-  "zip_sha256": "5cd4a965251b7b7c9b1048c64833e18fb5535ad39183c92ccfb8b7ab6761bada",
-  "zip_size": 39656281,
-  "signature": "sMLPZXKTAdTjJ5TqlsFmvJnSEysxGOMC1YpKbLx6dTGFbH9wiejwKrbEvpwqhJlIWS3zBdyShhjNCmqWk5l8Bg=="
+  "notes": "影片播放優化",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.11/BahaAD-0.2.11-win64.zip",
+  "zip_sha256": "b3b4d4e016c1a27f84dbe15a19a8ba0d1b325234c07c170f1f06518f9fa3f2d4",
+  "zip_size": 39658145,
+  "signature": "5fHYTC6xmWeOLuyQhNWKxsTaQXJAEOmxNBH+8c/UvCQ1iPBw5ysyYeLxhVfFYn3zcP/n+YRj9PQEI3sKxl4qBg=="
 }
