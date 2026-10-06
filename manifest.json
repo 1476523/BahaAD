@@ -1,10 +1,10 @@
 {
-  "version": "0.2.12",
+  "version": "0.2.13",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "新番公告與下載列表改善、資料庫自動檢查維護",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.12/BahaAD-0.2.12-win64.zip",
-  "zip_sha256": "2633c646fde079be84426a58a3965047592e3d5f564a61a8772792813d5e4d17",
-  "zip_size": 39712180,
-  "signature": "Vb0Vzuu8YmfS93Cw/k53qO3s4iIvoNjia65eG/KxUu5tlz4m/YIDZSyn/QhK6KDlq3aJ2uBXEA98a/pkp0mACw=="
+  "notes": "季別資料夾歸類改善、新增季度位置設定",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.13/BahaAD-0.2.13-win64.zip",
+  "zip_sha256": "19c626e9b75d8e33a8618492974f08ca222736a0f17ebf7ddb016cb183c5b94c",
+  "zip_size": 39756759,
+  "signature": "TCJPHSqCdE40S2MT8pBnkSqeaehOcDZA892GmCiDAwOT0631gspmjTP4lKMsRx6F6s2L6n7u7W3fGctSWyU9AA=="
 }
