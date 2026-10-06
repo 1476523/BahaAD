@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}連結失敗 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card">
+  <h1>連結 GitHub 帳號失敗</h1>
+  <p>{{ message }}</p>
+  <a class="btn-neutral link-btn" href="{{ url_for('settings.index') }}">回設定頁</a>
+</div>
+{% endblock %}
