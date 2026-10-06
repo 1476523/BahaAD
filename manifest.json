@@ -1,10 +1,10 @@
 {
-  "version": "0.2.15",
+  "version": "0.2.16",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "追蹤的新番更快轉收藏與下載",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.15/BahaAD-0.2.15-win64.zip",
-  "zip_sha256": "cea5a678601088d6fd93623e1a568341da7e0695e0fb8f17b813a688c663d1ad",
-  "zip_size": 39779078,
-  "signature": "i55UVAGRwTDKOt2XE/oD1D4IQyyfbvJVzcS+8avrmaUnyGsvFwijhhE3rAFI3dj/N+ukkOujDjZsDRVTFcrPBw=="
+  "notes": "已訂閱番劇頁背景更新、新番資訊配對與更新下載改善",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.16/BahaAD-0.2.16-win64.zip",
+  "zip_sha256": "808878252034394cf0e4c9d28127c0637d8d8b423407aa5f9dc2e715863bb694",
+  "zip_size": 39799975,
+  "signature": "oM5P2CponziZ3o0NWRJ3nw8K1A/PKH6OiQQNmjqh+rHATyap/0TqzURNmkhsJNZI/fWIbujgqi34VWjTDB59Dw=="
 }
