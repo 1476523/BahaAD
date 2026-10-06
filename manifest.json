@@ -1,10 +1,10 @@
 {
-  "version": "0.2.14",
+  "version": "0.2.15",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "新番轉換名稱比對、季度位置設定與日誌改善",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.14/BahaAD-0.2.14-win64.zip",
-  "zip_sha256": "b4fdbdfd78cf1c537e943b131602993a1b40ed818886457c102048c2aa9ec236",
-  "zip_size": 39777137,
-  "signature": "wk14/SOJ+j3LEgrfH+h3gs8zEzbu/PizHVl7nue/fwojMxyeNbjKAhYJx6BtkJyTd2W7fHed+KLAXazbYfDoBg=="
+  "notes": "追蹤的新番更快轉收藏與下載",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.15/BahaAD-0.2.15-win64.zip",
+  "zip_sha256": "cea5a678601088d6fd93623e1a568341da7e0695e0fb8f17b813a688c663d1ad",
+  "zip_size": 39779078,
+  "signature": "i55UVAGRwTDKOt2XE/oD1D4IQyyfbvJVzcS+8avrmaUnyGsvFwijhhE3rAFI3dj/N+ukkOujDjZsDRVTFcrPBw=="
 }
