@@ -1,10 +1,10 @@
 {
-  "version": "0.2.11",
+  "version": "0.2.12",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "影片播放優化",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.11/BahaAD-0.2.11-win64.zip",
-  "zip_sha256": "b3b4d4e016c1a27f84dbe15a19a8ba0d1b325234c07c170f1f06518f9fa3f2d4",
-  "zip_size": 39658145,
-  "signature": "5fHYTC6xmWeOLuyQhNWKxsTaQXJAEOmxNBH+8c/UvCQ1iPBw5ysyYeLxhVfFYn3zcP/n+YRj9PQEI3sKxl4qBg=="
+  "notes": "新番公告與下載列表改善、資料庫自動檢查維護",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.12/BahaAD-0.2.12-win64.zip",
+  "zip_sha256": "2633c646fde079be84426a58a3965047592e3d5f564a61a8772792813d5e4d17",
+  "zip_size": 39712180,
+  "signature": "Vb0Vzuu8YmfS93Cw/k53qO3s4iIvoNjia65eG/KxUu5tlz4m/YIDZSyn/QhK6KDlq3aJ2uBXEA98a/pkp0mACw=="
 }
