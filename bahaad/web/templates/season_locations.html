@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}季度位置設定 - BahaAD{% endblock %}
+{% block shell_class %}pinned-scroll{% endblock %}
+{% block content %}
+<div class="auth-card extra-wide-card paged-card">
+  <div class="paged-card__head"><h1>季度位置設定</h1></div>
+  <div class="paged-card__body">
+    <p class="help-text">
+      逐部設定訂閱番劇要放在哪個季別（與年分）資料夾。儲存後會<strong>把這部番劇已下載的資料夾
+      搬到新位置</strong>、之後的下載也放那裡；用來修正被誤判的番劇。季別選「自動」＝清除手動設定、
+      依首播日期判斷。年分留空＝不加年分資料夾。目標已有同名檔案不會被覆蓋。
+    </p>
+    {% if rows %}
+    <table class="entry-table">
+      <thead><tr><th>番劇</th><th>目前檔案位置</th><th>年分</th><th>季別</th><th></th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>{{ r.title }}{% if r.custom_tag %}<br><span class="help-text">目前為自訂分類：{{ r.tag }}</span>{% endif %}</td>
+          <td>
+            {% if r.locations %}
+              {% for loc in r.locations %}
+              <div>
+                {{ loc.label }} <span class="help-text">（{{ loc.files }} 個檔案）</span>
+                {% if r.locations | length > 1 and loc.season %}
+                <form method="post" action="{{ url_for('settings.season_locations_save') }}" style="display:inline">
+                  <input type="hidden" name="sn" value="{{ r.sn }}">
+                  <input type="hidden" name="year" value="{{ loc.year }}">
+                  <input type="hidden" name="season" value="{{ loc.season }}">
+                  <button type="submit" class="btn-neutral">全部統一到這裡</button>
+                </form>
+                {% endif %}
+              </div>
+              {% endfor %}
+              {% if r.locations | length > 1 %}
+              <div class="help-text">⚠ 這部番劇分散在 {{ r.locations | length }} 個不同位置；統一成相同路徑即可消除差異。</div>
+              {% endif %}
+            {% else %}<span class="help-text">尚無已下載檔案</span>{% endif %}
+          </td>
+          <td colspan="3">
+            <form method="post" action="{{ url_for('settings.season_locations_save') }}" class="inline-form" style="display:flex;gap:0.5rem;align-items:center">
+              <input type="hidden" name="sn" value="{{ r.sn }}">
+              <input type="number" name="year" min="2000" max="2100" value="{{ r.year }}" placeholder="年分，例 2026" style="width:8rem">
+              <select name="season">
+                <option value="">自動（依首播日期）</option>
+                {% for s in seasons %}<option value="{{ s }}"{% if r.season == s %} selected{% endif %}>{{ s }}</option>{% endfor %}
+              </select>
+              <button type="submit" class="btn-accent">儲存並搬動</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="help-text">目前沒有訂閱的番劇。</p>
+    {% endif %}
+    <p><a class="btn-neutral link-btn" href="{{ url_for('settings.index') }}">← 回設定</a></p>
+  </div>
+</div>
+{% endblock %}
