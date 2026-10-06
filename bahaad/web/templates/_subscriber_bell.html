@@ -1,0 +1,19 @@
+{# 會員（訂閱者第三方登入）自己的「收藏」切換鈕——視覺沿用既有鈴鐺圖示保持風格
+   一致，但 class／data 屬性刻意跟 `_bell.html` 的 `bell_button` 不同名，避免被
+   `static/subscribe.js`（擁有者的週期表自動下載訂閱，完全不同語意）誤攔截。
+   呼叫端要 `{% import "_subscriber_bell.html" as subscriber_bell with context %}`
+   （帶 context 才拿得到 `ui_theme`），並載入 `static/subscriber_follow.js`。
+   使用者 2026-09-18：文字從「訂閱」改成「收藏」，避免跟擁有者的排程「訂閱」
+   混用同一個詞；後端路由／欄位名稱（follow/unfollow、subscriber_follows）不動，
+   只改顯示文字。 #}
+{% macro subscriber_follow_button(sn, followed, remove_card=false) %}
+<button type="button"
+        class="icon-btn subscriber-follow-btn{{ ' subscribed' if followed else '' }}"
+        data-subscriber-follow-sn="{{ sn }}"
+        data-followed="{{ 'true' if followed else 'false' }}"
+        data-remove-card-on-unfollow="{{ 'true' if remove_card else 'false' }}"
+        title="{{ '取消收藏' if followed else '收藏（番劇更新時收到 Discord/Telegram 通知）' }}">
+  <img class="theme-icon bell-icon" data-icon="bell"
+       src="{{ url_for('static', filename='icons/bell-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="收藏">
+</button>
+{% endmacro %}
