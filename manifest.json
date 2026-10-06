@@ -1,10 +1,10 @@
 {
-  "version": "0.2.13",
+  "version": "0.2.14",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "季別資料夾歸類改善、新增季度位置設定",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.13/BahaAD-0.2.13-win64.zip",
-  "zip_sha256": "19c626e9b75d8e33a8618492974f08ca222736a0f17ebf7ddb016cb183c5b94c",
-  "zip_size": 39756759,
-  "signature": "TCJPHSqCdE40S2MT8pBnkSqeaehOcDZA892GmCiDAwOT0631gspmjTP4lKMsRx6F6s2L6n7u7W3fGctSWyU9AA=="
+  "notes": "新番轉換名稱比對、季度位置設定與日誌改善",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.14/BahaAD-0.2.14-win64.zip",
+  "zip_sha256": "b4fdbdfd78cf1c537e943b131602993a1b40ed818886457c102048c2aa9ec236",
+  "zip_size": 39777137,
+  "signature": "wk14/SOJ+j3LEgrfH+h3gs8zEzbu/PizHVl7nue/fwojMxyeNbjKAhYJx6BtkJyTd2W7fHed+KLAXazbYfDoBg=="
 }
