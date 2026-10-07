@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}最新上架 - BahaAD{% endblock %}
+
+{# 使用者 2026-09-05：標題＋數量固定在上方，只有卡片格那塊捲動（比照首頁）。 #}
+{% block shell_class %}pinned-scroll{% endblock %}
+
+{% block content %}
+<div id="latest-page">
+  <div class="page-head">
+    <h1>最新上架</h1>
+    <p class="anime-grid-count" id="latest-count" hidden></p>
+  </div>
+  {# 內容由 latest.js 打 /browse/latest/api 拿（首頁 #blockAnimeNewArrive，代理商依上架日
+     排列，~21 筆一次給完、無分頁）。畫面先出殼＋置中載入動畫，比照近期熱播。 #}
+  <div id="latest-scroll">
+    <div class="anime-grid" id="latest-grid"></div>
+    <div id="latest-status" class="card-grid-loading is-loading">
+      <img src="{{ url_for('static', filename='icons/loading.gif') }}" alt="載入中" width="48" height="48">
+      <span>載入中…</span>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='latest.js') }}"></script>
+{% endblock %}

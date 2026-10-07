@@ -1,0 +1,51 @@
+{# 訂閱鈴鐺共用元件。見 docs/requirements/web_redesign.md「訂閱功能」——同一顆按鈕會
+   出現在首頁卡片／週期表／番劇詳細頁／訂閱列表頁好幾個地方，樣式跟 data 屬性只在
+   這裡定義一次，static/subscribe.js 靠 data-video-sn／data-subscribed 這組屬性運作。
+   呼叫端要用 `{% import "_bell.html" as bell with context %}`（要帶 context 才能拿到
+   ui_theme），不然圖示主題色會套錯。 #}
+{# 單一作品「重新檢查排程更新」按鈕，放在鈴鐺左邊。**只放在訂閱列表頁**（使用者
+   2026-08-27：其他頁面不要這顆）。透明設計、大小跟鈴鐺一致。recheck.js 靠
+   [data-recheck]=video_sn 抓。見 docs/requirements/web_redesign_round2.md 階段 4c。 #}
+{% macro recheck_button(video_sn, anime_title="") %}
+<button type="button"
+        class="icon-btn icon-btn--outline recheck-btn"
+        data-recheck="{{ video_sn }}"
+        data-anime-title="{{ anime_title }}"
+        title="重新檢查有沒有漏掉的更新">
+  <img class="theme-icon" data-icon="refresh"
+       src="{{ url_for('static', filename='icons/refresh-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="重新檢查排程更新">
+</button>
+{% endmacro %}
+
+{# 「更名」按鈕，放在鈴鐺右側（只有已訂閱的作品才給）——改的是這部番劇未來下載時
+   的資料夾名稱（schedule_entries 的 rename）。按下變成「儲存」圖示，rename.js 靠
+   [data-rename]=video_sn 抓。見使用者 2026-08-26 需求。 #}
+{% macro rename_button(video_sn, current_name, rename_url="") %}
+<button type="button"
+        class="icon-btn icon-btn--accent rename-btn"
+        data-rename="{{ video_sn }}"
+        data-current-name="{{ current_name }}"
+        {% if rename_url %}data-rename-url="{{ rename_url }}"{% endif %}
+        title="更改下載資料夾名稱">
+  <img class="theme-icon" data-icon="rename"
+       src="{{ url_for('static', filename='icons/rename-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="更名">
+</button>
+{% endmacro %}
+
+{# `ref_sn`：卡片的 animeRef 代碼還沒被解析成 video_sn（一次 render 只解析前 N 個，
+   見 anime_data.resolve_refs_cached）時傳這個——鈴鐺照樣渲染，按下去 subscribe.js 先打
+   /browse/subscribe/ref/<ref_sn> 即時解析再訂閱，不然冷快取時整頁只有前 12 張有鈴鐺
+   （使用者 2026-09-05）。 #}
+{% macro bell_button(video_sn, subscribed, remove_card=False, anime_title="", ref_sn=none) %}
+<button type="button"
+        class="bell-btn icon-btn{{ ' subscribed' if subscribed else '' }}"
+        data-video-sn="{{ video_sn or '' }}"
+        {% if ref_sn %}data-ref-sn="{{ ref_sn }}"{% endif %}
+        data-subscribed="{{ 'true' if subscribed else 'false' }}"
+        data-remove-card-on-unsub="{{ 'true' if remove_card else 'false' }}"
+        data-anime-title="{{ anime_title }}"
+        title="{{ '取消訂閱' if subscribed else '訂閱（依週期表時段自動下載新集數）' }}">
+  <img class="theme-icon bell-icon" data-icon="bell"
+       src="{{ url_for('static', filename='icons/bell-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="訂閱">
+</button>
+{% endmacro %}
