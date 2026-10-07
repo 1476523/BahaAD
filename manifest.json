@@ -1,10 +1,10 @@
 {
-  "version": "0.2.16",
+  "version": "0.2.17",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "已訂閱番劇頁背景更新、新番資訊配對與更新下載改善",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.16/BahaAD-0.2.16-win64.zip",
-  "zip_sha256": "808878252034394cf0e4c9d28127c0637d8d8b423407aa5f9dc2e715863bb694",
-  "zip_size": 39799975,
-  "signature": "oM5P2CponziZ3o0NWRJ3nw8K1A/PKH6OiQQNmjqh+rHATyap/0TqzURNmkhsJNZI/fWIbujgqi34VWjTDB59Dw=="
+  "notes": "修正背景請求干擾登入狀態造成的下載驗證異常",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.17/BahaAD-0.2.17-win64.zip",
+  "zip_sha256": "6b738dd455414ee94067ad9001921de99b53d7b95ebf46b3d7de4dec345765b8",
+  "zip_size": 39804675,
+  "signature": "ZsshV0+hrdczXAmKpV0Qw55igdecfQaxpyNJna1w0aNJiyIiYHtKt7g4h/7YysD/IQJElLbli8XeCnZ0RVGbBQ=="
 }
