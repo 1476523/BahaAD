@@ -1,0 +1,9 @@
+{# 官方公告四個分頁的頁籤列。current 傳 'history' / 'actionable' / 'pending' / 'settings'。 #}
+{% macro gossip_tabs(current) %}
+<div class="subpage-tabs">
+  {% if current == 'history' %}<span class="btn-accent is-current">歷史公告</span>{% else %}<a class="btn-neutral" href="{{ url_for('gossip.history_index') }}">歷史公告</a>{% endif %}
+  {% if current == 'actionable' %}<span class="btn-accent is-current">操作處置</span>{% else %}<a class="btn-neutral" href="{{ url_for('gossip.actionable_index') }}">操作處置</a>{% endif %}
+  {% if current == 'pending' %}<span class="btn-accent is-current">機動調整</span>{% else %}<a class="btn-neutral" href="{{ url_for('gossip.pending_index') }}">機動調整</a>{% endif %}
+  {% if current == 'settings' %}<span class="btn-accent is-current">設定</span>{% else %}<a class="btn-neutral" href="{{ url_for('gossip.settings_index') }}">設定</a>{% endif %}
+</div>
+{% endmacro %}
