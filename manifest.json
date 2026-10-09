@@ -1,10 +1,10 @@
 {
-  "version": "0.2.19",
+  "version": "0.2.20",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "背景更新避開下載並補上診斷紀錄",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.19/BahaAD-0.2.19-win64.zip",
-  "zip_sha256": "a6ff3b8f3d5b63c3fef21cbab3421e0a25dbba62eb04c5d1eb5ca4815e21cb1c",
-  "zip_size": 39808597,
-  "signature": "CVklym+arU7JvxwH3aFBOxD8T1B6aFijYCctQlGm/KUqmUI8Aor/x55+PDN6EMqYl9UhQ2bTEceBljVyndtwCQ=="
+  "notes": "接續舊季度的新番不再抓舊集數、日誌全面中文化",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.20/BahaAD-0.2.20-win64.zip",
+  "zip_sha256": "ad6c06e682cff61f23f39ef4fd35feb1354a1120dd429b6233eac9195d603723",
+  "zip_size": 39825913,
+  "signature": "96IJk/biLpkcn/7Q2jxSYAweWOqz/sZoeAsHAnxT5m3G2S9Kw+qZlJCEf2VYztwy4VS/bGDFb76DP1FM4nmSAQ=="
 }
