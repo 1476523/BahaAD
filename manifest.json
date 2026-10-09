@@ -1,10 +1,10 @@
 {
-  "version": "0.2.18",
+  "version": "0.2.19",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "修正退訂後的番劇仍會自動下載",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.18/BahaAD-0.2.18-win64.zip",
-  "zip_sha256": "fd79bb509353f3d2e1f63568973f0156d65cacb04faa1d903b14cde30000c07e",
-  "zip_size": 39807492,
-  "signature": "+jRItH3CvXzgZKD0k6pcFdMhsEq9H6TgecYrJQeQ0qrNL7xpZ6AGzdlF5odfzu3bus4dRLd6EfLl3DeOSjzdAw=="
+  "notes": "背景更新避開下載並補上診斷紀錄",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.19/BahaAD-0.2.19-win64.zip",
+  "zip_sha256": "a6ff3b8f3d5b63c3fef21cbab3421e0a25dbba62eb04c5d1eb5ca4815e21cb1c",
+  "zip_size": 39808597,
+  "signature": "CVklym+arU7JvxwH3aFBOxD8T1B6aFijYCctQlGm/KUqmUI8Aor/x55+PDN6EMqYl9UhQ2bTEceBljVyndtwCQ=="
 }
