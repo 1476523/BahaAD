@@ -1,10 +1,10 @@
 {
-  "version": "0.2.21",
+  "version": "0.2.22",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "新增登入失效通知、降低背景更新干擾登入",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.21/BahaAD-0.2.21-win64.zip",
-  "zip_sha256": "a24074558c0fb7ef8d314350a6e0e6340fb1c59b49e9c356788cf255a6310b0f",
-  "zip_size": 39833092,
-  "signature": "6ZFbWklqQ5bjmp/3R4PVJcdiRb8zgzEZ17alq6waGjvzNojyDz4QjRyUPQaoK4yJE+v/WDd5I7DuzKf4g18ZBA=="
+  "notes": "重啟後補查剛過的更新時段、首頁更快跟上新集數",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.22/BahaAD-0.2.22-win64.zip",
+  "zip_sha256": "5fbbff2dd228ebe12bfe791c19c803396383bea8fb82f9835359d7e9cc56dc62",
+  "zip_size": 39836279,
+  "signature": "BpDXiJx3N99DhLd7MPM5czQF6pFDs1frBN/XOGOv9MHLOAhM+MzvnWBl3TqctnYiGyLGm/J1GMRLxR7ZgC0HBA=="
 }
