@@ -1,10 +1,10 @@
 {
-  "version": "0.2.20",
+  "version": "0.2.21",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "接續舊季度的新番不再抓舊集數、日誌全面中文化",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.20/BahaAD-0.2.20-win64.zip",
-  "zip_sha256": "ad6c06e682cff61f23f39ef4fd35feb1354a1120dd429b6233eac9195d603723",
-  "zip_size": 39825913,
-  "signature": "96IJk/biLpkcn/7Q2jxSYAweWOqz/sZoeAsHAnxT5m3G2S9Kw+qZlJCEf2VYztwy4VS/bGDFb76DP1FM4nmSAQ=="
+  "notes": "新增登入失效通知、降低背景更新干擾登入",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.21/BahaAD-0.2.21-win64.zip",
+  "zip_sha256": "a24074558c0fb7ef8d314350a6e0e6340fb1c59b49e9c356788cf255a6310b0f",
+  "zip_size": 39833092,
+  "signature": "6ZFbWklqQ5bjmp/3R4PVJcdiRb8zgzEZ17alq6waGjvzNojyDz4QjRyUPQaoK4yJE+v/WDd5I7DuzKf4g18ZBA=="
 }
