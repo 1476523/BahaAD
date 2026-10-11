@@ -1,10 +1,10 @@
 {
-  "version": "0.2.24",
+  "version": "0.2.25",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "新增公開模式首頁、番劇頁快取每分鐘補齊；修正公告延後更新時新集數沒有及時下載",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.24/BahaAD-0.2.24-win64.zip",
-  "zip_sha256": "811220d7cee1ee1a974c9ccb1082fac5c08dfbc96ccec0d0a826a00eb8e551ed",
-  "zip_size": 39918345,
-  "signature": "t5mFaZfBl+MyCcNhxU9xEIjrjaF4o6HsuuVcHzjtJIU3EYud0CXimpPwOQTO3138hd+dN+uLoXvzwpZKMZtGBQ=="
+  "notes": "修正背景番劇頁快取停止運作、減少番劇誤判完結、網路暫時斷線時多重試；公開首頁加入連結預覽圖",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.25/BahaAD-0.2.25-win64.zip",
+  "zip_sha256": "7ae71898053d8924f974d90fe99fd386c6d645c163b02b4968e6d3a84c2e5727",
+  "zip_size": 40096682,
+  "signature": "04HHwlParTc1nYcXEwww6MBECBYd5bYL2nkjqckyzVer9GgwJBK9uW1UKyVpgFuXusrx3I5oLX//vd3+YU2QDg=="
 }
