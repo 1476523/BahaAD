@@ -1,10 +1,10 @@
 {
-  "version": "0.2.22",
-  "minimum_required_version": "0.0.1",
+  "version": "0.2.23",
+  "minimum_required_version": "0.2.23",
   "mandatory": false,
-  "notes": "重啟後補查剛過的更新時段、首頁更快跟上新集數",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.22/BahaAD-0.2.22-win64.zip",
-  "zip_sha256": "5fbbff2dd228ebe12bfe791c19c803396383bea8fb82f9835359d7e9cc56dc62",
-  "zip_size": 39836279,
-  "signature": "BpDXiJx3N99DhLd7MPM5czQF6pFDs1frBN/XOGOv9MHLOAhM+MzvnWBl3TqctnYiGyLGm/J1GMRLxR7ZgC0HBA=="
+  "notes": "修正接續上一期新番第一次會下載到舊集數的問題；公開模式與番劇頁加入搜尋引擎優化並加快載入",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.23/BahaAD-0.2.23-win64.zip",
+  "zip_sha256": "6dd1b3f3cace39b91254a447f916b36025e1b6a109e771d570ee57316a2808d3",
+  "zip_size": 39898996,
+  "signature": "+s6Uk2xE4h4xr3GmAlMCxP+Im7uJl/yo3RKsrXklsUmUBaX9OfHal5Vk9Z4XMoxvWf2mIKUd56Pi1EfIU3PfBA=="
 }
