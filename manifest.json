@@ -1,10 +1,10 @@
 {
-  "version": "0.2.26",
+  "version": "0.2.27",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "降低排程下載碰到裝置驗證異常（1007）的機率：首頁重抓不再插進下載驗證中間",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.26/BahaAD-0.2.26-win64.zip",
-  "zip_sha256": "81e1ace43695cd8d32ded2ab979bf941b40ae3a9baa8b4463867545db183175f",
-  "zip_size": 40101754,
-  "signature": "OzDBbTJdA2N+k90hOKu1d8BQ/qnME6Zjs6STDHhTLgGRpbNNBw3HooGi5QCckwPFB6u85emgbxRREzyH1sFNCw=="
+  "notes": "修正新集數被誤標成已下載、調整更新時間後的複查節奏、番劇頁每分鐘更新評價與集數、新番快訊不再退回舊季度",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.27/BahaAD-0.2.27-win64.zip",
+  "zip_sha256": "9c686b52e0a1fcb5f5050990cfbc14ebe46619da5743d872d061b95fd3ff96e0",
+  "zip_size": 40121284,
+  "signature": "rkCO16QewDd0b7I5+8ZnrRQrc7Xno4h9TUmWyELebnWQP8H4Wzo8JSkBId1JD8qhIGTJYf6ygV/A9E9XxsjfDw=="
 }
