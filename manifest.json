@@ -1,10 +1,10 @@
 {
-  "version": "0.2.25",
+  "version": "0.2.26",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "修正背景番劇頁快取停止運作、減少番劇誤判完結、網路暫時斷線時多重試；公開首頁加入連結預覽圖",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.25/BahaAD-0.2.25-win64.zip",
-  "zip_sha256": "7ae71898053d8924f974d90fe99fd386c6d645c163b02b4968e6d3a84c2e5727",
-  "zip_size": 40096682,
-  "signature": "04HHwlParTc1nYcXEwww6MBECBYd5bYL2nkjqckyzVer9GgwJBK9uW1UKyVpgFuXusrx3I5oLX//vd3+YU2QDg=="
+  "notes": "降低排程下載碰到裝置驗證異常（1007）的機率：首頁重抓不再插進下載驗證中間",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.26/BahaAD-0.2.26-win64.zip",
+  "zip_sha256": "81e1ace43695cd8d32ded2ab979bf941b40ae3a9baa8b4463867545db183175f",
+  "zip_size": 40101754,
+  "signature": "OzDBbTJdA2N+k90hOKu1d8BQ/qnME6Zjs6STDHhTLgGRpbNNBw3HooGi5QCckwPFB6u85emgbxRREzyH1sFNCw=="
 }
