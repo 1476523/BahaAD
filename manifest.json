@@ -1,10 +1,10 @@
 {
-  "version": "0.2.27",
+  "version": "0.2.28",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "修正新集數被誤標成已下載、調整更新時間後的複查節奏、番劇頁每分鐘更新評價與集數、新番快訊不再退回舊季度",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.27/BahaAD-0.2.27-win64.zip",
-  "zip_sha256": "9c686b52e0a1fcb5f5050990cfbc14ebe46619da5743d872d061b95fd3ff96e0",
-  "zip_size": 40121284,
-  "signature": "rkCO16QewDd0b7I5+8ZnrRQrc7Xno4h9TUmWyELebnWQP8H4Wzo8JSkBId1JD8qhIGTJYf6ygV/A9E9XxsjfDw=="
+  "notes": "加入備用伺服器：主要伺服器連不上時自動改用備用伺服器；修正訂閱者每日新番通知排序；日誌不再顯示主機網域名稱",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.28/BahaAD-0.2.28-win64.zip",
+  "zip_sha256": "74ac2f924a0126e9d897321c5c14828ea675e30c836694f36d9c6dcdaae6ca9f",
+  "zip_size": 40147956,
+  "signature": "OkPK1xQ1YMqDvQSRGbQclQ4mNoIVARKNV7h4Q4smhmBvBTt4QkszWKbnYPjqJ5Y7SP1O5/zKq8T9Znr850Y+AQ=="
 }
