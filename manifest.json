@@ -1,10 +1,10 @@
 {
-  "version": "0.2.28",
+  "version": "0.2.29",
   "minimum_required_version": "0.0.1",
-  "mandatory": false,
-  "notes": "加入備用伺服器：主要伺服器連不上時自動改用備用伺服器；修正訂閱者每日新番通知排序；日誌不再顯示主機網域名稱",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.28/BahaAD-0.2.28-win64.zip",
-  "zip_sha256": "74ac2f924a0126e9d897321c5c14828ea675e30c836694f36d9c6dcdaae6ca9f",
-  "zip_size": 40147956,
-  "signature": "OkPK1xQ1YMqDvQSRGbQclQ4mNoIVARKNV7h4Q4smhmBvBTt4QkszWKbnYPjqJ5Y7SP1O5/zKq8T9Znr850Y+AQ=="
+  "mandatory": true,
+  "notes": "強制更新：修正已下載的集數在檔案被搬走或刪除後又被重複下載、導致新集數晚到時漏抓的問題；日誌頁新增來源與時間範圍篩選",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.29/BahaAD-0.2.29-win64.zip",
+  "zip_sha256": "e46d2350f8182a65453de99175cf74c5f14446e451a2d813dbe87cf8c4ebddeb",
+  "zip_size": 40158171,
+  "signature": "mZghk88i+xgxMFoVpFESaZgeVQPzd7LxFzWH1rdp2wISiVILETutlrdE4Bd2UYIrvBU3ZeZPS4Ll22N27sbfAA=="
 }
