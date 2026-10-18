@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}已暫停 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card">
+  <h1>偵測到同一個 GitHub 帳號有多個 IP 同時在使用 BahaAD</h1>
+  <p>
+    {% if github_login %}目前連結的帳號：{{ github_login }}{% endif %}
+  </p>
+  <p>為了避免帳號被多人共用，BahaAD（含網頁介面與背景下載）已暫停。等其中一個 IP 不再使用一段時間後會自動恢復，不需要手動處理。</p>
+  <p>如果這不是帳號共用（例如你自己換了網路），可以稍候幾分鐘讓它自動恢復；或者中斷 GitHub 帳號連結，BahaAD 會立刻恢復正常使用（但也會失去多 IP 防護與 star 提醒功能）。</p>
+  <form method="post" action="{{ url_for('access_gate.disconnect') }}">
+    <button type="submit">中斷 GitHub 帳號連結</button>
+  </form>
+</div>
+{% endblock %}
