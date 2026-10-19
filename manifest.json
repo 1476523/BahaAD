@@ -1,10 +1,10 @@
 {
-  "version": "0.2.30",
+  "version": "0.2.31",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "新增訂閱時間自動校正（訂閱時間與網站實際上架時間不一致時自動修正）；伺服器切換日誌帶請求路徑與錯誤種類",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.30/BahaAD-0.2.30-win64.zip",
-  "zip_sha256": "bb097b77fbe1e20c447df92b7d296699d6323bfaacd417b665f6763ab7a731ca",
-  "zip_size": 40179203,
-  "signature": "mo780PXm/HzcVTBZgXVEl5KvNyS3PcO7UclhbkqAFyobHYqYEvW6WIA6iwJQJtT6SxgUewEYD3dLYGhhZDeMDQ=="
+  "notes": "新番：自動補上公告沒列出的晚公布新番並通知",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.31/BahaAD-0.2.31-win64.zip",
+  "zip_sha256": "637ac474814b757a00a6fb7d8ae668e419fc3ec9913ce4fcc8a21b54f46d212b",
+  "zip_size": 40193125,
+  "signature": "cIn7Xer9/j2kHTQus386n3nuVJkYWaHlxx0EFU1ROEFf2cgrOPMbWqYUf7xJtq/rIGQAFA2nFbz0zr3cc+lIBA=="
 }
