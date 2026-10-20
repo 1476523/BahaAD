@@ -1,10 +1,10 @@
 {
-  "version": "0.2.33",
+  "version": "0.2.34",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "新增每日簽到與雙倍巴幣（預設關閉）、自動調整簽到時間",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.33/BahaAD-0.2.33-win64.zip",
-  "zip_sha256": "b1ec41d13361c63999356cce1184bf90999e4897f8038f02b02cae48ba43a38c",
-  "zip_size": 40268459,
-  "signature": "fqjXDyRHWk/h9Mc7lFN1yfMNVoJBDA46+X7ZllHTjTmzLDvKUjBzDzHdHLptgCmJ6a32VR6zjAb7L9L179T9Dw=="
+  "notes": "修正自我更新可能讓程式檔案不完整；新番快訊與排行榜異常修正；新增刪除伺服器統計資料",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.34/BahaAD-0.2.34-win64.zip",
+  "zip_sha256": "8d70512171474d7fa4f5cded40aaa88a60fa49cdd0c0b9ef3ac8d96faf59db51",
+  "zip_size": 40291406,
+  "signature": "AC1bGRyOgl9LsjjSGnHE6p+5pQm0bJQYT+ik2Q3+7T3V8cDp29MJYCbMycJCAQ+4mpxogFZxujG+m2cNTG8kDw=="
 }
