@@ -1,10 +1,10 @@
 {
-  "version": "0.2.31",
+  "version": "0.2.32",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "新番：自動補上公告沒列出的晚公布新番並通知",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.31/BahaAD-0.2.31-win64.zip",
-  "zip_sha256": "637ac474814b757a00a6fb7d8ae668e419fc3ec9913ce4fcc8a21b54f46d212b",
-  "zip_size": 40193125,
-  "signature": "cIn7Xer9/j2kHTQus386n3nuVJkYWaHlxx0EFU1ROEFf2cgrOPMbWqYUf7xJtq/rIGQAFA2nFbz0zr3cc+lIBA=="
+  "notes": "帳號安全：更改帳號、密碼與重置需要驗證碼；我的收藏新增週期表",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.32/BahaAD-0.2.32-win64.zip",
+  "zip_sha256": "dadd355e4dfc7c1b31a6d27aaf4dd71ca1e28abf15e22c96168359a6ddff7337",
+  "zip_size": 40262470,
+  "signature": "kQ14vnM8vXUZAm2SAEHPmZevYdgQvTe45Cz8uF/BBUEq3XqSgMHFdB3bEJ/uoIodzsX/b8W+HELqfQlGJK8YDA=="
 }
