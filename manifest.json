@@ -1,10 +1,10 @@
 {
-  "version": "0.2.32",
+  "version": "0.2.33",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "帳號安全：更改帳號、密碼與重置需要驗證碼；我的收藏新增週期表",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.32/BahaAD-0.2.32-win64.zip",
-  "zip_sha256": "dadd355e4dfc7c1b31a6d27aaf4dd71ca1e28abf15e22c96168359a6ddff7337",
-  "zip_size": 40262470,
-  "signature": "kQ14vnM8vXUZAm2SAEHPmZevYdgQvTe45Cz8uF/BBUEq3XqSgMHFdB3bEJ/uoIodzsX/b8W+HELqfQlGJK8YDA=="
+  "notes": "新增每日簽到與雙倍巴幣（預設關閉）、自動調整簽到時間",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.33/BahaAD-0.2.33-win64.zip",
+  "zip_sha256": "b1ec41d13361c63999356cce1184bf90999e4897f8038f02b02cae48ba43a38c",
+  "zip_size": 40268459,
+  "signature": "fqjXDyRHWk/h9Mc7lFN1yfMNVoJBDA46+X7ZllHTjTmzLDvKUjBzDzHdHLptgCmJ6a32VR6zjAb7L9L179T9Dw=="
 }
