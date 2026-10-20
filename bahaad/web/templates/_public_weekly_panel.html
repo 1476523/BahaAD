@@ -1,0 +1,24 @@
+{# 公開模式的唯讀週期表側板（番劇列表、我的收藏共用）：markup／id 比照 home.html，交給同一支
+   schedule_panel.js 處理展開收合／環狀捲動。需要 `public_weekly_schedule`（每天一組 entries）。 #}
+<aside id="schedule-panel" class="collapsed">
+  <h2 class="schedule-panel-title">週期表</h2>
+  <div id="schedule-panel-scroll">
+    <div class="schedule-cycle">
+      {% for day in public_weekly_schedule %}
+      {% set wd = loop.index %}
+      <div class="schedule-day">
+        <h3>{{ day.day }}</h3>
+        {% for entry in day.entries %}
+        <div class="schedule-entry" data-weekday="{{ wd }}" data-time="{{ entry.time_text }}">
+          <a class="schedule-entry-link" href="{{ url_for('browse.anime_detail', video_sn=entry.video_sn) }}">
+            <span class="schedule-entry-time">{{ entry.time_text }}</span>
+            <span class="schedule-entry-title">{{ entry.title }}</span>
+            <span class="schedule-entry-episode">{{ entry.episode_text }}</span>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</aside>
