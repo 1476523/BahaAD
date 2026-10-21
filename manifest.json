@@ -1,10 +1,10 @@
 {
-  "version": "0.2.34",
+  "version": "0.2.35",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "修正自我更新可能讓程式檔案不完整；新番快訊與排行榜異常修正；新增刪除伺服器統計資料",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.34/BahaAD-0.2.34-win64.zip",
-  "zip_sha256": "8d70512171474d7fa4f5cded40aaa88a60fa49cdd0c0b9ef3ac8d96faf59db51",
-  "zip_size": 40291406,
-  "signature": "AC1bGRyOgl9LsjjSGnHE6p+5pQm0bJQYT+ik2Q3+7T3V8cDp29MJYCbMycJCAQ+4mpxogFZxujG+m2cNTG8kDw=="
+  "notes": "每日簽到前先確認巴哈個人首頁登入、失敗訊息更清楚、新增立即簽到一次",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.35/BahaAD-0.2.35-win64.zip",
+  "zip_sha256": "e29368826965ac18579c107438a9908a5f39b21de09661e5065eb114533c9263",
+  "zip_size": 40301376,
+  "signature": "4/RRFnUxYRCTe2F6VpPH0TSiRLcHFtZZImv1G804lI20aMEAsdzzHpSllca6+2OLs/UDKkIuBOAa0Wjjo6FiBw=="
 }
