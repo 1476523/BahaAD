@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% import "_seo.html" as seo with context %}
+{% import "_cards.html" as cards with context %}
+{# 公開模式的網域首頁（使用者 2026-10-11）：以前直接導去番劇列表、首頁沒有任何內容可被搜尋引擎
+   索引。這裡是 SEO 落地頁：站名＋簡介、功能入口、最新收錄番劇卡片（可點進各番劇頁）。 #}
+{% block title %}BahaAD - 動畫瘋番劇資訊、集數與每週更新{% endblock %}
+
+{% block seo_meta %}
+{{ seo.tags("BahaAD - 動畫瘋番劇資訊、集數與每週更新", seo_page.description, seo_base ~ url_for('static', filename='og-home.png'), "website", seo_page.jsonld) if seo_page else seo.tags("BahaAD") }}
+{% endblock %}
+
+{# 頂部「收合側欄」鈕要固定在上方、不隨捲動消失（使用者 2026-10-11）：跟番劇列表一樣掛
+   pinned-scroll，只有 #public-home-scroll 捲動。 #}
+{% block shell_class %}pinned-scroll{% endblock %}
+
+{% block content %}
+<div id="public-home-scroll">
+<div class="public-home">
+  <section class="public-home-hero">
+    <h1>BahaAD</h1>
+    <p class="public-home-lead">動畫瘋番劇資訊站：收錄{{ total }}部番劇的集數、評分、簡介與每週更新時間，讓你快速找到想追的動畫。</p>
+    <nav class="public-home-links" aria-label="主要功能">
+      <a class="btn-accent" href="{{ url_for('browse.subscriptions') }}">瀏覽全部番劇</a>
+      <a class="btn-neutral" href="{{ url_for('stats.leaderboard_page') }}">BahaAD 排行榜</a>
+      {% if newanime_nav_visible %}<a class="btn-neutral" href="{{ url_for('newanime.index') }}">新番快訊</a>{% endif %}
+    </nav>
+  </section>
+
+  {% if items %}
+  <section class="public-home-section">
+    <h2>最新收錄番劇</h2>
+    <div class="anime-grid">
+      {% for anime in items %}
+      {{ cards.anime_card(
+           url_for('browse.anime_detail', video_sn=anime.video_sn),
+           cards.display_title(anime.video_sn, anime.title),
+           "共 " ~ anime.episode_count ~ " 集",
+           cover=anime.cover_url,
+           bell_sn=none, subscribed=True, remove_card=False, show_recheck=False) }}
+      {% endfor %}
+    </div>
+    {% if total > items|length %}
+    <p class="public-home-more"><a href="{{ url_for('browse.subscriptions') }}">查看全部 {{ total }} 部番劇 →</a></p>
+    {% endif %}
+  </section>
+  {% else %}
+  <p class="help-text">目前沒有公開的番劇。</p>
+  {% endif %}
+</div>
+</div>
+{% endblock %}
