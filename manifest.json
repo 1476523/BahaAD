@@ -1,10 +1,10 @@
 {
-  "version": "0.2.37",
+  "version": "0.2.38",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "繼續修正每日簽到被站方拒絕（驗證碼錯誤）的問題",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.37/BahaAD-0.2.37-win64.zip",
-  "zip_sha256": "7d93e67467592dd4d6dac9936230484d68a907f6170b9eeded706004bfb6a31e",
-  "zip_size": 40304073,
-  "signature": "/gBtU9yiY7M69QNPWEyHPLXArlspvLgnTl2fNhPzBQN6DE0AFlnkNeIdqc4Rn3MT6Eocl49a0V1bb5puOp3EBQ=="
+  "notes": "每日簽到通知加上累計簽到天數與永久勳章倒數提示",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.38/BahaAD-0.2.38-win64.zip",
+  "zip_sha256": "46f05d1b72d00e090333937d770271fd905688f9a2e9452614558ba812798833",
+  "zip_size": 40306463,
+  "signature": "+yb4em66/v1K6pNmhyTBtd1qXkzIsjm1m0ISbIvKJKxnLay86UDXuF2X0G02FPB0fGeoddIc5LT4bgPbHvtQDg=="
 }
