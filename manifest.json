@@ -1,10 +1,10 @@
 {
-  "version": "0.2.36",
+  "version": "0.2.37",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "修正每日簽到被站方拒絕（驗證碼錯誤）的問題",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.36/BahaAD-0.2.36-win64.zip",
-  "zip_sha256": "1b0def0fcf24a54558d881b4534e30629be01aa2a9ed3f7b9368e088b5a388b9",
-  "zip_size": 40300490,
-  "signature": "uVe3gN8oI0TmbN+8Sk8Ul8xZ0qh9JIuJNbx+eywSbPRbwezvMwlm+ynW96o0hSP6wH2U0YpC+Fe0c8qE7sLkCg=="
+  "notes": "繼續修正每日簽到被站方拒絕（驗證碼錯誤）的問題",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.37/BahaAD-0.2.37-win64.zip",
+  "zip_sha256": "7d93e67467592dd4d6dac9936230484d68a907f6170b9eeded706004bfb6a31e",
+  "zip_size": 40304073,
+  "signature": "/gBtU9yiY7M69QNPWEyHPLXArlspvLgnTl2fNhPzBQN6DE0AFlnkNeIdqc4Rn3MT6Eocl49a0V1bb5puOp3EBQ=="
 }
