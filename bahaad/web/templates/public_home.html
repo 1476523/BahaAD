@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% import "_seo.html" as seo with context %}
+{% import "_cards.html" as cards with context %}
+{# 公開模式的網域首頁（使用者 2026-10-11）：以前直接導去番劇列表、首頁沒有任何內容可被搜尋引擎
+   索引。這裡是 SEO 落地頁：站名＋簡介、功能入口、番劇卡片（可點進各番劇頁）。
+   使用者 2026-10-22：卡片改成左右滑動的橫列（不顯示捲軸）——沒登入：最近收入番劇／最近更新番劇；
+   登入第三方帳號後：我的收藏更新／繼續觀看番劇（後者由 home_rows.js 讀這個瀏覽器的觀看紀錄）。 #}
+{% block title %}BahaAD - 動畫瘋番劇資訊、集數與每週更新{% endblock %}
+
+{% block seo_meta %}
+{{ seo.tags("BahaAD - 動畫瘋番劇資訊、集數與每週更新", seo_page.description, seo_base ~ url_for('static', filename='og-home.png'), "website", seo_page.jsonld) if seo_page else seo.tags("BahaAD") }}
+{% endblock %}
+
+{# 頂部「收合側欄」鈕要固定在上方、不隨捲動消失（使用者 2026-10-11）：跟番劇列表一樣掛
+   pinned-scroll，只有 #public-home-scroll 捲動。 #}
+{% block shell_class %}pinned-scroll{% endblock %}
+
+{% block content %}
+{% macro hscroll_open() %}
+<div class="hscroll" data-hscroll>
+  <button type="button" class="hscroll-btn hscroll-prev" aria-label="向左捲動" hidden>‹</button>
+{% endmacro %}
+{% macro hscroll_close() %}
+  <button type="button" class="hscroll-btn hscroll-next" aria-label="向右捲動" hidden>›</button>
+</div>
+{% endmacro %}
+{% macro card_row(title, rows, empty_text) %}
+<section class="public-home-section">
+  <h2>{{ title }}</h2>
+  {% if rows %}
+  {{ hscroll_open() }}
+  <div class="hscroll-track">
+    {% for anime in rows %}
+    {{ cards.anime_card(
+         url_for('browse.anime_detail', video_sn=anime.video_sn),
+         cards.display_title(anime.video_sn, anime.title),
+         anime.meta,
+         cover=anime.cover_url,
+         bell_sn=none, subscribed=True, remove_card=False, show_recheck=False) }}
+    {% endfor %}
+  </div>
+  {{ hscroll_close() }}
+  {% else %}
+  <p class="help-text">{{ empty_text }}</p>
+  {% endif %}
+</section>
+{% endmacro %}
+<div id="public-home-scroll">
+<div class="public-home">
+  <section class="public-home-hero">
+    <h1>BahaAD</h1>
+    <p class="public-home-lead">動畫瘋番劇資訊站：收錄{{ total }}部番劇的集數、評分、簡介與每週更新時間，讓你快速找到想追的動畫。</p>
+    <nav class="public-home-links" aria-label="主要功能">
+      <a class="btn-accent" href="{{ url_for('browse.subscriptions') }}">瀏覽全部番劇</a>
+      <a class="btn-neutral" href="{{ url_for('stats.leaderboard_page') }}">BahaAD 排行榜</a>
+      {% if newanime_nav_visible %}<a class="btn-neutral" href="{{ url_for('newanime.index') }}">新番快訊</a>{% endif %}
+    </nav>
+  </section>
+
+  {% if total %}
+  {% if home_identity %}
+  {{ card_row("我的收藏更新", home_rows.favorites, "收藏的番劇最近還沒有更新。") }}
+  {# 觀看紀錄只存在這個瀏覽器（localStorage，依登入帳號分開記）；沒有紀錄時顯示提示 #}
+  <section class="public-home-section" data-continue-section data-continue-key="{{ home_identity.id }}">
+    <h2>繼續觀看番劇</h2>
+    {{ hscroll_open() }}
+    <div class="hscroll-track" data-continue-track></div>
+    {{ hscroll_close() }}
+    <p class="help-text" data-continue-empty>還沒有觀看紀錄，看過的番劇會出現在這裡。</p>
+  </section>
+  {% else %}
+  {{ card_row("最近收入番劇", home_rows.added, "目前沒有收入的番劇。") }}
+  {{ card_row("最近更新番劇", home_rows.updated, "目前沒有更新的番劇。") }}
+  {% endif %}
+  <p class="public-home-more"><a href="{{ url_for('browse.subscriptions') }}">查看全部 {{ total }} 部番劇 →</a></p>
+  {% else %}
+  <p class="help-text">目前沒有公開的番劇。</p>
+  {% endif %}
+</div>
+</div>
+<script src="{{ url_for('static', filename='home_rows.js') }}"></script>
+{% endblock %}
