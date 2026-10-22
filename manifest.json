@@ -1,10 +1,10 @@
 {
-  "version": "0.2.38",
+  "version": "0.2.39",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "每日簽到通知加上累計簽到天數與永久勳章倒數提示",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.38/BahaAD-0.2.38-win64.zip",
-  "zip_sha256": "46f05d1b72d00e090333937d770271fd905688f9a2e9452614558ba812798833",
-  "zip_size": 40306463,
-  "signature": "+yb4em66/v1K6pNmhyTBtd1qXkzIsjm1m0ISbIvKJKxnLay86UDXuF2X0G02FPB0fGeoddIc5LT4bgPbHvtQDg=="
+  "notes": "docs/release-notes/0.2.39.md",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.39/BahaAD-0.2.39-win64.zip",
+  "zip_sha256": "d3736974593e2abb18d91a24a5eef07cad334e9aa1df4b7a81b02b5c601b04dc",
+  "zip_size": 41059550,
+  "signature": "cEtAcXfvm9Pnrts7vP0ag607RjtjbD6VqwLOAc/TgaCkzuxoCTp6X+uCm9QSP1jhc2UazrHA+ig5II4OZuhZAg=="
 }
