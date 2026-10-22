@@ -1,10 +1,10 @@
 {
-  "version": "0.2.35",
+  "version": "0.2.36",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "每日簽到前先確認巴哈個人首頁登入、失敗訊息更清楚、新增立即簽到一次",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.35/BahaAD-0.2.35-win64.zip",
-  "zip_sha256": "e29368826965ac18579c107438a9908a5f39b21de09661e5065eb114533c9263",
-  "zip_size": 40301376,
-  "signature": "4/RRFnUxYRCTe2F6VpPH0TSiRLcHFtZZImv1G804lI20aMEAsdzzHpSllca6+2OLs/UDKkIuBOAa0Wjjo6FiBw=="
+  "notes": "修正每日簽到被站方拒絕（驗證碼錯誤）的問題",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.36/BahaAD-0.2.36-win64.zip",
+  "zip_sha256": "1b0def0fcf24a54558d881b4534e30629be01aa2a9ed3f7b9368e088b5a388b9",
+  "zip_size": 40300490,
+  "signature": "uVe3gN8oI0TmbN+8Sk8Ul8xZ0qh9JIuJNbx+eywSbPRbwezvMwlm+ynW96o0hSP6wH2U0YpC+Fe0c8qE7sLkCg=="
 }
