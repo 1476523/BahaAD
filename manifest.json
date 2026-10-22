@@ -1,10 +1,10 @@
 {
-  "version": "0.2.39",
+  "version": "0.2.40",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "公開模式首頁改成左右滑動的番劇列；公開網站可安裝成手機 APP（PWA）；調整收藏鈕與登入頁間距",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.39/BahaAD-0.2.39-win64.zip",
-  "zip_sha256": "d3736974593e2abb18d91a24a5eef07cad334e9aa1df4b7a81b02b5c601b04dc",
-  "zip_size": 41059550,
-  "signature": "z+R5ri9MeeQwlyxTduM2JVGb7ZDybBRT2fXhtb3eg+2c72U8NVW5XbzNRVi42IrU626aFL5hSbhifRO86dqhCA=="
+  "notes": "公開網站新增安卓 APP 全螢幕所需的網站驗證網址",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.40/BahaAD-0.2.40-win64.zip",
+  "zip_sha256": "628282c16d0caa001a5b3a1b82eb57643312fcffde67ce1b90def91e1ec6e7e7",
+  "zip_size": 41061228,
+  "signature": "F84DWAGGBoFbXIobrv2rv829JmynhS0C+KEGWJAEF72zYNGkFHh+H9n0pVB2RVjAKDUm93msCoA5z2Q+4eklDA=="
 }
