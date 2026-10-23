@@ -1,10 +1,10 @@
 {
-  "version": "0.2.42",
+  "version": "0.2.43",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "設定頁新增「安卓 APP」，可生成並下載公開網站的安卓安裝檔",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.42/BahaAD-0.2.42-win64.zip",
-  "zip_sha256": "f83cadae9dcfccc38971e7a0f5034fecfd6a5daa9a9367f2877008debb5a45c3",
-  "zip_size": 41083115,
-  "signature": "hieZMwCYjO2i7soIwRi4Xf65Yy7b+ErSGmLkdhIct+GQZoJWdrx/F3vj6gNQ2I+MEqwfNbjgs6+NFs3TiF1yCQ=="
+  "notes": "APP 與 PWA 快取封面和靜態檔案，重新整理更快（90 天自動清除）；設定頁版面微調",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.43/BahaAD-0.2.43-win64.zip",
+  "zip_sha256": "c341f5608faec0d301e660a7545b3150b426cbb107438b4f2f7686b03a5b529e",
+  "zip_size": 41084555,
+  "signature": "jLLG/ucMhyikDl3ZKyIdlI7TVBcppqbcVdYBUgwCnNWyr2pbkqa0h4BkCUN4g97hLYNZfHR61gb8VuZyGSDyDQ=="
 }
