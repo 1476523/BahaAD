@@ -1,10 +1,10 @@
 {
-  "version": "0.2.41",
+  "version": "0.2.42",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "每日簽到通知獎勵跟著站方訊息；手機可左右滑動開關側邊；頁面高度貼合手機螢幕",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.41/BahaAD-0.2.41-win64.zip",
-  "zip_sha256": "4c20a5dfa69036f21b699fc294c37028c154ad7437cfe5a7d12e235f888a404b",
-  "zip_size": 41065451,
-  "signature": "0A+bgeUx/kpg4ywbb1VjS+YSr4Xux19Rmzh6Tu4HJY2bPxFQf8ec04NmnQkrQkBY4vlZRan7XGkROYM+8md7DA=="
+  "notes": "設定頁新增「安卓 APP」，可生成並下載公開網站的安卓安裝檔",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.42/BahaAD-0.2.42-win64.zip",
+  "zip_sha256": "f83cadae9dcfccc38971e7a0f5034fecfd6a5daa9a9367f2877008debb5a45c3",
+  "zip_size": 41083115,
+  "signature": "hieZMwCYjO2i7soIwRi4Xf65Yy7b+ErSGmLkdhIct+GQZoJWdrx/F3vj6gNQ2I+MEqwfNbjgs6+NFs3TiF1yCQ=="
 }
