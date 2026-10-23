@@ -1,10 +1,10 @@
 {
-  "version": "0.2.40",
+  "version": "0.2.41",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "公開網站新增安卓 APP 全螢幕所需的網站驗證網址",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.40/BahaAD-0.2.40-win64.zip",
-  "zip_sha256": "628282c16d0caa001a5b3a1b82eb57643312fcffde67ce1b90def91e1ec6e7e7",
-  "zip_size": 41061228,
-  "signature": "F84DWAGGBoFbXIobrv2rv829JmynhS0C+KEGWJAEF72zYNGkFHh+H9n0pVB2RVjAKDUm93msCoA5z2Q+4eklDA=="
+  "notes": "每日簽到通知獎勵跟著站方訊息；手機可左右滑動開關側邊；頁面高度貼合手機螢幕",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.41/BahaAD-0.2.41-win64.zip",
+  "zip_sha256": "4c20a5dfa69036f21b699fc294c37028c154ad7437cfe5a7d12e235f888a404b",
+  "zip_size": 41065451,
+  "signature": "0A+bgeUx/kpg4ywbb1VjS+YSr4Xux19Rmzh6Tu4HJY2bPxFQf8ec04NmnQkrQkBY4vlZRan7XGkROYM+8md7DA=="
 }
