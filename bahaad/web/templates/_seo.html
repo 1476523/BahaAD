@@ -1,0 +1,24 @@
+{# 公開模式 SEO meta（使用者 2026-10-10）。base.html 預設呼叫一次；番劇頁用自己的標題／簡介／封面／
+   JSON-LD 覆寫 `seo_meta` block。非公開可索引頁（seo_indexable 為 false）一律 noindex。 #}
+{% macro tags(title, description=None, image=None, og_type="website", jsonld=None) %}
+{% if seo_indexable %}
+{% set desc = description or seo_description %}
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="description" content="{{ desc }}">
+<link rel="canonical" href="{{ seo_canonical }}">
+<meta property="og:site_name" content="{{ seo_site_name }}">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:type" content="{{ og_type }}">
+<meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ desc }}">
+<meta property="og:url" content="{{ seo_canonical }}">
+{% if image %}<meta property="og:image" content="{{ image }}">{% endif %}
+<meta name="twitter:card" content="{{ 'summary_large_image' if image else 'summary' }}">
+<meta name="twitter:title" content="{{ title }}">
+<meta name="twitter:description" content="{{ desc }}">
+{% if image %}<meta name="twitter:image" content="{{ image }}">{% endif %}
+{% if jsonld %}<script type="application/ld+json">{{ jsonld | tojson }}</script>{% endif %}
+{% else %}
+<meta name="robots" content="noindex,nofollow">
+{% endif %}
+{% endmacro %}
