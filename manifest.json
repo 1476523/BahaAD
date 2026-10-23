@@ -1,10 +1,10 @@
 {
-  "version": "0.2.43",
+  "version": "0.2.44",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "APP 與 PWA 快取封面和靜態檔案，重新整理更快（90 天自動清除）；設定頁版面微調",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.43/BahaAD-0.2.43-win64.zip",
-  "zip_sha256": "c341f5608faec0d301e660a7545b3150b426cbb107438b4f2f7686b03a5b529e",
-  "zip_size": 41084555,
-  "signature": "jLLG/ucMhyikDl3ZKyIdlI7TVBcppqbcVdYBUgwCnNWyr2pbkqa0h4BkCUN4g97hLYNZfHR61gb8VuZyGSDyDQ=="
+  "notes": "公開網站新增「下載 APP」頁與 QR code；安卓 APP 隨版本自動更新，舊版 APP 會提示更新",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.44/BahaAD-0.2.44-win64.zip",
+  "zip_sha256": "d702ac6f7e85d53dd9175bfa3aa2dd9ffaa2e1ab9c732bda41d1b85e04495bce",
+  "zip_size": 41419564,
+  "signature": "B6MxGzsK+IhMqJvbpTI8ur0WxfydDAPwWf4+nHRnuRieDOEWTLXP4CTqVY1GYD9Ms2AZtUx8lLfOLAT0nX/5DQ=="
 }
