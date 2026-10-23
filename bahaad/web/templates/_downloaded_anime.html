@@ -1,0 +1,19 @@
+{% import "_cards.html" as cards with context %}
+{% if downloaded_anime %}
+<p class="anime-grid-count">共 {{ downloaded_anime | length }} 部動畫</p>
+<div class="anime-grid">
+  {# 點封面進番劇詳細頁看每一集的下載狀態（集數選取器會依狀態上色）。已下載番劇卡片
+     不放鈴鐺（不是訂閱管理的地方）。 #}
+  {% for anime in downloaded_anime %}
+  {{ cards.anime_card(
+       url_for('browse.anime_detail', video_sn=anime.video_sn),
+       anime.title,
+       "共 " ~ anime.episode_count ~ " 集",
+       cover=anime.cover_url,
+       public_title=(anime.raw_title if public_pick else none),
+       public_on=(anime.raw_title not in public_hidden)) }}
+  {% endfor %}
+</div>
+{% else %}
+<p class="help-text">目前還沒有下載完成的番劇。</p>
+{% endif %}
