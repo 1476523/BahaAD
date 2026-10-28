@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}近期熱播 - BahaAD{% endblock %}
+
+{# 使用者 2026-09-05：標題固定在上方，只有卡片格那塊捲動（比照首頁）。 #}
+{% block shell_class %}pinned-scroll{% endblock %}
+
+{% block content %}
+<div id="trending-page">
+  <h1>近期熱播</h1>
+  {# 第一頁由 trending.js 自動打 /browse/trending/api?page=N（animeList.php?sort=2 依月
+     人氣）填起來，之後靠下面的「載入更多」按鈕手動補下一頁（round 7 第 3 項）。 #}
+  <div id="trending-scroll">
+    <div class="anime-grid" id="trending-grid"></div>
+    <div id="trending-status" class="card-grid-loading is-loading">
+      <img src="{{ url_for('static', filename='icons/loading.gif') }}" alt="載入中" width="48" height="48">
+      <span>載入中…</span>
+    </div>
+    <div class="load-more" id="trending-load-more" hidden>
+      <button type="button">
+        <img class="theme-icon" data-icon="refresh"
+             src="{{ url_for('static', filename='icons/refresh-' + ('black' if ui_theme == 'light' else 'white') + '.png') }}" alt="">
+        <span>點擊載入更多</span>
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='trending.js') }}"></script>
+{% endblock %}
