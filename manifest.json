@@ -1,10 +1,10 @@
 {
-  "version": "0.2.44",
+  "version": "0.2.45",
   "minimum_required_version": "0.0.1",
   "mandatory": false,
-  "notes": "公開網站新增「下載 APP」頁與 QR code；安卓 APP 隨版本自動更新，舊版 APP 會提示更新",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.44/BahaAD-0.2.44-win64.zip",
-  "zip_sha256": "d702ac6f7e85d53dd9175bfa3aa2dd9ffaa2e1ab9c732bda41d1b85e04495bce",
-  "zip_size": 41419564,
-  "signature": "B6MxGzsK+IhMqJvbpTI8ur0WxfydDAPwWf4+nHRnuRieDOEWTLXP4CTqVY1GYD9Ms2AZtUx8lLfOLAT0nX/5DQ=="
+  "notes": "修正分批上架的番劇會漏抓後出那批集數的問題；公告比對現在能查到付費會員限定與限制級番劇。",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.45/BahaAD-0.2.45-win64.zip",
+  "zip_sha256": "03cd495d9450111a40aeb7340606924aaa174e67a502684262a0d43898f42a97",
+  "zip_size": 41423734,
+  "signature": "YlpRwh5poUDlbUTZebTWtCqNCUhiZRl9+fOT3KAVs3qAANWXcplHRO66gHtZrmDrWz4ynkAlox0yuUj81h35Aw=="
 }
