@@ -1,10 +1,10 @@
 {
-  "version": "0.2.46",
+  "version": "0.2.47",
   "minimum_required_version": "0.0.1",
-  "mandatory": false,
-  "notes": "修正站方一時連不上（連線逾時）時，下載會被直接判失敗的問題，現在會自動排進延長重試。",
-  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.46/BahaAD-0.2.46-win64.zip",
-  "zip_sha256": "d464eb9c0bbff01b096242a1a8b90ed1b7d2be45ba13f6f683da45bdaa6eca0f",
-  "zip_size": 41423716,
-  "signature": "NBH612OmiEHE45lPEWUDAbEcQBX0IVUgYnJbx9QAQmAPR5pLX9/znwZqfAoXDGw5TA4T3whvSOWtEpbZhoTsCg=="
+  "mandatory": true,
+  "notes": "修正登入狀態反覆失效、下載出現「裝置驗證異常」的問題（強制更新，更新後請重新啟動），並調整日誌頁篩選排版與來源名稱。",
+  "zip_url": "https://github.com/1476523/BahaAD/releases/download/v0.2.47/BahaAD-0.2.47-win64.zip",
+  "zip_sha256": "5c5177a827ec01c2a2af5767f69cd9b16833066a213381c16bb9e63b1c88e99d",
+  "zip_size": 41426436,
+  "signature": "eB0qx58i/dNHW7rVIqX0tyAYWRtQIajHz0jKyICVcaPS7L0ZIEQNJE0PLc7LZtvLKo0wPkpKrOHE7klDMj+QAQ=="
 }
