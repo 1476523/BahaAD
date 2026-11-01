@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% import "_gossip_tabs.html" as tabs with context %}
+{% block title %}操作處置 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card extra-wide-card">
+  <h1>官方公告</h1>
+  {{ tabs.gossip_tabs('actionable') }}
+  <p class="help-text">
+    目標日期還沒過、還沒確認忽略、對應臨時排程還沒完成的公告子事件。「機動調整時間」開著時系統會先套用建議處置，這裡可以改成別的。
+  </p>
+
+  {% if not events %}
+  <p class="help-text">目前沒有需要處置的公告。</p>
+  {% else %}
+  {% for event in events %}
+  {% include "_gossip_disposition_form.html" %}
+  {% endfor %}
+  {% endif %}
+
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+// 依選中的處置方式顯示對應的自訂欄位；同名 input 分散在三個區塊裡，被隱藏的區塊
+// 用 disabled 讓它不會被送出（避免三組 custom_check_date 互相蓋掉）
+function syncCustomFields(form) {
+  var value = form.querySelector(".gossip-disposition-select").value;
+  form.querySelectorAll(".gossip-custom").forEach(function (block) {
+    var show = block.dataset.for === value;
+    block.hidden = !show;
+    block.querySelectorAll("input, select").forEach(function (field) { field.disabled = !show; });
+  });
+}
+document.querySelectorAll(".gossip-disposition-form").forEach(function (form) {
+  form.querySelector(".gossip-disposition-select").addEventListener("change", function () {
+    syncCustomFields(form);
+  });
+  syncCustomFields(form);
+});
+</script>
+{% endblock %}

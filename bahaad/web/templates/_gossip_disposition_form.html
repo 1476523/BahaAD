@@ -1,0 +1,90 @@
+{# 單一公告子事件的處置區塊。操作處置頁（gossip_actionable.html）逐筆 include，
+   頂列鈴鐺「立即操作／更改操作」視窗用 /gossip/actionable/<id>/form 拿同一段。
+   變數：event / disposition_options / reschedule_dispositions / weekday_choices /
+   tracked_options / tracked_titles，in_modal（選填，視窗內用；預設 false）。 #}
+{% set is_reschedule = event.action == "reschedule" %}
+{% set _wd = "一二三四五六日" %}
+<div class="gossip-event" data-event-id="{{ event.id }}">
+  <p class="gossip-event-clause">{{ event.raw_clause }}</p>
+  {# 標題與內容分行顯示（web_redesign_round5.md 項目 4）。「目標」→「預計時間」。 #}
+  <dl class="gossip-meta">
+    <dt>系統判斷</dt>
+    <dd>{{ "每週更新時間異動" if is_reschedule else event.status_label }}</dd>
+    {% if is_reschedule and event.target_time %}
+    {% set _parts = event.target_time.split("/") %}
+    <dt>新的更新時段</dt>
+    <dd>每週{{ _wd[_parts[0]|int - 1] }}{% if _parts|length > 1 %} {{ _parts[1] }}{% endif %}{% if event.target_date %}（{{ event.target_date }} 起）{% endif %}</dd>
+    {% elif event.target_date %}
+    <dt>預計時間</dt>
+    <dd>{{ event.target_date }}{% if event.target_time %} {{ event.target_time }}{% elif event.target_time_start %} {{ event.target_time_start }}~{{ event.target_time_end }}{% endif %}</dd>
+    {% endif %}
+    <dt>系統建議</dt>
+    <dd>{{ event.system_suggestion }}{% if event.disposition_locked %} <span class="badge">已手動確認</span>{% endif %}</dd>
+    {% if event.sn is not none %}
+    {% set _tracked_name = (tracked_titles | default({}, true)).get(event.sn) or event.title_in_gossip or ('sn ' ~ event.sn) %}
+    <dt>對應追蹤項目</dt>
+    <dd>{{ _tracked_name }}{% if event.title_in_gossip and event.title_in_gossip != _tracked_name %}（公告名稱：{{ event.title_in_gossip }}）{% endif %}</dd>
+    {% endif %}
+  </dl>
+
+  {% if event.sn is none %}
+  <p class="warning">這則公告沒有自動比對到追蹤中的作品。先指定一個追蹤項目，才能套用排程類的處置（也可以直接選「忽略此公告」）。</p>
+  <form method="post" action="{{ url_for('gossip.assign_sn', event_id=event.id) }}" class="gossip-assign-form">
+    <label>指定追蹤項目
+      <select name="sn" required>
+        <option value="">（請選擇）</option>
+        {% for sn, label in tracked_options %}
+        <option value="{{ sn }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit">指定</button>
+  </form>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('gossip.apply_disposition', event_id=event.id) }}" class="gossip-disposition-form" novalidate>
+    <div class="gossip-disposition-row">
+      <label>處置方式
+        <select name="disposition" class="gossip-disposition-select">
+          {% for option in disposition_options %}
+          {# 每週更新時間異動的三個處置只出現在 reschedule 事件；其餘事件排除它們 #}
+          {% if (option in reschedule_dispositions) == is_reschedule or option == "等待處置" %}
+          <option value="{{ option }}" {{ 'selected' if option == event.disposition else '' }}>{{ option }}</option>
+          {% endif %}
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit" class="btn-accent">套用處置</button>
+    </div>
+
+    {# 各組都預設 hidden（＋CSS 的 .gossip-custom[hidden]），JS syncCustomFields() 依
+       選中的處置留一組——不預設收好的話進頁面瞬間全閃出來（階段 8-3）。 #}
+    <div class="gossip-custom" data-for="自訂更新時間" hidden>
+      <label>日期 <input type="date" name="custom_check_date" disabled></label>
+      <label>時間 <input type="time" name="custom_check_time" disabled></label>
+    </div>
+    <div class="gossip-custom" data-for="自訂連續更新時間" hidden>
+      <label>日期 <input type="date" name="custom_check_date" disabled></label>
+      <label>時間 <input type="time" name="custom_check_time" disabled></label>
+      <label>集數 <input type="number" name="custom_episode_count" min="2" value="2" disabled></label>
+    </div>
+    <div class="gossip-custom" data-for="自訂時間範圍" hidden>
+      <label>日期 <input type="date" name="custom_check_date" disabled></label>
+      <label>開始 <input type="time" name="custom_check_time_start" disabled></label>
+      <label>結束 <input type="time" name="custom_check_time_end" disabled></label>
+      <label>集數 <input type="number" name="custom_episode_count" min="1" value="1" disabled></label>
+    </div>
+    {% if is_reschedule %}
+    <div class="gossip-custom" data-for="自訂更新時段" hidden>
+      <label>星期
+        <select name="custom_weekday" disabled>
+          {% for value, label in weekday_choices %}
+          <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>時間 <input type="time" name="custom_check_time" disabled></label>
+    </div>
+    {% endif %}
+  </form>
+</div>

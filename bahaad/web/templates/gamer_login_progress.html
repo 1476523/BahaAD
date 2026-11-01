@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}登入處理中 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card" id="gamer-login-progress" data-next-url="{{ next_url }}">
+  <h1>處理中…</h1>
+  <p id="gamer-login-message">正在開啟登入視窗，請稍候。</p>
+  <p class="help-text" id="gamer-login-hint">
+    如果彈出了瀏覽器視窗，請在裡面完成人機驗證並按下登入。完成後這個頁面會自動繼續。
+  </p>
+  <div class="reset-fields" id="gamer-login-actions" hidden>
+    <a href="{{ next_url }}"><button type="button" class="btn-accent">繼續</button></a>
+    <a href="{{ url_for('gamer_login.creds', next=next_key) }}"><button type="button">重新輸入帳密</button></a>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='gamer_login.js') }}"></script>
+{% endblock %}
