@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% import "_cards.html" as cards with context %}
+{% block title %}下載列表 - BahaAD{% endblock %}
+
+{# 使用者 2026-09-06：標題固定在上方，只有下面的清單捲動（比照首頁／訂閱列表）。 #}
+{% block shell_class %}pinned-scroll{% endblock %}
+
+{% block content %}
+<div id="downloads-page">
+  <h1>下載列表</h1>
+  <div id="downloads-scroll">
+    {% if not public_readonly %}
+    <h2 class="downloads-section-title">進行中／最近失敗的任務</h2>
+    <p id="download-cooldown-banner" class="download-cooldown-banner" hidden></p>
+    <div id="active-downloads-grid" class="task-grid"></div>
+    <p id="active-downloads-empty" class="help-text">暫時沒有進行中或失敗的任務</p>
+    {% endif %}
+
+    <h2 class="downloads-section-title">已下載的番劇</h2>
+    <div id="downloaded-anime">{% include "_downloaded_anime.html" %}</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if not public_readonly %}
+<script src="{{ url_for('static', filename='downloads_queue.js') }}"></script>
+<script src="{{ url_for('static', filename='public_toggle.js') }}"></script>
+{% endif %}
+{% endblock %}

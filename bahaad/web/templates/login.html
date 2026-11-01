@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}登入 - BahaAD{% endblock %}
+{% block content %}
+<div class="auth-card">
+  <h1>登入 BahaAD</h1>
+  <form method="post">
+    <label>帳號
+      <input type="text" name="username" required autocomplete="username">
+    </label>
+    <label>密碼
+      <input type="password" name="password" required autocomplete="current-password">
+    </label>
+    <div class="login-actions">
+      <button type="submit" class="btn-accent">登入</button>
+      <a class="btn-neutral" href="{{ url_for('auth.forgot_password') }}">忘記密碼？</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
